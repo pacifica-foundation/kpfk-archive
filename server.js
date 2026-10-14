@@ -4176,7 +4176,7 @@ const discovery = station && station.plugins.discovery ? require('./plugins/disc
   station, dataDir: DATA_DIR, getArchive, peekCatalog: () => pacifica.peekCatalog(), securityHeaders,
 }) : null;
 
-const server = http.createServer(async (req, res) => {
+async function handleRequest(req, res) {
   const url = req.url || '/';
   const pathOnly = url.split('?')[0];
 
@@ -4417,6 +4417,21 @@ const server = http.createServer(async (req, res) => {
     console.error(`[error] ${url}:`, err.message);
     return sendJson(res, { error: err.status === 404 ? err.message : 'upstream unavailable' }, err.status || 502);
   }
+}
+
+// Every request runs inside this one catch (2026-10-13). The routes before the try above (POSTs,
+// the studio, exports, backups) had none, and an error thrown in an async handler is an unhandled
+// rejection, which STOPS the whole process: one bad studio download took the listener site down.
+// What it catches: a bug in any route. The response: log the full stack (it is never hidden), answer
+// that one request 500 — or, if the response had already started, cut it off so the client sees a
+// broken download rather than a truncated "successful" one — and keep serving everyone else.
+const server = http.createServer((req, res) => {
+  handleRequest(req, res).catch((err) => {
+    console.error(`[error] unhandled in ${req.method} ${(req.url || '/').split('?')[0]}:`, err && err.stack ? err.stack : err);
+    if (res.headersSent) { res.destroy(err); return; }
+    try { sendJson(res, { error: 'internal error' }, 500); }
+    catch (e) { console.error('[error] could not send the 500:', e.message); res.destroy(); }
+  });
 });
 
 // Only listen when run as a program. `require()`ing this file — which the

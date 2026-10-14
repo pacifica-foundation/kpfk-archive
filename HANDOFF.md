@@ -107,6 +107,11 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
   Listening export column `date_utc` → **`date`**, manifest `from_date`/`to_date` (Paul's call);
   read-mes say days before mid-October 2026 are UTC days. Test: `test/pacifica/station-day.test.js`
   (fixed-clock server, 8 pm PT and Oct 31 11:30 pm PT), shown to fail on the UTC code.
+- **One route's error no longer stops the server.** The handler's try/catch began after the POSTs,
+  studio, exports and backups; an error there was an unhandled rejection and Node exited (seen
+  tonight when a half-done export edit threw). Now `handleRequest` runs inside one catch: full stack
+  logged as `[error] unhandled in <METHOD> <path>`, that request gets 500 (or is cut off if already
+  streaming), everyone else keeps being served. Test: `test/pacifica/request-errors.test.js`.
 
 ## 2026-09-29 — archive rules, /discover retired, Import / Export for moving the site
 
