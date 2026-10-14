@@ -1004,11 +1004,11 @@
     }
 
     /* ---------------- export ----------------
-       A dialog opened from the header. Dates are a from/to span of UTC days,
+       A dialog opened from the header. Dates are a from/to span of station days,
        bounded by what the server reports (the 1st of the oldest stats month,
        and today). Presets come from the server's `today`, never this browser's
-       clock: a Los Angeles evening is already tomorrow in UTC, and the counters
-       are UTC days. The index is re-read on every open, so a new day appears
+       clock: the counters are the station's calendar days (UTC days before
+       2026-10-13), which this browser may not share. The index is re-read on every open, so a new day appears
        without a reload. */
     function isoDay(ms) { return new Date(ms).toISOString().slice(0, 10); }
     function utcMs(d) { return Date.parse(d + 'T00:00:00Z'); }

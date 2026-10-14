@@ -81,6 +81,13 @@ const FIXTURE = {
 const dataDirs = new WeakMap();
 function dataDirOf(child) { return dataDirs.get(child); }
 
+// Studio days are the station's calendar days (2026-10-13). These servers get no STATION_TZ
+// (tools/run-tests.js clears it), so they use server.js's default zone; "today" here must too.
+const SERVER_TZ = process.env.STATION_TZ || 'America/New_York';
+function stationDay(ms = Date.now()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: SERVER_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(ms);
+}
+
 function startServer(port, env, fixture) {
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wbai-studio-'));
   if (fixture) fs.writeFileSync(path.join(dataDir, 'feeds.json'), JSON.stringify(fixture));
@@ -133,8 +140,8 @@ function sign(exp, secret) {
  * doesn't" with no error anywhere.
  */
 function legacyStats() {
-  const month = new Date().toISOString().slice(0, 7);
-  const day = new Date().toISOString().slice(0, 10);
+  const month = stationDay().slice(0, 7);
+  const day = stationDay();
   return {
     station: 'wbai',
     month,
@@ -744,11 +751,12 @@ async function run() {
   fs.writeFileSync(path.join(rollDir, 'feeds.json'), JSON.stringify(FIXTURE));
   fs.mkdirSync(path.join(rollDir, 'stats'), { recursive: true });
 
-  const nowUTC = new Date();
-  const firstOfMonth = Date.UTC(nowUTC.getUTCFullYear(), nowUTC.getUTCMonth(), 1);
+  // Calendar arithmetic from the station's today (date labels as UTC midnights, no clock).
+  const todayLocal = stationDay();
+  const firstOfMonth = Date.parse(todayLocal.slice(0, 8) + '01T00:00:00Z');
   const prevLastMs = firstOfMonth - 86400000;
   const prevLast = new Date(prevLastMs).toISOString().slice(0, 10);
-  const todayMs = Date.UTC(nowUTC.getUTCFullYear(), nowUTC.getUTCMonth(), nowUTC.getUTCDate());
+  const todayMs = Date.parse(todayLocal + 'T00:00:00Z');
   const prevInWindow = Math.round((todayMs - prevLastMs) / 86400000) <= 29;
 
   fs.writeFileSync(path.join(rollDir, 'stats', `${prevLast.slice(0, 7)}.json`), JSON.stringify({

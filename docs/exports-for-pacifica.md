@@ -8,7 +8,7 @@ side by side. It is the "cross-station shape" promised in [exports.md](exports.m
 
 | Dataset | Files | Dates | What it answers |
 | --- | --- | --- | --- |
-| **Listening** | `daily`, `shows`, `reach` CSV · one JSON | any span, **UTC days** | How much listening, of what, from where |
+| **Listening** | `daily`, `shows`, `reach` CSV · one JSON | any span, **station days** | How much listening, of what, from where |
 | **Archive** | `episodes`, `shows` CSV · one JSON | any span, **local air date** | What the station aired and still holds |
 | **Coverage** | `shows` CSV · one JSON | none — a snapshot | Which programs lack artwork, descriptions or recent episodes |
 | **Station profile** | JSON | none — a snapshot | Name, frequency, timezone, links, category map |
@@ -40,10 +40,10 @@ the same explanation in its `manifest`.
 
 ## Dates: two clocks, stated in every file
 
-- **Listening is in UTC days** (`date_utc`). Counters are assigned to a UTC day when
-  recorded and cannot be re-split afterwards. The same UTC day covers different local
-  hours at an Eastern and a Pacific station — fine for months, worth knowing for a
-  single day.
+- **Listening is in the station's own days** (`date`, in the station's timezone, named
+  in the manifest). Counters are assigned to a day when recorded and cannot be re-split
+  afterwards. Until mid-October 2026 they were UTC days (the column was `date_utc`), so
+  older days start at 5 pm Pacific; fine for months, worth knowing for a single day.
 - **Archive is by local air date** (`air_date_local`, in the station's own timezone,
   named in the manifest), because "what aired on the 5th" means the station's 5th.
 - The station's timezone is in every manifest (`station_timezone`) and in the profile.

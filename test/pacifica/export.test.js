@@ -21,12 +21,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // The documented columns, written out here rather than read from the module:
 // a column added to COLUMNS without a docs/exports.md change must fail this.
 const DOCUMENTED = {
-  daily: ['station', 'date_utc', 'page_views', 'episode_plays', 'live_tune_ins', 'searches', 'shares',
+  daily: ['station', 'date', 'page_views', 'episode_plays', 'live_tune_ins', 'searches', 'shares',
     'seconds_listened_on_demand', 'seconds_listened_live'],
   shows: ['station', 'show_key', 'show_title', 'plays', 'seconds_listened'],
   reach: ['station', 'bucket', 'label', 'page_views'],
   features: ['station', 'feature', 'label', 'clicks'],
-  features_daily: ['station', 'date_utc', 'transcriptOpen', 'songsOpen', 'lineJump', 'songJump', 'transcriptFind',
+  features_daily: ['station', 'date', 'transcriptOpen', 'songsOpen', 'lineJump', 'songJump', 'transcriptFind',
     'summaryShown', 'pendingShown', 'justAiredPlay'],
 };
 
@@ -86,7 +86,7 @@ test('builder: every day of the span, totals equal the day records, columns are 
   };
   const aug = build('2026-08-01', '2026-08-31', store, k => (k === 'kpfk.kpfk.a' ? 'Show A' : ''));
   assert.equal(aug.daily.length, 31, 'a whole month, including days with no activity');
-  assert.equal(aug.daily[0].date_utc, '2026-08-01'); assert.equal(aug.daily[30].date_utc, '2026-08-31');
+  assert.equal(aug.daily[0].date, '2026-08-01'); assert.equal(aug.daily[30].date, '2026-08-31');
   const sum = (rows, k) => rows.reduce((n, r) => n + r[k], 0);
   assert.equal(sum(aug.daily, 'episode_plays'), 3); assert.equal(sum(aug.daily, 'page_views'), 6);
   assert.equal(sum(aug.daily, 'seconds_listened_on_demand'), 400); assert.equal(sum(aug.daily, 'shares'), 1);
@@ -94,13 +94,13 @@ test('builder: every day of the span, totals equal the day records, columns are 
   assert.deepEqual(aug.reach.map(r => [r.bucket, r.page_views]), [['local', 4], ['national', 0], ['intl', 1], ['unknown', 0]]);
 
   const sep = build('2026-09-01', '2026-09-16', store);
-  assert.equal(sep.daily.length, 16); assert.equal(sep.manifest.to_date_utc, '2026-09-16');
+  assert.equal(sep.daily.length, 16); assert.equal(sep.manifest.to_date, '2026-09-16');
   assert.deepEqual(sep.shows.map(s => [s.show_key, s.plays, s.seconds_listened, s.show_title]),
     [['kpfk.kpfk.a', 0, 60, ''], ['kpfk.kpfk.b', 3, 50, '']], 'ranked by seconds; an unnamed show has an empty title');
 
   const all = build('2026-08-01', '2026-09-16', store);
   assert.equal(all.daily.length, 31 + 16); assert.equal(sum(all.daily, 'episode_plays'), 6);
-  assert.equal(all.manifest.from_date_utc, '2026-08-01'); assert.equal(all.manifest.days_covered, 47);
+  assert.equal(all.manifest.from_date, '2026-08-01'); assert.equal(all.manifest.days_covered, 47);
 
   // A span cuts at days, not months: only what falls inside it is counted.
   const cut = build('2026-08-04', '2026-09-01', store);
@@ -292,13 +292,14 @@ test('real HTTP: studio exports are gated, validated, titled, and agree with the
   }
 
   const index = await (await get('/api/studio/exports')).json();
-  const thisMonth = new Date().toISOString().slice(0, 7);
+  // The station's calendar day and month (studio days are station days since 2026-10-13).
+  const stationToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const thisMonth = stationToday.slice(0, 7);
   assert.equal(index.hasData, true);
   assert.deepEqual(index.months.map(m => m.month), [thisMonth, '2020-02'], 'newest first, only months that exist');
   assert.equal(index.months[1].daysWithData, 2);
-  const todayUtc = new Date().toISOString().slice(0, 10);
   assert.equal(index.firstDate, '2020-02-01', 'spans start at the oldest month on disk');
-  assert.equal(index.today, todayUtc);
+  assert.equal(index.today, stationToday);
 
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   for (const [from, to] of [['2020-02-10', '2020-02-09'], ['2020-01-31', '2020-02-29'], ['2020-02-01', tomorrow],
@@ -352,28 +353,28 @@ test('real HTTP: studio exports are gated, validated, titled, and agree with the
   // The export and the dashboard read today's counters identically.
   const usage = await (await get('/api/studio/usage?days=7')).json();
   const todayDash = usage.days[usage.days.length - 1];
-  const now = parseCsv(await bytes(await get(`/api/studio/export?dataset=listening&from=${thisMonth}-01&to=${todayUtc}&format=csv&table=daily`)));
+  const now = parseCsv(await bytes(await get(`/api/studio/export?dataset=listening&from=${thisMonth}-01&to=${stationToday}&format=csv&table=daily`)));
   const todayExp = now.rows[now.rows.length - 1];
-  assert.equal(todayExp.date_utc, todayDash.day);
+  assert.equal(todayExp.date, todayDash.day);
   assert.ok(todayDash.plays > 0 && todayDash.listenSeconds > 0, 'beacons landed, so the comparison is not 0 = 0');
   assert.deepEqual(
     [todayExp.page_views, todayExp.episode_plays, todayExp.live_tune_ins, todayExp.searches, todayExp.shares, todayExp.seconds_listened_on_demand, todayExp.seconds_listened_live].map(Number),
     [todayDash.pageviews, todayDash.plays, todayDash.live, todayDash.searches, todayDash.shares, todayDash.listenSeconds, todayDash.liveSeconds]);
 
   // JSON: the whole export in one file, same numbers as the CSVs.
-  const jsonRes = await get(`/api/studio/export?dataset=listening&from=2020-02-01&to=${todayUtc}&format=json`);
-  assert.equal(jsonRes.headers.get('content-disposition'), `attachment; filename="kpfk-listening-2020-02-01_${todayUtc}.json"`);
+  const jsonRes = await get(`/api/studio/export?dataset=listening&from=2020-02-01&to=${stationToday}&format=json`);
+  assert.equal(jsonRes.headers.get('content-disposition'), `attachment; filename="kpfk-listening-2020-02-01_${stationToday}.json"`);
   const json = await jsonRes.json();
   assert.deepEqual(Object.keys(json), ['manifest', 'daily', 'shows', 'reach', 'features', 'features_daily']);
   assert.equal(json.manifest.station, 'kpfk'); assert.equal(json.manifest.schema_version, 1);
-  assert.equal(json.manifest.station_timezone, 'America/Los_Angeles'); assert.equal(json.manifest.from_date_utc, '2020-02-01');
-  assert.equal(json.manifest.to_date_utc, todayUtc);
+  assert.equal(json.manifest.station_timezone, 'America/Los_Angeles'); assert.equal(json.manifest.from_date, '2020-02-01');
+  assert.equal(json.manifest.to_date, stationToday);
   for (const [table, cols] of Object.entries(DOCUMENTED)) for (const row of json[table]) assert.deepEqual(Object.keys(row), cols);
-  assert.equal(json.daily.filter(r => r.date_utc.startsWith('2020-02')).reduce((n, r) => n + r.episode_plays, 0), seeded('plays'));
+  assert.equal(json.daily.filter(r => r.date.startsWith('2020-02')).reduce((n, r) => n + r.episode_plays, 0), seeded('plays'));
 
   // Feature clicks (2026-09-29): a table of their own, every feature in a fixed order, zeros kept,
   // and the same count the dashboard shows.
-  const THIS = `from=${thisMonth}-01&to=${todayUtc}`;
+  const THIS = `from=${thisMonth}-01&to=${stationToday}`;
   const feats = parseCsv(await bytes(await get(`/api/studio/export?dataset=listening&${THIS}&format=csv&table=features`)));
   assert.deepEqual(feats.head, DOCUMENTED.features);
   assert.deepEqual(feats.rows.map(r => r.feature), require('../../lib/usage-fields').UI_COUNTERS, 'every feature, fixed order');
@@ -388,7 +389,7 @@ test('real HTTP: studio exports are gated, validated, titled, and agree with the
   const zipRes = await get(`/api/studio/export?dataset=listening&${THIS}&format=zip`);
   assert.equal(zipRes.status, 200);
   assert.equal(zipRes.headers.get('content-type'), 'application/zip');
-  assert.equal(zipRes.headers.get('content-disposition'), `attachment; filename="kpfk-export-${thisMonth}-01_${todayUtc}.zip"`);
+  assert.equal(zipRes.headers.get('content-disposition'), `attachment; filename="kpfk-export-${thisMonth}-01_${stationToday}.zip"`);
   const zipDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kpfk-zip-'));
   t.after(() => fs.rmSync(zipDir, { recursive: true, force: true }));
   fs.writeFileSync(path.join(zipDir, 'all.zip'), Buffer.from(await zipRes.arrayBuffer()));
@@ -407,7 +408,7 @@ test('real HTTP: studio exports are gated, validated, titled, and agree with the
     assert.ok(inside.some(n => n.endsWith('.json') && n.includes(ds.name === 'inventory' ? '-archive-' : `-${ds.name}-`)), `${ds.name}: JSON included`);
   }
   // The master workbook: in the .zip and on its own, one tab per table, each tab's rows = that table's CSV rows.
-  const wbName = `kpfk-everything-${thisMonth}-01_${todayUtc}.xlsx`;
+  const wbName = `kpfk-everything-${thisMonth}-01_${stationToday}.xlsx`;
   assert.ok(inside.includes(wbName), 'the .zip holds the master workbook');
   const xRes = await get(`/api/studio/export?dataset=listening&${THIS}&format=xlsx`);
   assert.equal(xRes.status, 200);
@@ -435,15 +436,15 @@ test('real HTTP: studio exports are gated, validated, titled, and agree with the
   assert.match(first, /START HERE: kpfk-everything-/);
   assert.match(first, /Nothing in any of these files identifies a listener/);
   assert.ok(inside.every(n => n === 'README-FIRST.txt' || first.includes(n)), 'README-FIRST lists every file');
-  const span = `${thisMonth}-01_${todayUtc}`;
+  const span = `${thisMonth}-01_${stationToday}`;
   const perDay = parseCsv(fs.readFileSync(path.join(zipDir, 'out', `kpfk-listening-features_daily-${span}.csv`), 'utf8'));
   assert.deepEqual(perDay.head, DOCUMENTED.features_daily);
-  assert.equal(perDay.rows.find(r => r.date_utc === todayUtc).songsOpen, '2', 'feature clicks per day land on their day');
+  assert.equal(perDay.rows.find(r => r.date === stationToday).songsOpen, '2', 'feature clicks per day land on their day');
 
   // ---- Archive (inventory) and coverage, on the pinned fixtures
   const idx = await (await get('/api/studio/exports')).json();
   const inv = idx.datasets.find(d => d.name === 'inventory'), cov = idx.datasets.find(d => d.name === 'coverage');
-  assert.deepEqual(idx.datasets.map(d => [d.name, d.span]), [['listening', 'utc'], ['inventory', 'local'], ['coverage', null], ['profile', null], ['report', 'mixed']]);
+  assert.deepEqual(idx.datasets.map(d => [d.name, d.span]), [['listening', 'local'], ['inventory', 'local'], ['coverage', null], ['profile', null], ['report', 'local']]);
   assert.equal(inv.hasData, true); assert.equal(cov.hasData, true);
   // Local air dates computed here with a separate formatter, not the app's.
   const la = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -478,7 +479,7 @@ test('real HTTP: studio exports are gated, validated, titled, and agree with the
   // Coverage: every show in the catalog as served (after the renames above).
   const covRes = await get('/api/studio/export?dataset=coverage&format=csv&table=shows');
   assert.equal(covRes.status, 200);
-  assert.equal(covRes.headers.get('content-disposition'), `attachment; filename="kpfk-coverage-shows-${todayUtc}.csv"`);
+  assert.equal(covRes.headers.get('content-disposition'), `attachment; filename="kpfk-coverage-shows-${stationToday}.csv"`);
   const covCsv = parseCsv(await bytes(covRes));
   assert.deepEqual(covCsv.head, COV.COLUMNS.shows);
   const catalogKeys = Object.entries(catalog.shows).flatMap(([src, list]) => list.map(x => `kpfk.${src}.${x.altid}`)).sort();
@@ -530,7 +531,7 @@ test('real HTTP: studio exports are gated, validated, titled, and agree with the
   // ---- Station profile: exactly the public projection, plus the category map
   const profRes = await get('/api/studio/export?dataset=profile&format=json');
   assert.equal(profRes.status, 200);
-  assert.equal(profRes.headers.get('content-disposition'), `attachment; filename="kpfk-profile-${todayUtc}.json"`);
+  assert.equal(profRes.headers.get('content-disposition'), `attachment; filename="kpfk-profile-${stationToday}.json"`);
   const profText = await profRes.text(), prof = JSON.parse(profText);
   const publicStation = await (await fetch(url + '/api/station')).json();
   assert.deepEqual(prof.profile, { ...publicStation, categories: profile.categories }, 'the profile is /api/station plus the category map');
@@ -568,10 +569,10 @@ test('real HTTP: studio exports are gated, validated, titled, and agree with the
   assert.match(rep, /href="\/report\.css\?v=[^"]+"/, 'the stylesheet is version-stamped');
   assert.match(rep, /<h2>Program data gaps<\/h2>/); assert.match(rep, /<h2>What the archive aired<\/h2>/);
   const tile = (html, label) => Number(((html.match(new RegExp(`<div class="tile-value">([\\d,]+)</div><div class="tile-label">${label}</div>`)) || [])[1] || 'NaN').replace(/,/g, ''));
-  const repAll = await (await get(`/studio/report?from=${inv.firstDate}&to=${todayUtc}`)).text();
+  const repAll = await (await get(`/studio/report?from=${inv.firstDate}&to=${stationToday}`)).text();
   // Feature use (2026-09-29): every feature, the same counts as the feature-clicks export for the span.
   assert.match(repAll, /<h2>Feature use<\/h2>/);
-  const featAll = parseCsv(await bytes(await get(`/api/studio/export?dataset=listening&from=${inv.firstDate}&to=${todayUtc}&format=csv&table=features`)));
+  const featAll = parseCsv(await bytes(await get(`/api/studio/export?dataset=listening&from=${inv.firstDate}&to=${stationToday}&format=csv&table=features`)));
   const repFeat = [...repAll.slice(repAll.indexOf('<h2>Feature use</h2>')).matchAll(/<tr><td>([^<]+)<\/td><td class="num">([\d,]+)<\/td><\/tr>/g)]
     .slice(0, featAll.rows.length).map(m => [m[1].replace(/&quot;/g, '"'), m[2]]);
   assert.deepEqual(repFeat, featAll.rows.map(r => [r.label, r.clicks]), 'report feature use = the feature-clicks CSV');
@@ -585,11 +586,11 @@ test('real HTTP: studio exports are gated, validated, titled, and agree with the
     assert.equal((await get('/studio/report?' + q)).status, 400, 'report span ' + q);
   }
   const reportEntry = (await (await get('/api/studio/exports')).json()).datasets.find(d => d.name === 'report');
-  assert.equal(reportEntry.span, 'mixed'); assert.equal(reportEntry.firstDate, '2020-02-01');
+  assert.equal(reportEntry.span, 'local'); assert.equal(reportEntry.firstDate, '2020-02-01');
 
   const readme = await get(`/api/studio/export?dataset=listening&${FEB}&format=readme`);
   assert.equal(readme.headers.get('content-disposition'), 'attachment; filename="kpfk-listening-2020-02-01_2020-02-29-README.txt"');
   const text = await readme.text();
-  assert.match(text, /never collects an IP address/); assert.match(text, /UTC calendar day/);
+  assert.match(text, /never collects an IP address/); assert.match(text, /station's calendar day/);
   for (const cols of Object.values(DOCUMENTED)) for (const c of cols) assert.match(text, new RegExp(`  ${c}: `));
 });

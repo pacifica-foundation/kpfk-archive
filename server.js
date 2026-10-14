@@ -2463,7 +2463,13 @@ function geoBucket(z) {
 }
 
 function statsMonthPath(month) { return path.join(STATS_DIR, `${month}.json`); }
-function today() { return new Date().toISOString().slice(0, 10); }
+// Days are the STATION's calendar days (2026-10-13; they were UTC days, so from 5 pm in Los
+// Angeles every play was filed under tomorrow). Stats stored before then stay on UTC days: the
+// counters keep daily totals only and cannot be re-split.
+function localDay(ms = Date.now()) { return exportCommon.localDateTime(ms / 1000, STATION_TZ).date; }
+/** A calendar date `n` days before `day` (date arithmetic only, no clock or zone). */
+function daysBefore(day, n) { return new Date(Date.parse(day + 'T00:00:00Z') - n * 86400000).toISOString().slice(0, 10); }
+function today() { return localDay(); }
 function thisMonth() { return today().slice(0, 7); }
 
 let statsMonth = thisMonth();
@@ -2645,9 +2651,9 @@ async function ingestEvent(req, res) {
 function recentDays(days = 30) {
   const out = [];
   const files = new Map();
-  const now = Date.now();
+  const last = today();
   for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now - i * 86400000).toISOString().slice(0, 10);
+    const d = daysBefore(last, i);
     const m = d.slice(0, 7);
     if (m !== statsMonth && !files.has(m)) {
       files.set(m, readJsonFile(statsMonthPath(m), { days: {} }).days || {});
@@ -2876,14 +2882,14 @@ function exportFirstDate() { return listStatsMonths()[0] + '-01'; }
  * build it; the route, the index and the studio all read this one table, so a
  * dataset cannot be offered by one and refused by another.
  *
- *   span 'utc'   — listening: counters were bucketed per UTC day when recorded.
+ *   span 'local' — listening: counters bucketed per station day when recorded (UTC days before mid-October 2026).
  *   span 'local' — inventory: episodes selected by air date in the station's timezone.
  *   span null    — coverage: a snapshot of right now; dates do not apply.
  */
 const EXPORT_DATASETS = {
   listening: {
     lib: listeningExport,
-    span: 'utc',
+    span: 'local',
     // zip: every table as CSV, the JSON and the read-me in one file ("Download stats").
     formats: ['csv', 'json', 'readme', 'zip', 'xlsx'],
     bounds() { return { firstDate: exportFirstDate(), today: today() }; },
@@ -2988,9 +2994,9 @@ function exportsIndex() {
         hasData: d.hasData(),
         ...(d.span ? d.bounds() : {}),
       })),
-      // The printable report is a page, not a file: listening in UTC days and
+      // The printable report is a page, not a file: listening by station day and
       // the archive by local air date, over one span.
-      { name: 'report', tables: [], formats: ['html'], span: 'mixed', hasData: true, ...reportBounds() },
+      { name: 'report', tables: [], formats: ['html'], span: 'local', hasData: true, ...reportBounds() },
     ],
   };
 }
@@ -3077,7 +3083,7 @@ function masterWorkbook(all, from, to) {
   const readme = [
     { item: 'Station', value: STATION_ID },
     { item: 'Made', value: all.generatedAt },
-    { item: 'Stats dates (UTC days)', value: `${from} to ${to}` },
+    { item: 'Stats dates', value: `${from} to ${to}` },
     { item: 'Archive, coverage', value: 'As they are right now: every episode listeners can play, every catalog show.' },
     { item: 'Personal data', value: listeningExport.NO_IDENTIFIER },
     ...tabs.map(([ds, t, name]) => ({ item: `Tab: ${name}`, value: `${by[ds].data[t].length} rows` })),
@@ -3098,7 +3104,7 @@ function exportEverything(listening, from, to) {
   const workbook = { name: `${STATION_ID}-everything-${from}_${to}.xlsx`, data: masterWorkbook(all, from, to) };
   const lines = [`${STATION_ID.toUpperCase()} export, made ${all.generatedAt}`, '',
     `START HERE: ${workbook.name} — every table in one Excel / Google Sheets workbook, one tab each.`, '',
-    `Stats (listening, reach, feature clicks): UTC days ${from} to ${to}.`,
+    `Stats (listening, reach, feature clicks): ${from} to ${to}, in the station's days (${STATION_TZ}).`,
     'Archive: every episode listeners can play right now. Coverage and station profile: as they are right now.', '',
     'Nothing in any of these files identifies a listener. Each dataset has its own README explaining every column.', '',
     ...all.missing.map((m) => `Not included: ${m}.`),
@@ -3747,7 +3753,7 @@ function studioStats(usageDays = 30) {
         if (it.dt < oldest) oldest = it.dt;
         if (it.dt > newest) newest = it.dt;
         if (it.dt > showNewest) showNewest = it.dt;
-        const day = new Date(it.dt * 1000).toISOString().slice(0, 10);
+        const day = localDay(it.dt * 1000);
         dayMap.set(day, (dayMap.get(day) || 0) + 1);
       }
       const cat = it.category || 'Uncategorised';
@@ -3779,8 +3785,8 @@ function studioStats(usageDays = 30) {
   const perDay = [];
   if (newest && oldest !== Infinity) {
     const DAY = 86400000;
-    const start = Date.UTC(...new Date(oldest * 1000).toISOString().slice(0, 10).split('-').map((n, i) => (i === 1 ? +n - 1 : +n)));
-    const end = Date.UTC(...new Date(newest * 1000).toISOString().slice(0, 10).split('-').map((n, i) => (i === 1 ? +n - 1 : +n)));
+    const start = Date.parse(localDay(oldest * 1000) + 'T00:00:00Z');
+    const end = Date.parse(localDay(newest * 1000) + 'T00:00:00Z');
     for (let t = start; t <= end; t += DAY) {
       const day = new Date(t).toISOString().slice(0, 10);
       perDay.push({ day, episodes: dayMap.get(day) || 0 });

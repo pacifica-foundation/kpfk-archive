@@ -156,7 +156,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     const dailyCsv = inside.find((n) => /-listening-daily-/.test(n));
     if (dailyCsv) {
       const buf = fs.readFileSync(path.join(out, dailyCsv));
-      ok('the daily CSV starts with the UTF-8 BOM and the daily columns', buf[0] === 0xEF && buf.toString('utf8').slice(1).startsWith('station,date_utc,page_views,'));
+      ok('the daily CSV starts with the UTF-8 BOM and the daily columns', buf[0] === 0xEF && buf.toString('utf8').slice(1).startsWith('station,date,page_views,'));
       const sp = await span();
       ok('one row per day of the chosen span', csvRows(path.join(out, dailyCsv)) === daysOf(sp), `${csvRows(path.join(out, dailyCsv))} rows for ${daysOf(sp)} days`);
     }

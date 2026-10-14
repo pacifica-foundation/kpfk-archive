@@ -46,7 +46,7 @@ start, outside the bounds) disables the download links and says why.
   replaces `period`. Validated: real calendar dates, `from ≤ to`, `from` no earlier
   than the 1st of the oldest stats month, `to` no later than today (UTC).
 - Filenames carry the span: `kpfk-listening-daily-2026-09-01_2026-09-16.csv`.
-- Manifest: `from_date_utc`, `to_date_utc`, `days_covered` (replaces `period`).
+- Manifest: `from_date`, `to_date` (were `from_date_utc`/`to_date_utc` until 2026-10-13), `days_covered` (replaces `period`).
   Not yet deployed, so `schema_version` stays `1`.
 - `GET /api/studio/exports` returns `firstDate` and `today`; presets are computed
   from those, not from the browser's clock (which is not UTC).
@@ -417,7 +417,7 @@ Per CLAUDE.md §3a — assert the effect, not the declaration:
 | Decision | Choice | Why it was a decision |
 | --- | --- | --- |
 | Reporting period | **Calendar months, plus all time** | A board or a funder asks for "September 2026", never "the last 30 days". Stats are already one file per month, so this is also the cheapest to build. Rolling windows stay on the dashboard, where they belong. |
-| Day boundary | **Leave UTC, label it `date_utc`** | Counters are bucketed per UTC day at write time (`server.js:2385`) and **cannot be re-split afterwards** — a UTC day cannot be reassigned to two Pacific days. Shifting boundaries on export would misattribute the edges silently. The manifest states both the bucket (UTC) and the station timezone (`America/Los_Angeles`). |
+| Day boundary | **Leave UTC, label it `date_utc`** *(superseded 2026-10-13: counters now use the station's days and the column is `date`; Paul saw "10-14" on the 13th)* | Counters are bucketed per UTC day at write time (`server.js:2385`) and **cannot be re-split afterwards** — a UTC day cannot be reassigned to two Pacific days. Shifting boundaries on export would misattribute the edges silently. The manifest states both the bucket (UTC) and the station timezone (`America/Los_Angeles`). |
 | Tomorrow's scope | **Export phase 1 only** | The studio settings panel (below) introduces the first config *write*; keeping them apart keeps each one verifiable. |
 
 **Related dev, tracked separately:** Paul wants the **station timezone settable in
@@ -464,7 +464,7 @@ object. Three tables plus a manifest:
 
 - **`daily`** — one row per day in the period, **including days with no activity**
   (a gap is information; a sparse file reads as a rendering hole).
-  Columns: `station`, `date_utc`, `page_views`, `episode_plays`, `live_tune_ins`,
+  Columns: `station`, `date` (was `date_utc` until 2026-10-13), `page_views`, `episode_plays`, `live_tune_ins`,
   `searches`, `shares`, `seconds_listened_on_demand`, `seconds_listened_live`.
 - **`shows`** — one row per show key seen in the period.
   Columns: `station`, `show_key`, `show_title`, `plays`, `seconds_listened`.
@@ -476,7 +476,7 @@ object. Three tables plus a manifest:
   a city.
 - **`manifest`** — `station`, `station_timezone` (`America/Los_Angeles`),
   `schema_version` (`1`), `generated_at`, `period` (`2026-09` or `all`),
-  `days_covered`, `bucketing: "UTC calendar day"`, the no-identifier statement in
+  `days_covered`, `bucketing` (the station's calendar day since 2026-10-13; UTC day before), the no-identifier statement in
   plain words, and one line per column explaining it.
 
 *Done when:* for any month, the function's totals equal `usageReport()`'s totals for

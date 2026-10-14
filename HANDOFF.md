@@ -99,6 +99,14 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 - **Data sources stay read-only (Paul's call, 2026-10-13).** An in-studio editor was built and then
   dropped as over-engineered: each station is its own deployment, so its feeds are set by hand in
   its station file when the app is duplicated. Notes: [docs/data-sources-plan.md](docs/data-sources-plan.md).
+- **Studio days are now Los Angeles days (bug fix, Paul saw "10-14" on the 13th).** Usage counters,
+  the 30-day chart, archive-per-day, export spans and file names used UTC days, so from 5 pm PT
+  everything was filed under tomorrow (and on a month's last evening, next month's file).
+  `localDay()` in `server.js` uses the station `timezone`. **Stats stored before the deploy stay on
+  UTC days** (daily totals cannot be re-split); the deploy evening splits across two dates once.
+  Listening export column `date_utc` → **`date`**, manifest `from_date`/`to_date` (Paul's call);
+  read-mes say days before mid-October 2026 are UTC days. Test: `test/pacifica/station-day.test.js`
+  (fixed-clock server, 8 pm PT and Oct 31 11:30 pm PT), shown to fail on the UTC code.
 
 ## 2026-09-29 — archive rules, /discover retired, Import / Export for moving the site
 

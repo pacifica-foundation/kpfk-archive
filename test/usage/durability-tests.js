@@ -65,6 +65,13 @@ function ok(label, cond, detail) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Studio days are the station's calendar days (2026-10-13). These servers get no STATION_TZ
+// (tools/run-tests.js clears it), so they use server.js's default zone; "today" here must too.
+const SERVER_TZ = process.env.STATION_TZ || 'America/New_York';
+function stationDay(ms = Date.now()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: SERVER_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(ms);
+}
+
 function startServer(port, dataDir) {
   fs.writeFileSync(path.join(dataDir, 'feeds.json'), JSON.stringify(FIXTURE));
   const child = spawn(process.execPath, ['server.js'], {
@@ -100,8 +107,8 @@ const beacon = (port, payload) => fetch(`http://127.0.0.1:${port}/api/ev`, {
 
 /** Whatever the running process has actually committed, read from the file. */
 function statsOnDisk(dataDir) {
-  const month = new Date().toISOString().slice(0, 7);
-  const day = new Date().toISOString().slice(0, 10);
+  const month = stationDay().slice(0, 7);
+  const day = stationDay();
   const file = path.join(dataDir, 'stats', `${month}.json`);
   if (!fs.existsSync(file)) return null;
   try {

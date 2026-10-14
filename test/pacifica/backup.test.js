@@ -172,7 +172,8 @@ test('real HTTP: back up A, restore on a fresh B, exports match; refusals; idemp
     const beacon = b => fetch(url + '/api/ev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
     return { url, dataDir, get, post, beacon, archive, logs: () => logs };
   }
-  const todayUtc = new Date().toISOString().slice(0, 10), thisMonth = todayUtc.slice(0, 7);
+  // The station's calendar day (KPFK: Los Angeles); studio days are station days since 2026-10-13.
+  const stationToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()), thisMonth = stationToday.slice(0, 7);
   const statsFile = (srv, m) => path.join(srv.dataDir, 'stats', m + '.json');
   // Counters reach disk on a 5 s debounce. Wait for it, so "the preview wrote
   // nothing" is not confused with "the flush timer wrote something".
@@ -184,7 +185,7 @@ test('real HTTP: back up A, restore on a fresh B, exports match; refusals; idemp
   const exportsOf = async (srv, from) => {
     const out = {};
     for (const table of ['daily', 'shows', 'reach']) {
-      const r = await srv.get(`/api/studio/export?dataset=listening&from=${from}&to=${todayUtc}&format=csv&table=${table}`);
+      const r = await srv.get(`/api/studio/export?dataset=listening&from=${from}&to=${stationToday}&format=csv&table=${table}`);
       assert.equal(r.status, 200, table); out[table] = await bytes(r);
     }
     return out;
@@ -204,15 +205,15 @@ test('real HTTP: back up A, restore on a fresh B, exports match; refusals; idemp
 
   assert.equal((await fetch(A.url + '/api/studio/backup')).status, 401, 'backup is signed-in only');
   const backupRes = await A.get('/api/studio/backup');
-  assert.equal(backupRes.headers.get('content-disposition'), `attachment; filename="kpfk-backup-${todayUtc}.json"`);
+  assert.equal(backupRes.headers.get('content-disposition'), `attachment; filename="kpfk-backup-${stationToday}.json"`);
   assert.equal(backupRes.headers.get('cache-control'), 'private, no-store');
   const backupText = await backupRes.text();
   const backup = JSON.parse(backupText);
   assert.deepEqual(Object.keys(backup.stats), ['2020-02', thisMonth], 'every month, including counters not yet flushed');
-  assert.equal(backup.stats[thisMonth].days[todayUtc].plays, 1);
+  assert.equal(backup.stats[thisMonth].days[stationToday].plays, 1);
   // Lossless: the backup's month is A's month on disk, field for field (feature clicks included).
   assert.deepEqual(backup.stats[thisMonth], JSON.parse(fs.readFileSync(statsFile(A, thisMonth), 'utf8')), 'backup = what A collected');
-  assert.equal(backup.stats[thisMonth].days[todayUtc].clicks.transcriptOpen, 1);
+  assert.equal(backup.stats[thisMonth].days[stationToday].clicks.transcriptOpen, 1);
   assert.deepEqual(backup.settings, { discovery: { enabled: true, qir: true }, station: { values: {} } }, 'the backup carries the switches and the (empty) station edits');
   assert.doesNotMatch(backupText, /democracy now|"terms"/, 'legacy search terms never leave the server');
   const aExports = await exportsOf(A, '2020-02-01');
