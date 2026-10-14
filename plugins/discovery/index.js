@@ -179,8 +179,25 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
     }
     const body = JSON.stringify({ provider: 'qir', station: station.id, stale: !!catalog.stale, pending: catalog.pending, notes });
     const value = { body, etag: '"' + crypto.createHash('sha256').update(body).digest('hex').slice(0, 32) + '"' };
-    notesMemo = { catalog, revision: data.revision, value };
+    notesMemo = { catalog, revision: data.revision, value, byId: notes };
     return value;
+  }
+
+  // One episode's QIR note for the share-preview tags (server.js ogTags, 2026-10-14), read
+  // synchronously from the last notes build. Before the first build it returns null and starts
+  // one, so that preview falls back to the show's tags and the next one has the episode's.
+  function noteFor(id) {
+    if (!enabled()) return null;
+    if (!notesMemo.byId) {
+      archiveNotes().catch((e) => {
+        // Only a warm-up: a failed build (QIR down, catalog fetch error) leaves previews on
+        // the show's own tags, as before this existed. Logged, not thrown into a page request.
+        console.warn('[discovery] notes warm-up for share previews failed:', e && e.message);
+      });
+      return null;
+    }
+    const n = notesMemo.byId[id];
+    return n && !n.pending ? n : null;
   }
 
   // Cue files (<feeds origin>/cue/<id>.vti) are WebVTT song playlists the Pacifica feed links
@@ -261,6 +278,7 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
   return {
     handle,
     settings,
+    noteFor,
     /** Script tags the host puts on its main page (step 4a): QIR details on the main listing. */
     // Listen along (step 4e) needs its panel styles, the text decoder, the transcript and
     // song-list parsers and the panel itself, then main.js wires it to the main player.
@@ -291,7 +309,11 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
     status: () => ({ enabled: enabled(), qir: qirStatus().state, qirPending: lastPending }),
     // Loads the QIR catalog ahead of the first visitor (~17 s cold). Failures are already
     // recorded in qir.status(); logged so a bad key or provider change is visible at startup.
-    warm: () => qirOn() && qir.status().configured ? qir.catalog().then(c => console.log('QIR catalog ready: ' + c.episodes.length + ' episodes'), e => console.warn('QIR warm-up failed: ' + e.message)) : Promise.resolve(),
+    // Also builds the notes, so the first share preview after a restart names the episode.
+    warm: () => qirOn() && qir.status().configured
+      ? qir.catalog().then(c => { console.log('QIR catalog ready: ' + c.episodes.length + ' episodes'); return archiveNotes(); })
+        .catch(e => console.warn('QIR warm-up failed: ' + e.message))
+      : Promise.resolve(),
   };
 }
 

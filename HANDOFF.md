@@ -1,16 +1,74 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
+## 2026-10-14 — from the Flutter app session (read before working here)
+
+A long session in `kpfk-podcast` touched this site. **Three files here are changed and NOT committed**
+(made 2026-10-14, checked locally, not deployed):
+
+| File | Change |
+|---|---|
+| `server.js` | `episodeOg(row, info)`: a shared **episode** link's preview tags name the episode — `og:title` = "<episode title> — <show>" (station topic via `archive-search.js` `episodeTitle`, else QIR's headline; neither → the show's name, as before), `og:description` = QIR's summary, else the show's description. Applies to `?show=<id>` and to permanent `/show/<code>/<episode>` links. Artwork unchanged (square show art, `summary` card). `OgSearch = require('./public/archive-search')` at the top. |
+| `plugins/discovery/index.js` | `noteFor(id)`: one episode's QIR note, synchronous, from the last `archiveNotes()` build (null + starts a build when cold; null for pending/disabled). `warm()` now also builds the notes, so the first preview after a restart already names the episode. |
+| `test/share/og-tests.js` | Section 1 expects the episode title, with a station-topic check and a QIR-headline check (QIR's skips locally — no key off Coolify). Section 4 no longer hard-codes **WBAI**'s card (it failed on KPFK since the fork): reads `stations/<id>.json`. |
+
+Verified 2026-10-14: `npm test` 198/198; local 8081 `BASE=http://localhost:8081 node test/share/og-tests.js` 23/23; the
+station-topic check **failed on the old server code** ("BradCast w/ Brad Friedman") and passes on the new
+("Courts; Corruption; Environment — BradCast w/ Brad Friedman"). **To finish:** commit, push, **Coolify
+redeploy** (push is not deploy, §4), then `BASE=https://podcast.kpfk.org node test/share/og-tests.js` — the
+QIR-headline check runs only there, and it matters: only 95 of 1,175 episodes have a station topic, the
+rest are named by QIR. Then refresh a link in the Facebook Sharing Debugger / LinkedIn Post Inspector
+(they cache cards).
+
+**What the app now relies on from this site** (breaking these breaks the shipped app):
+- **The share link**: every Share button in the app sends the bare link
+  `https://podcast.kpfk.org/?show=<archive episode id>` (`KpfkRepository.shareUrl`) — no text, so
+  Messages/WhatsApp/Slack/X/Facebook build a card from **this page's OG tags**. Keep `?show=<id>` resolving
+  and its tags correct; an episode that ages out falls back to the station card (section 4 of og-tests).
+  Email clients show the bare URL (no cards in email; share_plus drops the subject on link shares).
+- Unchanged: `/api/archive`, `/api/plugins/qir/{status,notes,transcript/<qir>}`, the `notes` ETag, transcript
+  404 vs 5xx — APP-FAMILY.md.
+
+**Where the app now differs from this site** (decide whether the web follows — Paul's calls):
+- **Hosts**: the app shows "with <host>" on the show header, player, transcript About and Following cards,
+  taking the **station's `dj` first** and QIR's host only when the station lists none (QIR misspells:
+  "Tom Hartman", "Kip Brooks"). This site does the reverse (`r.host || info.dj`, `public/app.js` ~899, 4698,
+  4757). Recorded as a deliberate difference in kpfk-podcast `CLAUDE.md` §4f / `docs/APP-PLAN.md`.
+- **Transcript label**: the app says "Automatic transcript — names and words may be wrong." (no service
+  name: "QIR" is getting a product name, not yet chosen). This site still says "Machine transcript from
+  QIR — …" (`plugins/discovery/public/along.js:216`).
+- **Transcript text size**: the app has A− / A+ (sm/md/lg/xl = 0.9/1/1.2/1.45, the Pacifica playlists
+  player's `live.textSize`; phones skip sm). This site's Listen along panel has none.
+- **Find arrows**: the app shows ↑/↓ only when there are matches; here they always show.
+- Smaller, app-only: outlined cards, tablet scaling, follows (device-only, no account), message modals.
+
+**Integration ideas to explore next** (Paul, 2026-10-14: "explore more ways to integrate"):
+1. **Links that open the app** (kpfk-podcast APP-PLAN Phase 5): serve `/.well-known/apple-app-site-association`
+   and `/.well-known/assetlinks.json` from this site; the app adds Associated Domains / an intent filter.
+   A shared `?show=` link then opens the episode in the app when installed, the web page otherwise.
+2. **Smart App Banner** on this site once the App Store listing is live:
+   `<meta name="apple-itunes-app" content="app-id=6814673167, app-argument=<the page URL>">` (Safari shows
+   "Open in KPFK Podcasts"); a matching "Get the app" link for Android once Play is public.
+3. **Permanent links in shares**: the app shares `?show=<id>`; `/show/<code>/<episode>` (`public/links.js`)
+   survives the episode rotating out (falls back to the show). Consider having `/api/archive` expose the
+   permanent path per row so the app can share it.
+4. **Designed share image** (app "level 3", future): could instead be an `og:image` this server renders per
+   episode (art + title + host), so every share — app or web — gets a large card.
+5. **"New on KPFK"** (APP-PLAN Phase 4): the app's refresh pill wants a cheap "what changed" signal from
+   `/api/archive` (head count or generation id) rather than a full fetch.
+6. Shared design tokens: the app's `kpfk_theme.dart` copies `styles.css`; the app added `card`/`cardEdge`
+   (dark cards one surface step up, 28% edge) — worth adopting here or recording as app-only.
+
 ## Open work from the Flutter app (2026-10-01) — not a reminder; pick up when working here
 
 - **QIR headline for paragraph topics** (Paul decided yes; the app does it): 53 Talk episodes have a
   pasted paragraph as topic and show "Show — date" here, while the app shows QIR's headline. Change
-  `enrich` in `plugins/discovery/public/main.js` — exact change in `kpfk-podcast/docs/WEB-FEATURES-PLAN.md`
+  `enrich` in `plugins/discovery/public/main.js` — exact change in `kpfk-podcast/docs/APP-PLAN.md` (renamed from WEB-FEATURES-PLAN.md 2026-10-14)
   "Decisions" #0 — and port the app's test into `plugins/discovery/test/main-enrich.test.js`.
 - **Contracts the app relies on** (APP-FAMILY.md): QIR `status` states (404 / `switched_off` /
   `disabled` / `not_configured` = off; `ready` = fetch; anything else = temporary — renaming one breaks
@@ -51,7 +109,7 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
    page with Copy buttons; ask before opening a browser or touching his app on port 8081;
    announce every push. Root causes, not workarounds ("no duct tape").
 7. **Flutter app (2026-10-01):** audit + phased plan for bringing this app's features (QIR notes,
-   transcripts, search, links) to the phone app is in `~/Desktop/kpfk-podcast/docs/WEB-FEATURES-PLAN.md`.
+   transcripts, search, links) to the phone app is in `~/Desktop/kpfk-podcast/docs/APP-PLAN.md`.
    Do that work in a session opened in the kpfk-podcast folder. Its step **W1** (a small
    `/api/plugins/qir/notes` route for apps) is done here, in kpfk-archive.
 8. **The Aware Show withheld (2026-10-01, live and checked the same day):** KPFK has no on-demand rights to it.

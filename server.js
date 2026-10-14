@@ -15,6 +15,7 @@
  */
 
 const http = require('http');
+const OgSearch = require('./public/archive-search'); // episode titles for share previews
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -2182,6 +2183,20 @@ function originFor(req) {
   return /^[A-Za-z0-9.\-:[\]]+$/.test(host) ? `${proto}://${host}` : '';
 }
 
+// Share previews for one episode (2026-10-14, the Flutter app shares the bare link): the
+// episode's title and QIR summary, so Messages/WhatsApp/Slack cards name the episode, not just
+// the show. Title rule as the page's (public/archive-search.js episodeTitle, then QIR's
+// headline); with neither it stays the show's name, as before. Artwork is unchanged.
+function episodeOg(row, info) {
+  const show = info.name || row.title;
+  const note = discovery ? discovery.noteFor(row.id) : null;
+  const episode = OgSearch.episodeTitle(row) || (note && note.headline) || '';
+  return {
+    title: episode ? episode + ' — ' + show : show,
+    desc: ((note && note.summary) || info.desc || info.shortdesc || '').replace(/\s+/g, ' ').trim(),
+  };
+}
+
 function ogTags(req, reqUrl) {
   const origin = originFor(req);
   const abs = (p) => (/^https?:/i.test(p) ? p : origin + p);
@@ -2204,11 +2219,10 @@ function ogTags(req, reqUrl) {
     if (row) {
       const info = showInfo[row.sho] || {};
       const photo = row.photo || info.photo || '';
-      title = row.title;
+      ({ title, desc } = episodeOg(row, info));
       // Same precedence as the info sheet's artwork, so the card matches the
       // page the recipient lands on.
       if (photo && !/\.svg(\?|$)/i.test(photo)) { image = abs(photo); large = false; }
-      desc = (info.desc || info.shortdesc || '').replace(/\s+/g, ' ').trim();
       if (desc.length > 300) desc = desc.slice(0, 297).trimEnd() + '…';
       if (!desc) desc = (row.dateText ? row.dateText + ' · ' : '') + ogDefaultTitle();
       pageUrl = origin + '/?show=' + encodeURIComponent(id);
@@ -2225,9 +2239,12 @@ function ogTags(req, reqUrl) {
       const info = showInfo[found.sho] || (data.directory || {})[found.sho] || {};
       const episode = link.episode && !found.rotated;
       const photo = found.row.photo || info.photo || '';
-      title = episode ? found.row.title : (info.name || found.row.title);
+      if (episode) ({ title, desc } = episodeOg(found.row, info));
+      else {
+        title = info.name || found.row.title;
+        desc = (info.desc || info.shortdesc || '').replace(/\s+/g, ' ').trim();
+      }
       if (photo && !/\.svg(\?|$)/i.test(photo)) { image = abs(photo); large = false; }
-      desc = (info.desc || info.shortdesc || '').replace(/\s+/g, ' ').trim();
       if (desc.length > 300) desc = desc.slice(0, 297).trimEnd() + '…';
       if (!desc) desc = (episode && found.row.dateText ? found.row.dateText + ' · ' : '') + ogDefaultTitle();
       pageUrl = origin + (episode ? ShowLinks.episodePath(found.row) : ShowLinks.showPath(found.sho));

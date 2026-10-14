@@ -12,6 +12,7 @@
 
 const http = require('node:http');
 
+const Search = require('../../public/archive-search');
 const BASE = process.env.BASE || 'http://localhost:8080';
 
 // fetch() silently refuses to send a custom Host — it is a forbidden header —
@@ -60,15 +61,56 @@ async function getHtml(pathAndQuery, headers) {
 
 (async function main() {
   const archive = await fetch(BASE + '/api/archive').then((r) => r.json());
+  // The station card, from the running station's own config (this suite came from WBAI and
+  // hard-coded "WBAI 99.5 FM Archive", so it failed on KPFK — 2026-10-14).
+  const stationId = (await fetch(BASE + '/healthz').then((r) => r.json())).station;
+  const stationCfg = require('../../stations/' + stationId + '.json');
+  const stationCard = `${stationCfg.name} ${stationCfg.frequency} Archive`;
+  const stationShare = (stationCfg.assets && stationCfg.assets.share) || '/assets/icon-512.png';
   const row = archive.shows.find((r) => r.photo) || archive.shows[0];
+  // QIR notes, if the station runs Discovery; {} otherwise (titles then come from topics only).
+  const notes = await fetch(BASE + '/api/plugins/qir/notes').then((r) => (r.ok ? r.json() : {}))
+    .then((b) => b.notes || {}, () => ({}));
   if (!row) { console.log('no archive rows — is the app running on :8080?'); process.exit(1); }
 
   section(`1. a shared episode link carries that episode's card  (${row.id} — ${row.title})`);
   const shared = await getHtml('/?show=' + encodeURIComponent(row.id));
   ok('page still serves 200', shared.status === 200, String(shared.status));
-  ok('og:title is the show title',
-    unescapeAttr(meta(shared.html, 'og:title')) === row.title,
-    meta(shared.html, 'og:title'));
+  // The card names the episode (2026-10-14): the station's topic, else QIR's headline,
+  // then " — Show"; with neither it is the show's name, as it always was.
+  const expected = (r) => {
+    const show = ((archive.directory || {})[r.sho] || {}).name || r.title;
+    const ep = Search.episodeTitle(r) || ((notes[r.id] || {}).headline) || '';
+    return ep ? ep + ' — ' + show : show;
+  };
+  ok('og:title names the episode (or the show when nothing names the episode)',
+    unescapeAttr(meta(shared.html, 'og:title')) === expected(row),
+    meta(shared.html, 'og:title') + '  expected: ' + expected(row));
+  // Teeth for the station's topic: an episode the station names carries that name.
+  const named = archive.shows.find((r) => Search.episodeTitle(r));
+  if (named) {
+    const n = await getHtml('/?show=' + encodeURIComponent(named.id));
+    ok('an episode the station names carries "<topic> — <show>"',
+      unescapeAttr(meta(n.html, 'og:title')) === expected(named) && expected(named) !== named.title,
+      meta(n.html, 'og:title'));
+  } else {
+    console.log('   SKIP  station-topic title (no episode here has a short topic)');
+  }
+  // Teeth for the QIR path: an episode only QIR names must carry QIR's headline.
+  const qirOnly = archive.shows.find((r) => !Search.episodeTitle(r) && (notes[r.id] || {}).headline);
+  if (!qirOnly) {
+    console.log('   SKIP  QIR-headline title (no episode here is named only by QIR — QIR off or not configured?)');
+  } else {
+    const q = await getHtml('/?show=' + encodeURIComponent(qirOnly.id));
+    ok('an episode only QIR names carries its headline',
+      unescapeAttr(meta(q.html, 'og:title')) === expected(qirOnly), meta(q.html, 'og:title'));
+    let summary = notes[qirOnly.id].summary.replace(/\s+/g, ' ').trim();
+    if (summary.length > 300) summary = summary.slice(0, 297).trimEnd() + '…';
+    if (summary) {
+      ok('…and QIR\'s summary as the description',
+        unescapeAttr(meta(q.html, 'og:description')) === summary, meta(q.html, 'og:description'));
+    }
+  }
   const img = meta(shared.html, 'og:image');
   ok('og:image points at the show artwork, not the station icon',
     !!img && img.endsWith(row.photo), img);
@@ -112,13 +154,13 @@ async function getHtml(pathAndQuery, headers) {
   section('4. fallbacks');
   const bare = await getHtml('/');
   ok('the bare site gets the station card',
-    meta(bare.html, 'og:title') === 'WBAI 99.5 FM Archive', meta(bare.html, 'og:title'));
+    unescapeAttr(meta(bare.html, 'og:title')) === stationCard, meta(bare.html, 'og:title'));
   ok('the station card names the app icon',
-    (meta(bare.html, 'og:image') || '').endsWith('/assets/icon-512.png'),
+    (meta(bare.html, 'og:image') || '').endsWith(stationShare),
     meta(bare.html, 'og:image'));
   const gone = await getHtml('/?show=000000');
   ok('an expired/unknown id falls back rather than emitting a broken card',
-    meta(gone.html, 'og:title') === 'WBAI 99.5 FM Archive', meta(gone.html, 'og:title'));
+    unescapeAttr(meta(gone.html, 'og:title')) === stationCard, meta(gone.html, 'og:title'));
 
   section('5. a hostile id cannot break out of the meta attribute');
   // Assertions of absence need teeth (§3a.5): `meta()` matches up to the first
