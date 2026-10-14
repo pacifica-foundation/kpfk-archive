@@ -44,7 +44,7 @@ Confessor (Otis) ──► Pacifica JSON feed ──► kpfk-archive ──► /
 
 All on the podcast site's own host; **the app never holds a QIR key**. Every route is a 404
 when Discovery is switched off for the station; the app then behaves as it does without it.
-Plan: `kpfk-podcast/docs/WEB-FEATURES-PLAN.md`.
+Plan: `kpfk-podcast/docs/APP-PLAN.md`.
 
 | Route | What | Size / caching |
 |---|---|---|
