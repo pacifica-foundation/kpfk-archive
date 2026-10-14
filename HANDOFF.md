@@ -18,7 +18,8 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 
 ## Remind Paul first (say these at the start of every session)
 
-1. **Live and checked (2026-09-29):** everything below is deployed; `storage.instanceId` =
+1. **Live and checked (2026-10-13):** everything below is deployed (last: tabs as cards, LA studio days,
+   top-level request catch — version `45351-mv7i71z4…`, studio chart showed 10-13 that evening); `storage.instanceId` =
    `73039ae5-6589-4ec2-9df5-354de84c0989`, `freshVolume:false`. Player settled (floating card — do not
    re-raise). podcasts.kpfk.org and podcast.kpfk.org are the same app.
 2. **Ace / QIR:** email sent 2026-09-28. As of 2026-09-29 the 7 show keys (All Of The Above, Nightscapes,
@@ -91,7 +92,7 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
      Every listener route reads the filtered archive (`episodeRecords()` ← `peekArchive()`); only
      studio exports read the unfiltered catalog (audited 2026-10-01).
 
-## 2026-10-13 — studio tabs as cards (not deployed yet)
+## 2026-10-13 — studio tabs as cards; studio days in LA time; one catch for every request (live and checked)
 
 - **Tabs** (Paul: "Discovery & settings gets totally lost"): two equal cards with icon, title and a
   line saying what is inside; the open one has an accent border and tint. Arrow keys move between
