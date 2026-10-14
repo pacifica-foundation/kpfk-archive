@@ -12,7 +12,11 @@
 
   // ---- tabs
   function show(tab) {
-    tabs.querySelectorAll('.studio-tab').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.studioTab === tab)); });
+    tabs.querySelectorAll('.studio-tab').forEach(function (b) {
+      var on = b.dataset.studioTab === tab;
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
     panel.hidden = tab !== 'discovery';
     stats.hidden = tab === 'discovery';
     try { history.replaceState(null, '', tab === 'discovery' ? '#discovery' : location.pathname); } catch (e) {}
@@ -21,6 +25,17 @@
   tabs.addEventListener('click', function (e) {
     var b = e.target.closest('.studio-tab');
     if (b && !b.hidden) show(b.dataset.studioTab);
+  });
+  // Arrow keys move between tabs (the WAI-ARIA tabs pattern); only the open tab is in the Tab order.
+  tabs.addEventListener('keydown', function (e) {
+    var keys = { ArrowLeft: -1, ArrowRight: 1, Home: 'first', End: 'last' };
+    if (!(e.key in keys) || !e.target.closest('.studio-tab')) return;
+    var list = [].filter.call(tabs.querySelectorAll('.studio-tab'), function (b) { return !b.hidden; });
+    var i = list.indexOf(e.target.closest('.studio-tab')), k = keys[e.key];
+    var next = k === 'first' ? list[0] : k === 'last' ? list[list.length - 1] : list[(i + k + list.length) % list.length];
+    e.preventDefault();
+    show(next.dataset.studioTab);
+    next.focus();
   });
 
   // ---- data

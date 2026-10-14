@@ -120,6 +120,19 @@ const OVERFLOW_PROBE = `(() => {
     await clickTab('stats');
     const back = await tabState();
     ok('back on Stats: stats shown, Discovery gone', back.stats && !back.discovery && back.shownButHidden.length === 0, JSON.stringify(back));
+    // Segmented tabs (2026-10-13): real key presses, not a .click(). ArrowRight from the open
+    // Stats tab must open Discovery and move focus there; ArrowLeft must come back.
+    const arrow = async (key, code) => {
+      for (const type of ['keyDown', 'keyUp']) await c.send('Input.dispatchKeyEvent', { type, key, code, windowsVirtualKeyCode: key === 'ArrowRight' ? 39 : 37 });
+      await new Promise((res) => setTimeout(res, 600));
+    };
+    await ev(`document.querySelector('[data-studio-tab="stats"]').focus()`);
+    await arrow('ArrowRight', 'ArrowRight');
+    const keyed = { ...(await tabState()), focus: await ev(`document.activeElement && document.activeElement.dataset.studioTab`) };
+    ok('ArrowRight opens Discovery and focuses its tab', keyed.discovery && !keyed.stats && keyed.focus === 'discovery', JSON.stringify(keyed));
+    await arrow('ArrowLeft', 'ArrowLeft');
+    const keyedBack = await tabState();
+    ok('ArrowLeft returns to Stats', keyedBack.stats && !keyedBack.discovery, JSON.stringify(keyedBack));
   } else {
     console.log('  (this station has no Discovery tab — tab checks skipped)');
   }

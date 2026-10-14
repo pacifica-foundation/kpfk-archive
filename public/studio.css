@@ -1228,27 +1228,45 @@ th[aria-sort="ascending"] .th-sort::after { content: "\25B2"; }    /* ▲ */
 .anomaly-empty{font-size:14px;color:var(--ink-dim)}
 
 /* ================= Tabs + the Discovery tab (integration step 5) ================= */
-/* Real tabs (Paul, 2026-09-28: "needs to be clear this is a tabbed view"): a tab bar
-   with icon + bold label, and a coloured underline under the open tab. */
-.studio-tabs { border-bottom: 1px solid var(--outline-strong); background: var(--surface-1); }
-.studio-tabs-inner { max-width: var(--studio-width); margin: 0 auto; padding: 0 var(--page-gutter, 1rem); display: flex; gap: .25rem; }
+/* Section cards (Paul, 2026-10-13). As an underline strip, then as a dark segmented control,
+   "Discovery & settings" read as a heading and "gets totally lost". Now two equal cards, each
+   naming what is inside it: the open one has an accent border, tint and filled icon; the other
+   is a plain card with an arrow, so it reads as somewhere to go. */
+.studio-tabs { border-bottom: 1px solid var(--outline); background: var(--surface-1); }
+.studio-tabs-inner { max-width: var(--studio-width); margin: 0 auto; padding: 1rem var(--page-gutter, 1rem); }
+.studio-tablist { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: .75rem; }
 .studio-tab {
-  display: inline-flex; align-items: center; gap: .55rem; position: relative;
-  min-height: 54px; padding: .9rem 1.25rem .8rem; border: 0; border-radius: 10px 10px 0 0;
-  background: none; color: var(--ink-dim); font: 700 1rem/1 var(--font-body); cursor: pointer;
-  transition: color .15s ease, background .15s ease;
+  display: flex; align-items: center; gap: .9rem; min-width: 0; min-height: 72px; text-align: left;
+  padding: .85rem 1rem; border: 2px solid var(--outline-strong); border-radius: 14px;
+  background: var(--surface-2); color: var(--ink); font: inherit; cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
 }
-.studio-tab svg { width: 18px; height: 18px; flex: none; }
-.studio-tab::after {
-  content: ''; position: absolute; left: .75rem; right: .75rem; bottom: -1px; height: 3px;
-  border-radius: 3px 3px 0 0; background: transparent; transition: background .15s ease;
+.studio-tab-icon {
+  flex: none; width: 42px; height: 42px; padding: 10px; border-radius: 11px;
+  background: var(--surface-3); color: var(--ink-dim); transition: background .15s ease, color .15s ease;
 }
-.studio-tab[aria-pressed="true"] { color: var(--ink); background: var(--surface-2); }
-.studio-tab[aria-pressed="true"]::after { background: var(--accent); }
-.studio-tab[aria-pressed="true"] svg { color: var(--accent); }
-@media (hover: hover) and (pointer: fine) { .studio-tab:hover { color: var(--ink); background: var(--surface-2); } }
-.studio-tab:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
-@media (max-width: 560px) { .studio-tab { padding: .8rem .9rem .7rem; font-size: .92rem; } }
+.studio-tab-text { display: grid; gap: .2rem; min-width: 0; flex: 1; }
+.studio-tab-title { font: 700 1.05rem/1.2 var(--font-body); color: var(--ink); }
+.studio-tab-desc { font-size: .85rem; line-height: 1.35; color: var(--ink-dim); }
+.studio-tab-go { flex: none; width: 20px; height: 20px; color: var(--ink-dim); }
+.studio-tab[aria-selected="true"] {
+  border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); box-shadow: var(--elev-1); cursor: default;
+}
+.studio-tab[aria-selected="true"] .studio-tab-icon { background: var(--accent); color: #fff; }
+.studio-tab[aria-selected="true"] .studio-tab-go { visibility: hidden; }
+@media (hover: hover) and (pointer: fine) {
+  .studio-tab[aria-selected="false"]:hover { border-color: var(--accent-2); background: var(--surface-3); }
+  .studio-tab[aria-selected="false"]:hover .studio-tab-go { color: var(--ink); }
+}
+.studio-tab:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }
+/* Phones: still side by side; the description gives way to keep both cards tappable. */
+@media (max-width: 560px) {
+  .studio-tablist { gap: .5rem; }
+  .studio-tab { min-height: 56px; padding: .6rem .7rem; gap: .55rem; }
+  .studio-tab-icon { width: 34px; height: 34px; padding: 8px; }
+  .studio-tab-title { font-size: .92rem; }
+  .studio-tab-desc, .studio-tab-go { display: none; }
+}
 .studio-note { color: var(--ink-dim); font-size: .9rem; line-height: 1.55; margin: .25rem 0 1rem; max-width: 70ch; }
 .disc-setting {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem;

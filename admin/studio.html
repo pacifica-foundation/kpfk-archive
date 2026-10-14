@@ -65,21 +65,29 @@
 </header>
 
 <!-- Studio tabs (integration step 5, 2026-09-28): Stats is everything below; Discovery
-     appears only where the station may have the plugin (studio-discovery.js shows it). -->
+     appears only where the station may have the plugin (studio-discovery.js shows it).
+     Section cards since 2026-10-13 (Paul: the second tab "gets totally lost"; a dark
+     segmented control did not fix it): two equal cards, each saying what is inside it. -->
 <nav class="studio-tabs" id="studioTabs" aria-label="Studio sections">
   <div class="studio-tabs-inner">
-    <button class="studio-tab" type="button" data-studio-tab="stats" aria-pressed="true">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      Stats &amp; archive
-    </button>
-    <button class="studio-tab" type="button" data-studio-tab="discovery" aria-pressed="false" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3M8 11h6M11 8v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      Discovery &amp; settings
-    </button>
+    <div class="studio-tablist" role="tablist" aria-label="Studio sections">
+      <button class="studio-tab" type="button" role="tab" id="tabStats" data-studio-tab="stats" aria-controls="main" aria-selected="true">
+        <svg class="studio-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="studio-tab-text"><span class="studio-tab-title">Stats &amp; archive</span>
+          <span class="studio-tab-desc">Listening, shows, episodes, exports</span></span>
+        <svg class="studio-tab-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="studio-tab" type="button" role="tab" id="tabDiscovery" data-studio-tab="discovery" aria-controls="discoveryPanel" aria-selected="false" tabindex="-1" hidden>
+        <svg class="studio-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3M8 11h6M11 8v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="studio-tab-text"><span class="studio-tab-title">Discovery &amp; settings</span>
+          <span class="studio-tab-desc">Discovery switches, station name &amp; logo, links, data sources</span></span>
+        <svg class="studio-tab-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
   </div>
 </nav>
 
-<div class="studio-main studio-discovery" id="discoveryPanel" role="region" aria-label="Discovery and settings" hidden>
+<div class="studio-main studio-discovery" id="discoveryPanel" role="tabpanel" aria-labelledby="tabDiscovery" hidden>
   <section class="studio-section studio-section--wide" id="discoverySection">
     <h2 class="studio-h2" id="discoveryTitle">Discovery</h2>
     <p class="studio-note">QIR search, summaries and transcripts on the listener site. The station
@@ -164,7 +172,7 @@
   </section>
 </div>
 
-<main class="studio-main" id="main" aria-busy="true">
+<main class="studio-main" id="main" role="tabpanel" aria-labelledby="tabStats" aria-busy="true">
 
   <!-- What's in the archive right now. Every number here is computed from the
        feed cache the app already holds, so it is the same data the listener

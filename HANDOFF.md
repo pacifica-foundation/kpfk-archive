@@ -91,6 +91,15 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
      Every listener route reads the filtered archive (`episodeRecords()` ← `peekArchive()`); only
      studio exports read the unfiltered catalog (audited 2026-10-01).
 
+## 2026-10-13 — studio tabs as cards (not deployed yet)
+
+- **Tabs** (Paul: "Discovery & settings gets totally lost"): two equal cards with icon, title and a
+  line saying what is inside; the open one has an accent border and tint. Arrow keys move between
+  tabs (`role="tablist"`). Browser check: `test/studio/layout-tests.js` 1b (clicks + arrow keys).
+- **Data sources stay read-only (Paul's call, 2026-10-13).** An in-studio editor was built and then
+  dropped as over-engineered: each station is its own deployment, so its feeds are set by hand in
+  its station file when the app is duplicated. Notes: [docs/data-sources-plan.md](docs/data-sources-plan.md).
+
 ## 2026-09-29 — archive rules, /discover retired, Import / Export for moving the site
 
 All pushed and live (Paul redeployed; each checked on podcasts.kpfk.org). `npm test` 186/186.
