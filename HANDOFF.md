@@ -47,6 +47,11 @@ rest are named by QIR. Then refresh a link in the Facebook Sharing Debugger / Li
 - **Find arrows**: the app shows ↑/↓ only when there are matches; here they always show.
 - Smaller, app-only: outlined cards, tablet scaling, follows (device-only, no account), message modals.
 
+**Feed text seen 2026-10-14:** Informativo Pacifica's show description arrives as "Daily Spanish language
+newscast - noticiero diario en espa~nol" — a literal `~n` for "ñ" in the upstream text (app and website
+both show it). A feed fix for Otis (app CLAUDE.md §3), or a display rule here if it is common — check
+other descriptions in the audit.
+
 **Integration ideas to explore next** (Paul, 2026-10-14: "explore more ways to integrate"):
 1. **Links that open the app** (kpfk-podcast APP-PLAN Phase 5): serve `/.well-known/apple-app-site-association`
    and `/.well-known/assetlinks.json` from this site; the app adds Associated Domains / an intent filter.
