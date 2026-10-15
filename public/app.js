@@ -2980,9 +2980,11 @@
   // Close every popup, top first, then run `then` (2026-10-15). The player bar sits above all
   // of them (z-index 310), so its Transcript button could be tapped with a show sheet, the
   // schedule or Now Playing open — and Listen along, which is layered under popups, opened
-  // invisibly beneath them. Each popup closes through its own close function, so the ones
-  // with history entries step back through history as Back would; the next one is closed
-  // once that has settled. Bounded, so a popup that refuses to close cannot loop.
+  // invisibly beneath them. Each popup closes through its own close function; the ones with
+  // history entries step back through history as Back would and return true. Those are only
+  // finished when their popstate arrives — late on a slow phone. A fixed delay here let the
+  // late popstate close the panel just opened (Paul's iPhone, 2026-10-15), so each step waits
+  // for it. Bounded, so a popup that refuses to close cannot loop.
   function topPopupClose(){
     if(lightboxOpen()) return closeLightbox;
     if(donateOpen()) return closeDonate;
@@ -2998,9 +3000,21 @@
     (function step(){
       var close = topPopupClose();
       if(!close || steps++ >= 8){ if(then) then(); return; }
-      close();
-      setTimeout(step, 80);
+      if(close() === true) afterPopstate(step); else step();
     })();
+  }
+  // Run fn once the history step just requested has landed (and the app's own popstate
+  // handlers have run). The timer is a backstop for a traversal that never reports, so the
+  // button that started this can never go dead; it is not the expected path.
+  function afterPopstate(fn){
+    var done = false, timer;
+    function go(){
+      if(done) return;
+      done = true; window.removeEventListener('popstate', go); clearTimeout(timer);
+      setTimeout(fn, 0);
+    }
+    window.addEventListener('popstate', go);
+    timer = setTimeout(go, 1500);
   }
 
   window.ArchiveApp = {
@@ -4147,7 +4161,7 @@
   // pattern); popstate then calls dismissSchedule() to do the actual work.
   function closeSchedule(){
     if(!schedIsOpen()) return;
-    if(canHistory && history.state && history.state.sched){ history.back(); return; }
+    if(canHistory && history.state && history.state.sched){ history.back(); return true; }
     dismissSchedule();
   }
   function dismissSchedule(){
@@ -4450,7 +4464,7 @@
   // and leaves the schedule (whose {sched:1} entry is now current) standing.
   function closeGrid(){
     if(!gridIsOpen()) return;
-    if(canHistory && history.state && history.state.schedGrid){ history.back(); return; }
+    if(canHistory && history.state && history.state.schedGrid){ history.back(); return true; }
     dismissGrid();
   }
   function dismissGrid(){
@@ -5175,7 +5189,7 @@
     sheetLinkNote = '';
     if(!sheet.classList.contains('show')) return;
     var st = canHistory ? (history.state || {}) : {};
-    if(canHistory && st.sheetId){ history.go(-(st.sheetDepth || 1)); return; }
+    if(canHistory && st.sheetId){ history.go(-(st.sheetDepth || 1)); return true; }
     dismissSheet();
   }
 

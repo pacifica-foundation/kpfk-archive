@@ -73,7 +73,7 @@
         if(!along) return '';
         return along.kindsOf(forAlong(r)).map(function(k){
           return '<button class="sheet-link sheet-along" type="button" data-plugin-action="along-' + k + '" data-id="' + String(r.id).replace(/"/g, '&quot;') + '">' +
-            ICONS[k] + '<span>' + (k === 'transcript' ? 'Transcript' : 'Songs') + '</span></button>';
+            ICONS[k] + '<span>' + (k === 'transcript' ? 'Transcript' : 'Playlist') + '</span></button>';
         }).join('');
       },
       onAction: function(action, id){

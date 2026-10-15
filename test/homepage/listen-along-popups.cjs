@@ -6,6 +6,7 @@
 // open it, tap the bar's button — the panel must be the top layer and no popup left open — then
 // Back closes the panel and nothing comes back. Songs (station cue files) make the button appear
 // without a QIR key. Shown to fail on the code before the fix (every popup but none covered it).
+// Also: the panel's find arrows and A− / A+, and a slow phone whose history steps land late.
 // Live browser check against a running app (default :8081 — use the 8091 scratch server),
 // Chrome remote debugging on CDP_PORT (default 9231, dedicated temporary profile, --mute-audio).
 const { connect, sleep } = require('../live-stream/cdp.js');
@@ -98,6 +99,56 @@ const base = process.env.APP_URL || 'http://localhost:8081';
       check(`${label}: Back closes the panel and brings no popup back`, back.panel === 'panel hidden' && back.open.length === 0, JSON.stringify(back));
     }
   }
+  // ---- the panel's own controls (2026-10-15): find arrows only with matches; A− / A+ ----
+  await size(1280);
+  if (await startPlaying()) {
+    await p.click('#playerAlong');
+    await until(`return document.querySelectorAll('.rv-along-line').length > 0;`, 8000);
+    const arrows = `return !document.getElementById('alongPrev').hidden && !document.getElementById('alongNext').hidden;`;
+    const typeFind = async text => { await p.eval(`var f = document.getElementById('alongFind'); f.value = ${JSON.stringify(text)}; f.dispatchEvent(new Event('input', {bubbles: true})); return 1;`); await sleep(300); };
+    check('panel: no find arrows before a search', !(await p.eval(arrows)));
+    await typeFind('zzqqxx');
+    check('panel: no find arrows for a search with no matches', !(await p.eval(arrows)));
+    const word = await p.eval(`return document.querySelector('.rv-along-text').textContent.trim().split(/\\s+/)[0].slice(0, 4);`);
+    await typeFind(word);
+    check(`panel: find arrows once "${word}" matches`, await p.eval(arrows));
+    await typeFind('');
+    const fs = `return parseFloat(getComputedStyle(document.querySelector('.rv-along-line')).fontSize);`;
+    const before = await p.eval(fs);
+    await p.click('#alongLarger'); await sleep(200);
+    const larger = await p.eval(fs);
+    check('panel: A+ makes the lines larger', larger > before, `${before} → ${larger}`);
+    await p.click('#alongSmaller'); await p.click('#alongSmaller'); await sleep(200);
+    check('panel: A− makes them smaller', (await p.eval(fs)) < larger);
+  }
+
+  // ---- a slow phone (Paul's iPhone, 2026-10-15): history steps land late ----
+  // Closing Now Playing steps back through history. The next layer used to open after a fixed
+  // 60ms; on an iPhone the Back landed later and closed it (the panel, or the show sheet). Here
+  // every traversal is held 300ms. Shown to fail on the fixed-delay code.
+  await p.send('Page.addScriptToEvaluateOnNewDocument', { source: `(function(){
+    var back = history.back.bind(history), go = history.go.bind(history);
+    history.back = function(){ setTimeout(back, 300); };
+    history.go = function(n){ setTimeout(function(){ go(n); }, 300); };
+  })();` });
+  await size(390);
+  const slow = {
+    'Now Playing → Transcript/Playlist': { tap: 'dialog[open] .np-along', want: `return document.body.classList.contains('along-open');` },
+    'Now Playing → Episodes': { tap: 'dialog[open] .np-open-show', want: `return document.getElementById('showSheet').classList.contains('show');` },
+    'the player button over Now Playing': { tap: '#playerAlong', want: `return document.body.classList.contains('along-open');` },
+  };
+  for (const [name, c] of Object.entries(slow)) {
+    if (!(await startPlaying())) { check(`slow phone ${name}: the player offers Transcript / Playlist`, false); continue; }
+    await p.click('#playerInfoBtn');
+    const np = await until(`return !!(window.NowPlaying && window.NowPlaying.isOpen());`, 4000);
+    check(`slow phone ${name}: Now Playing opened (the probe can see it)`, np);
+    await p.click(c.tap);
+    await sleep(2000);   // well past the held 300ms Back
+    const s = JSON.parse(await p.eval(state));
+    check(`slow phone ${name}: what it opened is still open`, await p.eval(c.want), JSON.stringify(s));
+    check(`slow phone ${name}: Now Playing is closed`, !s.open.includes('now playing'), JSON.stringify(s));
+  }
+
   console.log(failed ? `\n${failed} failure(s)` : '\nOK — the player bar opens Listen along over every popup');
   process.exit(failed ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

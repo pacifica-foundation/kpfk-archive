@@ -4,7 +4,7 @@
    popups start at 150, the player bar is 80 and the panel ends above it at --player-h). */
 .rv-along .rv-close{width:44px;height:44px;border:1px solid var(--outline-strong);border-radius:50%;background:var(--surface-3);color:var(--ink);font-size:24px;flex-shrink:0;cursor:pointer}
 .rv-along .rv-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--accent-2);margin:0 0 10px}
-.rv-along .rv-bodytext{white-space:pre-line;font-size:15px;line-height:1.75;color:var(--ink-dim)}
+.rv-along .rv-bodytext{white-space:pre-line;font-size:calc(15px * var(--along-tx, 1));line-height:1.75;color:var(--ink-dim)}
 /* Listen along: drawer (push ≥1100px, over 700–1099px) and phone bottom sheet (<700px). */
 :root{--along-w:420px;--player-h:0px}
 .rv-along{position:fixed;z-index:9;top:0;right:0;bottom:var(--player-h);width:min(var(--along-w),92vw);display:flex;flex-direction:column;background:var(--surface-1);border-left:1px solid var(--outline-strong);box-shadow:-18px 0 50px #0003;transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
@@ -14,18 +14,24 @@
 .rv-along-find{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 20px 10px}
 .rv-along-find input[type=search]{flex:1 1 180px;min-width:0;min-height:40px;border:1px solid var(--outline-strong);border-radius:10px;background:var(--surface-2);color:var(--ink);padding:8px 12px;font-size:16px}
 .rv-along-count{font-size:12px;color:var(--ink-dim);min-width:4ch}
-.rv-along-step{width:36px;height:36px;border-radius:50%;border:1px solid var(--outline-strong);background:var(--surface-3);color:var(--ink)}.rv-along-step:disabled{opacity:.4}
+.rv-along-step{width:36px;height:36px;border-radius:50%;border:1px solid var(--outline-strong);background:var(--surface-3);color:var(--ink)}.rv-along-step[hidden]{display:none}
+/* A− / A+ (2026-10-15, as in the KPFK app): one pill, two halves, greyed at the ends */
+.rv-along-size{display:flex;margin-left:auto;border:1px solid var(--outline-strong);border-radius:999px;overflow:hidden}
+.rv-along-size button{min-width:44px;height:36px;border:0;background:none;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer}
+.rv-along-size button+button{border-left:1px solid var(--outline-strong)}
+.rv-along-size button:disabled{color:var(--ink-faint, var(--ink-dim));opacity:.45;cursor:default}
+@media (hover:hover) and (pointer:fine){.rv-along-size button:not(:disabled):hover{background:var(--surface-2)}}
 .rv-along-only{font-size:12px;color:var(--ink-dim);display:flex;align-items:center;gap:6px;min-height:36px}
 .rv-along-note{font-size:12px;color:var(--ink-dim);margin:4px 10px 10px;line-height:1.5}.rv-along-find{border-bottom:1px solid var(--outline)}.rv-along-only[hidden]{display:none}
 .rv-along-list{position:relative;flex:1;overflow:auto;overscroll-behavior:contain;padding:8px 10px 60px;outline:none}
-.rv-along-line{display:grid;grid-template-columns:var(--along-time-w,36px) 1fr;gap:8px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:9px 10px;color:var(--ink-dim);font-size:15px;line-height:1.55;cursor:pointer}
+.rv-along-line{display:grid;grid-template-columns:var(--along-time-w,36px) 1fr;gap:8px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:9px 10px;color:var(--ink-dim);font-size:calc(15px * var(--along-tx, 1));line-height:1.55;cursor:pointer}
 .rv-along-line:hover{background:var(--surface-2);color:var(--ink)}
 /* Time column sized to the episode (Paul, 2026-09-28: a fixed 56px left a wide gap before the
    text). Fits "59:59"; episodes with an hour mark ("1:02:03") get .has-hours from along.js. Right-aligned, so
    the time always sits 8px from its text whatever the column width. */
 .rv-along-list.has-hours{--along-time-w:48px}
 .rv-along-time{white-space:nowrap;text-align:right;font-size:12px;font-variant-numeric:tabular-nums;color:var(--accent-2);padding-top:3px}
-.rv-along-text{min-width:0;overflow-wrap:anywhere}.rv-along-line.song .rv-along-text{color:var(--ink);font-weight:600}.rv-along-artist{display:block;font-weight:400;font-size:13px;color:var(--ink-dim)}
+.rv-along-text{min-width:0;overflow-wrap:anywhere}.rv-along-line.song .rv-along-text{color:var(--ink);font-weight:600}.rv-along-artist{display:block;font-weight:400;font-size:calc(13px * var(--along-tx, 1));color:var(--ink-dim)}
 .rv-along-line.is-now{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--ink)}.rv-along-line.is-now .rv-along-time{color:var(--accent)}
 .rv-along-line.is-match{box-shadow:inset 0 0 0 2px var(--accent-2)}
 .rv-along-line mark{background:color-mix(in srgb,var(--accent-2) 35%,transparent);color:inherit;border-radius:3px}
@@ -36,7 +42,7 @@
  .rv-along.full{height:calc(100dvh - var(--player-h) - 12px)}.rv-along.dragging{transition:none}
  .rv-along-handle{display:flex;justify-content:center;padding:10px 0 4px;touch-action:none;cursor:grab}.rv-along-handle span{width:40px;height:5px;border-radius:3px;background:var(--outline-strong)}
  .rv-along-find{padding:0 16px 8px}.rv-along-find input[type=search]{flex-basis:120px}
- .rv-along-line{font-size:16px}
+ .rv-along-line{font-size:calc(16px * var(--along-tx, 1))}
 }
 @media(prefers-reduced-motion:reduce){.rv-along,.rv-along-list{transition:none!important;scroll-behavior:auto}}
 

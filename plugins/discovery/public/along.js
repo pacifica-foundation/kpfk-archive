@@ -45,12 +45,13 @@
     panel.innerHTML = `<div class="rv-along-handle" id="alongHandle" aria-hidden="true"><span></span></div>
 <header class="rv-along-head"><img class="rv-along-art" id="alongArt" alt="" hidden><div class="rv-along-headtext"><p class="rv-eyebrow" id="alongKind"></p><p class="rv-along-show" id="alongShow"></p></div>
 <button type="button" class="rv-close" id="alongClose" aria-label="Close listen along">×</button>
-<h2 id="alongTitle" tabindex="-1"></h2><p class="rv-along-sub"><span id="alongSub"></span><button type="button" class="rv-along-more" id="alongMore" aria-expanded="false" aria-controls="alongAbout" hidden><span>About</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></p><div class="rv-along-switch" id="alongSwitch" role="group" aria-label="Listen along with" hidden><button type="button" data-kind="transcript">Transcript</button><button type="button" data-kind="songs">Songs</button></div></header>
+<h2 id="alongTitle" tabindex="-1"></h2><p class="rv-along-sub"><span id="alongSub"></span><button type="button" class="rv-along-more" id="alongMore" aria-expanded="false" aria-controls="alongAbout" hidden><span>About</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></p><div class="rv-along-switch" id="alongSwitch" role="group" aria-label="Listen along with" hidden><button type="button" data-kind="transcript">Transcript</button><button type="button" data-kind="songs">Playlist</button></div></header>
 <div class="rv-along-body"><div class="rv-along-about" id="alongAbout" role="region" aria-label="About this episode" hidden></div>
 <div class="rv-along-find"><input id="alongFind" type="search" placeholder="Find in this episode" aria-label="Find in this episode" autocomplete="off">
 <span id="alongCount" class="rv-along-count" role="status" aria-live="polite"></span>
-<button type="button" class="rv-along-step" id="alongPrev" aria-label="Previous match">↑</button><button type="button" class="rv-along-step" id="alongNext" aria-label="Next match">↓</button>
-<label class="rv-along-only" id="alongOnlyLabel" hidden><input type="checkbox" id="alongOnly"> Matches only</label></div>
+<button type="button" class="rv-along-step" id="alongPrev" aria-label="Previous match" hidden>↑</button><button type="button" class="rv-along-step" id="alongNext" aria-label="Next match" hidden>↓</button>
+<label class="rv-along-only" id="alongOnlyLabel" hidden><input type="checkbox" id="alongOnly"> Matches only</label>
+<div class="rv-along-size" role="group" aria-label="Text size"><button type="button" id="alongSmaller" aria-label="Smaller text" title="Smaller text">A−</button><button type="button" id="alongLarger" aria-label="Larger text" title="Larger text">A+</button></div></div>
 <div class="rv-along-list" id="alongList" tabindex="-1"></div></div>
 <button type="button" class="rv-along-now" id="alongNow" hidden>↓ Back to now</button>`;
     document.body.appendChild(panel);
@@ -65,6 +66,8 @@
     find.addEventListener('keydown', e => { if(e.key === 'Enter') { e.preventDefault(); stepMatch(e.shiftKey ? -1 : 1); } });
     $('alongNext').onclick = () => stepMatch(1); $('alongPrev').onclick = () => stepMatch(-1);
     $('alongOnly').onchange = () => { paintLines(); stepMatch(0); };
+    $('alongSmaller').onclick = () => stepSize(-1); $('alongLarger').onclick = () => stepSize(1);
+    paintSize();
     list.addEventListener('click', e => { const b = e.target.closest('[data-at]'); if(b) { following = true; api.seek(openId, Number(b.dataset.at)); tally(kind === 'songs' ? 'songJump' : 'lineJump'); } });
     // Any deliberate scroll by the reader stops auto-follow until "Back to now".
     for(const type of ['wheel','touchmove','keydown']) list.addEventListener(type, e => { if(type !== 'keydown' || /^(Arrow|Page|Home|End)/.test(e.key)) { following = false; paintNowPill(); } }, {passive:true});
@@ -98,13 +101,14 @@
   function paintLines() {
     const q = find.value.trim().toLowerCase(), only = $('alongOnly').checked && q;
     matches = q ? lines.map((l, i) => (l.text + ' ' + (l.artist || '')).toLowerCase().includes(q) ? i : -1).filter(i => i >= 0) : [];
-    if(!lines.length) { list.innerHTML = plainText ? plainText.split(/\n{2,}/).map(p => `<p class="rv-bodytext">${esc(p)}</p>`).join('') : ''; $('alongCount').textContent = ''; return; }
+    if(!lines.length) { list.innerHTML = plainText ? plainText.split(/\n{2,}/).map(p => `<p class="rv-bodytext">${esc(p)}</p>`).join('') : ''; $('alongCount').textContent = ''; $('alongPrev').hidden = $('alongNext').hidden = true; return; }
     const shown = only ? matches.map(i => [lines[i], i]) : lines.map((l, i) => [l, i]);
     // The provenance note scrolls with the lines so it never costs the phone sheet space.
     list.innerHTML = `<p class="rv-along-note" lang="en">${esc(note)}</p>` + (shown.length ? shown.map(([l, i]) => lineHtml(l, i, q)).join('') : `<p class="rv-along-empty">No matches for “${esc(find.value)}”.</p>`);
     $('alongOnlyLabel').hidden = !q;
     $('alongCount').textContent = q ? `${matches.length} ${matches.length === 1 ? 'match' : 'matches'}` : '';
-    $('alongPrev').disabled = $('alongNext').disabled = !matches.length;
+    // Only once a search has matches (Paul, 2026-10-15; as in the app): with none they do nothing.
+    $('alongPrev').hidden = $('alongNext').hidden = !matches.length;
     nowIndex = -1; followAudio();
   }
   function stepMatch(dir) {
@@ -158,6 +162,31 @@
     if(Math.abs(target - list.scrollTop) < 2) return;
     list.scrollTo({top: target, behavior: reduceMotion() ? 'auto' : 'smooth'});
   }
+  // Text size, as in the KPFK app and the Pacifica playlists player: A− / A+ step sm / md / lg / xl
+  // (0.9 / 1 / 1.2 / 1.45), greyed out at the ends; phones skip sm (their text is compact already).
+  // Applied through a CSS variable set from script — the CSP voids inline style attributes.
+  const SIZES = {sm: 0.9, md: 1, lg: 1.2, xl: 1.45};
+  const SIZE_KEY = ((window.StationConfig || {}).storagePrefix || '') + 'alongTextSize';
+  let textSize = 'md';
+  // Caught: storage blocked (private browsing, site data off). The size then lasts for this visit.
+  try { const saved = localStorage.getItem(SIZE_KEY); if(SIZES[saved]) textSize = saved; } catch(e) { /* visit-only size */ }
+  const sizeSteps = () => phone() ? ['md', 'lg', 'xl'] : ['sm', 'md', 'lg', 'xl'];
+  const sizeNow = () => sizeSteps().includes(textSize) ? textSize : sizeSteps()[0];
+  function paintSize() {
+    if(!panel) return;
+    const steps = sizeSteps(), at = steps.indexOf(sizeNow());
+    panel.style.setProperty('--along-tx', String(SIZES[sizeNow()]));
+    $('alongSmaller').disabled = at <= 0; $('alongLarger').disabled = at >= steps.length - 1;
+  }
+  function stepSize(dir) {
+    const steps = sizeSteps(), i = steps.indexOf(sizeNow()) + dir;
+    if(i < 0 || i >= steps.length) return;
+    textSize = steps[i];
+    try { localStorage.setItem(SIZE_KEY, textSize); } catch(e) { /* visit-only size, as above */ }
+    paintSize();
+    // The line playing now (or the match being read) stays in view at the new size.
+    if(following) scrollToNow(false); else list.querySelector('.is-match')?.scrollIntoView({block: 'center'});
+  }
   function scrollToNow(smooth) {
     const el = list.querySelector('.is-now'); if(!el) return;
     // Measured against the list, not the panel: the header above it must not count.
@@ -208,7 +237,7 @@
     openId = id; kind = kinds.includes(want) ? want : kinds[0] || ''; following = true; nowIndex = -1; matchAt = -1;
     $('alongSwitch').hidden = kinds.length < 2;
     for(const b of $('alongSwitch').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.kind === kind));
-    $('alongKind').textContent = kind === 'transcript' ? 'Transcript' : kind === 'songs' ? 'Songs in this episode' : 'Listen along';
+    $('alongKind').textContent = kind === 'transcript' ? 'Transcript' : kind === 'songs' ? 'Playlist' : 'Listen along';
     $('alongTitle').textContent = api.title(row); $('alongSub').textContent = api.meta(row);
     $('alongShow').textContent = api.show ? api.show(row) : '';
     const art = api.art ? api.art(row) : ''; $('alongArt').hidden = !art; if(art) $('alongArt').src = art;
@@ -255,7 +284,7 @@
     const btn = toggleEl(); if(!btn) return;
     const row = api?.getRow(currentId()), k = kindOf(row);
     // Icon + label; phones show the icon only, so the label also names the button.
-    const label = k === 'transcript' ? 'Transcript' : 'Songs';
+    const label = k === 'transcript' ? 'Transcript' : 'Playlist';
     btn.hidden = !k; btn.querySelector('.rv-alongtoggle-label').textContent = label;
     btn.querySelector('.rv-alongtoggle-icon').innerHTML = k === 'songs' ? SONGS_ICON : TRANSCRIPT_ICON;
     btn.setAttribute('aria-label', (isShown ? 'Close ' : 'Open ') + label.toLowerCase());

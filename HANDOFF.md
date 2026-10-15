@@ -41,6 +41,20 @@ site, no page errors, no sideways scroll. Fixed (Paul approved):
   `test/homepage/listen-along-popups.cjs` (23 failures on the old code, 52/52 now; also checked
   in WebKit). And the episode action row is one height (desktop 32px, touch 44px): Play and
   Share stood taller than the Transcript / Songs pills.
+- **Evening, still broken on Paul's iPhone only** (player → Now Playing → Transcript): a timing
+  race. Closing Now Playing steps back through history; the next layer opened after a fixed
+  60ms (`closeThen`) — on an iPhone the Back landed later and its popstate closed the panel (and
+  Now Playing → Episodes lost the show sheet the same way). `closePopups` had the same flaw
+  (80ms). Now close functions return true when they step through history and `closePopups`
+  waits for that popstate (`afterPopstate`, 1.5s backstop); Now Playing's `closeThen` uses it.
+  Reproduced on live with history held 300ms; test section "slow phone" in
+  `listen-along-popups.cjs`.
+- **Paul's calls, same evening:** popups are **one at a time** (a new kind of layer replaces
+  the open one; show → episode stays in one sheet; only the artwork zoom and schedule → show
+  stack; Back undoes one step). **"Songs" is now "Playlist"** everywhere a listener sees it —
+  "Transcript" untouched (Paul: do not touch it). Find arrows show only once a search has
+  matches. **A− / A+ text size** in the Listen along panel, as in the Flutter app
+  (0.9/1/1.2/1.45, phones skip the smallest, remembered per device).
 - Not done: the 16 WBAI-era comments in `app.js` describe inherited code that may be dead on KPFK
   (wbai.org program directory, schedule "ghost" filter) — tidy when touching those areas.
 
@@ -81,8 +95,10 @@ rest are named by QIR. Then refresh a link in the Facebook Sharing Debugger / Li
   name: "QIR" is getting a product name, not yet chosen). This site still says "Machine transcript from
   QIR — …" (`plugins/discovery/public/along.js:216`).
 - **Transcript text size**: the app has A− / A+ (sm/md/lg/xl = 0.9/1/1.2/1.45, the Pacifica playlists
-  player's `live.textSize`; phones skip sm). This site's Listen along panel has none.
-- **Find arrows**: the app shows ↑/↓ only when there are matches; here they always show.
+  player's `live.textSize`; phones skip sm). **Done here 2026-10-15** (same steps).
+- **Find arrows**: the app shows ↑/↓ only when there are matches. **Done here 2026-10-15.**
+- **"Songs" → "Playlist"** on this site (Paul, 2026-10-15). The app may still say "Songs" — Paul's call
+  whether the app follows.
 - Smaller, app-only: outlined cards, tablet scaling, follows (device-only, no account), message modals.
 
 **Feed text seen 2026-10-14:** Informativo Pacifica's show description arrives as "Daily Spanish language

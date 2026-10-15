@@ -200,12 +200,18 @@
     dlg.close();
     if (open.trigger && document.contains(open.trigger)) open.trigger.focus();
   }
+  // True when it stepped back through history: the caller waits for that popstate before
+  // opening anything (ArchiveApp.closePopups).
   function close() {
+    var stepped = pushed;
     if (pushed) { pushed = false; history.back(); }   // popstate is ignored: pushed is already false
     hide();
+    return stepped;
   }
-  // Close, then do something that opens another layer (the show sheet, Listen along).
-  function closeThen(fn) { close(); setTimeout(fn, 60); }
+  // Close, then do something that opens another layer (the show sheet, Listen along). Not a
+  // fixed delay: on a slow phone the Back from close() landed after it and closed what had just
+  // opened (Paul's iPhone, 2026-10-15). closePopups waits for that popstate.
+  function closeThen(fn) { app.closePopups(fn); }
 
   window.NowPlaying = {
     active: function () { return !!app && matchMedia(PHONE).matches; },
