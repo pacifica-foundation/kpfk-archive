@@ -267,7 +267,12 @@
     audio.addEventListener('timeupdate', followAudio); audio.addEventListener('seeked', followAudio);
     // The panel belongs to what is playing: a new episode brings its own words.
     audio.addEventListener('loadstart', () => { paintAvailability(); const id = currentId(); if(isShown && id && id !== openId) show(id); });
-    toggleEl().onclick = () => isShown ? close() : open(currentId());
+    // beforeOpen: the host closes any popup first — the panel is layered under them, and the
+    // player bar's button stays tappable above them (2026-10-15).
+    toggleEl().onclick = () => {
+      if(isShown) return close();
+      if(api.beforeOpen) api.beforeOpen(() => open(currentId())); else open(currentId());
+    };
     paintAvailability();
   }
   window.ListenAlong = {init, open, close, kindOf, kindsOf, isOpen: () => isShown, refresh: () => paintAvailability()};

@@ -32,6 +32,15 @@ site, no page errors, no sideways scroll. Fixed (Paul approved):
   `test/pacifica/css-prefixes.test.js` (offline). Both shown to fail on the old code.
 - Feed: Thom Hartmann's DJ field fixed by Paul in Confessor (he has access). "espa~nol" is the
   only text glitch in 1,189 episodes — note for Otis, no display rule.
+- **Later the same day (Paul, from his iPhone):** the player bar's Transcript button "did not
+  work" with a popup open. Root cause: the bar sits above every popup (z 310) so the button
+  stays tappable, but Listen along is layered under popups (z 90) — it opened invisibly under
+  the show sheet, episode, Now Playing, schedule, menu, Donate or artwork zoom. New
+  `ArchiveApp.closePopups(then)` closes popups top-first through their own close paths (history
+  stays right), then opens the panel; the sheet's Transcript button uses it too. Test:
+  `test/homepage/listen-along-popups.cjs` (23 failures on the old code, 52/52 now; also checked
+  in WebKit). And the episode action row is one height (desktop 32px, touch 44px): Play and
+  Share stood taller than the Transcript / Songs pills.
 - Not done: the 16 WBAI-era comments in `app.js` describe inherited code that may be dead on KPFK
   (wbai.org program directory, schedule "ghost" filter) — tidy when touching those areas.
 

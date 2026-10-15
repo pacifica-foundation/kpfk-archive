@@ -79,9 +79,9 @@
       onAction: function(action, id){
         var m = /^along-(transcript|songs)$/.exec(action || '');
         if(!m || !along) return;
-        // The panel sits under popups; close the sheet first, then open it for this episode.
-        app.closeSheet();
-        win.setTimeout(function(){ along.open(id, {kind: m[1]}); }, 50);
+        // The panel sits under popups; close them first (the sheet, and the schedule it may
+        // have been opened from), then open it for this episode.
+        app.closePopups(function(){ along.open(id, {kind: m[1]}); });
       }
     });
     // Listen along on the main player: a Transcript / Songs button in the player bar.
@@ -103,6 +103,7 @@
       };
       along.init({
         audio: audio, player: bar, toggle: toggle, currentId: currentId, hostMeasuresPlayer: true,
+        beforeOpen: function(then){ app.closePopups(then); },
         getRow: function(id){ return forAlong(rowsById.get(id)); },
         title: function(r){ return win.ArchiveSearch.episodeTitle(r) || r.title; },
         meta: function(r){ return r.dateText || ''; },

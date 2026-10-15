@@ -4616,6 +4616,14 @@
   .sheet-ep-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:.2rem .7rem; color:var(--ink-dim); font-size:.88rem; font-variant-numeric:tabular-nums; }
   .sheet-ep-meta .mono{ font-family:var(--font-mono); font-size:.82rem; }
   .sheet-ep-actions{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; }
+  /* One height for the whole row (Paul, 2026-10-15): Play (38px) and the round Share (40px)
+     stood taller than the Transcript / Songs pills (28px) beside them. Touch screens keep
+     their 44px targets — the (pointer:coarse) min-height wins over this height. */
+  .sheet-ep-actions > .sheet-play, .sheet-ep-actions > .sheet-restart, .sheet-ep-actions > .sheet-link{
+    height:2rem; padding-block:0; box-sizing:border-box;
+  }
+  .sheet-ep-actions > .sheet-play{ padding-inline:1rem; font-size:.82rem; }
+  .sheet .sheet-ep-actions > .sheet-icon-btn{ width:2rem; }
   .sheet .sv .sheet-selected-summary{ max-width:65ch; }
 
   /* the old footer, route bar and tabs no longer exist */

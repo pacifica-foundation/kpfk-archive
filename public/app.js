@@ -2977,6 +2977,32 @@
       try { p.enrich(rows); } catch(e){ console.warn('[plugin ' + p.name + '] enrich failed:', e.message); }
     });
   }
+  // Close every popup, top first, then run `then` (2026-10-15). The player bar sits above all
+  // of them (z-index 310), so its Transcript button could be tapped with a show sheet, the
+  // schedule or Now Playing open — and Listen along, which is layered under popups, opened
+  // invisibly beneath them. Each popup closes through its own close function, so the ones
+  // with history entries step back through history as Back would; the next one is closed
+  // once that has settled. Bounded, so a popup that refuses to close cannot loop.
+  function topPopupClose(){
+    if(lightboxOpen()) return closeLightbox;
+    if(donateOpen()) return closeDonate;
+    if(document.body.classList.contains('menu-open')) return function(){ document.getElementById('menuClose').click(); };
+    if(window.NowPlaying && window.NowPlaying.isOpen()) return window.NowPlaying.close;
+    if(sheet.classList.contains('show')) return closeSheet;
+    if(gridIsOpen()) return closeGrid;
+    if(schedIsOpen()) return closeSchedule;
+    return null;
+  }
+  function closePopups(then){
+    var steps = 0;
+    (function step(){
+      var close = topPopupClose();
+      if(!close || steps++ >= 8){ if(then) then(); return; }
+      close();
+      setTimeout(step, 80);
+    })();
+  }
+
   window.ArchiveApp = {
     addPlugin: function(p){ plugins.push(p); },
     refresh: function(){ enrichRows(); rebuildSearchIndex(); render(); repaintOpenSheet(); },
@@ -2996,6 +3022,7 @@
       pendingResume = seconds; resumeIsJump = true;
     },
     closeSheet: function(){ closeSheet(); },
+    closePopups: closePopups,
     // What the player bar holds: 'archive', 'live' or null.
     barMode: function(){ return barMode; },
     // For the phone "Now Playing" sheet (public/now-playing.js, 2026-09-29): a thin window on
