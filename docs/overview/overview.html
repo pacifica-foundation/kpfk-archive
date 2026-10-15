@@ -70,6 +70,16 @@
   .feature.split { grid-template-columns: 1fr 1fr; }
   .feature.split img { width: 100%; border-radius: 8px; border: 1px solid var(--rule); display: block; }
 
+  .duo { display: grid; grid-template-columns: 1fr; gap: 10pt; justify-items: center; }
+  .duo figure { width: 88%; }
+  .duo img { width: 100%; border-radius: 8px; border: 1px solid var(--rule); display: block; }
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 4pt 0 12pt; }
+  .step { position: relative; background: var(--card); border: 1px solid var(--rule); border-radius: 10px;
+          padding: 9pt 10pt 9pt; margin-right: 14pt; font-size: 10pt; line-height: 1.3; color: var(--ink-dim); }
+  .step b { display: block; font-family: 'Oswald', sans-serif; font-size: 15pt; color: var(--on-air); margin-bottom: 2pt; }
+  .step:not(.last)::after { content: '\2192'; position: absolute; right: -13pt; top: 50%; transform: translateY(-50%);
+          color: var(--on-air); font-size: 13pt; font-weight: 700; }
+  .step.last { margin-right: 0; border-color: var(--on-air); }
   /* Every screen */
   .screens { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; }
   .screens figure { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 9pt; break-inside: avoid; }
@@ -168,23 +178,48 @@
   <div class="feature wide">
     <div>
       <h3>The schedule, and a week at a glance</h3>
-      <p>The schedule shows the next seven days as KPFK publishes them, with what is live right now marked. On a computer, <b>Grid</b> lays the whole week out side by side, like a printed program guide.</p>
+      <p>The schedule shows the next seven days as KPFK publishes them, day by day, with the program on the air right now marked <b>Live</b>; tap any program to see its page. On a computer, the <b>Grid</b> button lays the whole week out side by side, like a printed program guide.</p>
     </div>
-    <figure><img src="img/desktop-grid-dark.jpg" alt=""><figcaption>The week grid on a computer — dark</figcaption></figure>
+    <div class="duo">
+      <figure><img src="img/desktop-schedule-light.jpg" alt=""><figcaption>The schedule — light · the Grid button opens…</figcaption></figure>
+      <figure><img src="img/desktop-grid-dark.jpg" alt=""><figcaption>…the whole week — dark</figcaption></figure>
+    </div>
   </div>
-  <div class="rule keep" style="margin-top:4pt">
-    <h3>Sharing</h3>
-    <p>Every episode has a link. Shared in Messages, WhatsApp, Facebook or Slack, it shows a card with the program's artwork and the episode's own title — and it opens on this website for anyone, app or not.</p>
+</section>
+
+<section class="page">
+  <div class="eyebrow">Behind the scenes</div>
+  <h2>What makes it dynamic</h2>
+  <p class="note">KPFK's own listings give each program a name and a time slot, but most episodes arrive with no title of their own. What brings the archive to life is an automatic step that happens after every broadcast:</p>
+  <div class="flow">
+    <div class="step"><b>1</b><span>KPFK airs a program</span></div>
+    <div class="step"><b>2</b><span>Pacifica's archive records it</span></div>
+    <div class="step"><b>3</b><span>Pacifica's transcript service listens to the recording</span></div>
+    <div class="step last"><b>4</b><span>The website shows a headline, a summary, the guests, and the full transcript</span></div>
+  </div>
+  <div class="feature split">
+    <div>
+      <h3>From a date to a story</h3>
+      <p>Without it, an episode is just <i>"Democracy Now! · Oct 15"</i>. With it, the same episode reads <b>"Justin Pearson on data centers and community impact"</b>, with a short summary of what was said and who said it.</p>
+      <p>It happens on its own, a few hours after each program airs, in English and in Spanish. Where the station has written its own description, that always comes first.</p>
+    </div>
+    <figure><img src="img/desktop-episode-dark.jpg" alt=""><figcaption>An episode with its headline and summary — dark</figcaption></figure>
+  </div>
+  <div class="rules">
+    <div class="rule"><h3>Time markers on every line</h3><p>Each line of the transcript knows when it was spoken, so the text follows the audio and a tap on any line plays from that moment. Playlists work the same way, with each song's time from the station's logs.</p></div>
+    <div class="rule"><h3>Search that knows what was said</h3><p>Because every episode has a headline and summary, a search for a person or a subject finds the episodes where it came up — not only program names.</p></div>
+    <div class="rule"><h3>Better shares</h3><p>Every episode has a link. Shared in Messages, WhatsApp, Facebook or Slack, it shows a card with the program's artwork and the episode's own headline — and it opens on this website for anyone, app or not.</p></div>
+    <div class="rule"><h3>Honest labels</h3><p>All of this is machine-made and marked so: "names and words may be wrong." It reaches the KPFK Podcasts app too, from the same source.</p></div>
   </div>
 </section>
 
 <section class="page">
   <div class="eyebrow">One website</div>
   <h2>Made for every screen</h2>
-  <p class="note">The same address works everywhere and arranges itself for the screen in hand. On a phone, the player, program pages and transcript slide up from the bottom; on a computer, an episode opens as a two-column card and the transcript sits beside the page while listeners keep browsing. Light and dark follow the device's own setting.</p>
+  <p class="note">The same address works everywhere and arranges itself for the screen in hand. On a phone, the player, program pages and transcript slide up from the bottom; on a computer, Listen live and each program open as cards over the page, and the transcript sits beside it while listeners keep browsing. Light and dark follow the device's own setting.</p>
   <div class="screens">
     <figure class="tall"><img src="img/tablet-home-dark.jpg" alt=""><figcaption>Tablet — home, dark</figcaption></figure>
-    <figure><img src="img/desktop-episode-dark.jpg" alt=""><figcaption>Computer — an episode, dark</figcaption></figure>
+    <figure><img src="img/desktop-live-light.jpg" alt=""><figcaption>Computer — Listen live, light</figcaption></figure>
     <figure><img src="img/desktop-transcript-light.jpg" alt=""><figcaption>Computer — transcript beside the page, light</figcaption></figure>
   </div>
 </section>

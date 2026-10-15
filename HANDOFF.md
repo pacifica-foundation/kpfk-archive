@@ -62,7 +62,9 @@ site, no page errors, no sideways scroll. Fixed (Paul approved):
   matches. **A− / A+ text size** in the Listen along panel, as in the Flutter app
   (0.9/1/1.2/1.45, phones skip the smallest, remembered per device).
 - **Overview PDF for Pacifica's ED and staff:** [docs/overview/](docs/overview/README.md) →
-  `KPFK-Archive-Website-Overview.pdf` (8 pages, 15 screenshots: listener pages from the live site at
+  `KPFK-Archive-Website-Overview.pdf` (9 pages — later the same day Paul added the schedule list beside
+  the grid and a plain "What makes it dynamic" page on the automatic headlines, summaries and
+  time-marked transcripts; 16 screenshots: listener pages from the live site at
   phone / tablet / computer sizes, light and dark mixed, week grid included; **the studio** — sign-in,
   dashboard, Import / Export, printable report — at computer size from a scratch copy with example
   figures). Same layout and fonts as the app's overview. Paul: "The PDF is great!" Regenerate steps in

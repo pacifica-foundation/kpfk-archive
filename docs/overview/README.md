@@ -4,11 +4,13 @@
 overview of podcasts.kpfk.org for the Executive Director and staff (first made 2026-10-15). The
 companion to the app's overview (`~/Desktop/kpfk-podcast/docs/overview/`) — same layout and fonts.
 
-Eight pages: cover; programs and the player / Listen live; Listen along and search; the schedule week
-grid and sharing; phone, tablet and computer side by side; **the studio** (sign-in and dashboard;
-Import / Export, printable report and settings — added 2026-10-15 at Paul's request); the station's
-rules, where it stands and what's next. Fifteen screenshots: listener pages at phone (390 px), tablet
-(834 px) and computer (1440 px), light and dark mixed; the studio at computer size only (Paul).
+Nine pages: cover; programs and the player / Listen live; Listen along and search; the schedule list
+and the week grid; **what makes it dynamic** (the automatic headline, summary, guests and time-marked
+transcript after every broadcast, in plain words); phone, tablet and computer side by side; **the
+studio** (sign-in and dashboard; Import / Export, printable report and settings); the station's rules,
+where it stands and what's next. Sixteen screenshots: listener pages at phone (390 px), tablet (834 px)
+and computer (1440 px), light and dark mixed; the studio at computer size only (Paul). `ONLY=desktop-extra`
+retakes just the computer Listen live and schedule-list pictures.
 
 ## Regenerate
 

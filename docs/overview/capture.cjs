@@ -3,6 +3,7 @@
 // Playwright is not a dependency of this zero-dependency app: run it from a scratch folder,
 //   (cd /tmp/pw && npm i playwright && npx playwright install webkit)
 //   NODE_PATH=/tmp/pw/node_modules node docs/overview/capture.cjs [https://podcasts.kpfk.org]
+//   (ONLY=desktop-extra takes just the desktop Listen live and schedule-list pictures)
 // The usage beacon (/api/ev) is blocked, so these visits never reach the station's stats.
 // Writes PNGs to docs/overview/raw/ (git-ignored); README step 2 shrinks them into img/.
 const { webkit } = require('playwright');
@@ -40,6 +41,18 @@ const sizes = {
     await page.goto(BASE + await episodePath(page), { waitUntil: 'load' }); await page.waitForTimeout(2500);
     await page.click('#sheetBody .sheet-play'); await page.waitForTimeout(2500);
   };
+
+  // ---- desktop: Listen live and the schedule list (added 2026-10-15). ONLY=desktop-extra
+  // takes just these two, leaving the other pictures as they are. ----
+  if (process.env.ONLY === 'desktop-extra' || !process.env.ONLY) {
+    const { ctx: c, page: pg } = await open('desktop', 'light');
+    await home(pg);
+    await pg.click('#onAirBtn'); await pg.waitForTimeout(3500); await shot(pg, 'desktop-live-light');
+    await pg.keyboard.press('Escape'); await pg.waitForTimeout(1200);
+    await pg.click('#scheduleBtn'); await pg.waitForTimeout(2500); await shot(pg, 'desktop-schedule-light');
+    await c.close();
+    if (process.env.ONLY) { await b.close(); return; }
+  }
 
   // ---- phone ----
   let { ctx, page } = await open('phone', 'light');
