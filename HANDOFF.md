@@ -6,6 +6,35 @@ WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here o
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
+## 2026-10-15 — site audit: layout and play fixes (not yet deployed)
+
+Click-through audit in Chrome **and WebKit** (Playwright from the session scratchpad, not a
+repo dependency) at 390/768/1280, light and dark, scratch server 8091. Working well: playback,
+player bar always visible and uncovered, Escape/Back always close the top layer and stay on the
+site, no page errors, no sideways scroll. Fixed (Paul approved):
+
+- **Search cards crushed on phones** (title 24px wide at 360): `.search-copy` `flex:1` started at
+  zero width so the "View show" button never wrapped. Phone rule gives it a flex-basis.
+- **"…" lines outgrowing column-flex buttons, iPhone only**: Safari keeps `<button>`'s default
+  `align-items:flex-start` (current desktop Chrome dropped it). Player subtitle ran under the Songs
+  button; 21/111 week-grid host names cut mid-letter. `.player-info`, `.grid-block` → `stretch`.
+- **No blur on older iPhones**: six rules had `backdrop-filter` without `-webkit-` (header,
+  player bar, to-top, studio dialog, two in the Discovery plugin CSS).
+- **Refused play spun forever**: a refused `play()` fires neither `error` nor `pause`, so
+  "Loading…" never cleared and nothing was logged. All five archive play sites now use
+  `playArchive()` (`public/app.js`): AbortError ignored, refusals logged, "Tap play to start".
+- Dotted detail lines broke before the dot ("· 60 min") or inside a part ("5:00 / am",
+  "Oct / 14"): `dots()` in `app.js` (Just aired, search titles and details, sheet tally) keeps
+  later parts whole; the first part (a title) still wraps between words.
+- Touch targets: search clear 22→32px (same 22px circle), show-view episode rows 16→40px tall.
+- Tests: `test/homepage/layout-fit.cjs` (browser, 8091; reproduces Safari's button default;
+  WCAG 2.5.8 with its spacing and equivalent-control exceptions) and
+  `test/pacifica/css-prefixes.test.js` (offline). Both shown to fail on the old code.
+- Feed: Thom Hartmann's DJ field fixed by Paul in Confessor (he has access). "espa~nol" is the
+  only text glitch in 1,189 episodes — note for Otis, no display rule.
+- Not done: the 16 WBAI-era comments in `app.js` describe inherited code that may be dead on KPFK
+  (wbai.org program directory, schedule "ghost" filter) — tidy when touching those areas.
+
 ## 2026-10-14 — from the Flutter app session (read before working here)
 
 A long session in `kpfk-podcast` touched this site. **Three files here are changed and NOT committed**

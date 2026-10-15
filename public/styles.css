@@ -321,7 +321,7 @@
        under the status bar when installed; without this the bar sits in it. */
     padding-top:env(safe-area-inset-top, 0px);
     background:color-mix(in srgb, var(--surface-1) 92%, transparent);
-    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
     border-bottom:1px solid var(--outline);
     box-shadow:var(--shadow);
   }
@@ -1173,13 +1173,15 @@
   .search-field input::-webkit-search-cancel-button{-webkit-appearance:none; appearance:none;}
   .search-clear{
     flex:none; display:flex; align-items:center; justify-content:center;
-    width:22px; height:22px; padding:0; margin:-2px -2px -2px 0;
+    /* 32px to tap (it sits against the field, so WCAG's 24px minimum has no spacing
+       exception here); the circle drawn is still 22px, clipped to the content box */
+    width:32px; height:32px; padding:5px; margin:-7px -7px -7px 0; background-clip:content-box;
     border:none; border-radius:50%; cursor:pointer;
-    background:var(--outline-strong); color:var(--surface-0);
+    background-color:var(--outline-strong); color:var(--surface-0);
   }
   .search-clear[hidden]{display:none;}
   .search-clear svg{width:13px; height:13px; color:inherit;}
-  .search-clear:hover{background:var(--accent-2);}
+  .search-clear:hover{background-color:var(--accent-2);}
   .search-clear:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px;}
 
   /* ---- Category dropdown ---- */
@@ -2381,7 +2383,9 @@
     --sched-handle: color-mix(in srgb, var(--accent) 30%, var(--outline-strong));
     position:relative; z-index:1; min-width:0; min-height:0; overflow:hidden;
     margin:2px 0;
-    display:flex; flex-direction:column; gap:.15rem;
+    /* stretch, not Safari's button default (flex-start): host lines must end in "…", not be
+       clipped mid-letter by the block's edge */
+    display:flex; flex-direction:column; align-items:stretch; gap:.15rem;
     padding:.3rem .5rem .3rem .55rem;
     border:1px solid var(--grid-edge); border-left:3px solid var(--sched-handle);
     border-radius:10px;
@@ -3039,7 +3043,7 @@
     position:fixed; left:0; right:0; bottom:0; z-index:80;
     display:flex; align-items:center; gap:.85rem;
     background:color-mix(in srgb, var(--surface-2) 96%, transparent);
-    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
     border-top:1px solid var(--outline-strong);
     box-shadow:0 -6px 24px rgba(0,0,0,.35);
     padding:.6rem 1rem calc(.6rem + env(safe-area-inset-bottom,0px));
@@ -3146,7 +3150,9 @@
   @media (hover:hover) and (pointer:fine){
     .player-art.player-open:hover{box-shadow:inset 0 0 0 1px var(--accent-2);}
   }
-  .player-info{display:flex; flex-direction:column; min-width:0; line-height:1.3;}
+  /* stretch: Safari gives <button> align-items:flex-start, which let the subtitle grow to its
+     full text and run under the Songs button instead of ending in "…" */
+  .player-info{display:flex; flex-direction:column; align-items:stretch; min-width:0; line-height:1.3;}
   .player-title-line{ display:flex; align-items:center; gap:.4rem; min-width:0; }
   .player-live-source{
     flex:none; display:inline-flex; align-items:center; gap:.28rem;
@@ -3436,7 +3442,7 @@
        accent-filled circle in the corner is the play button and it stays the
        only one. Accent shows up on hover and press, never before. */
     background:color-mix(in srgb, var(--surface-2) 92%, transparent);
-    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
     border:1px solid var(--outline-strong);
     color:var(--ink-dim);
     box-shadow:var(--shadow);
@@ -4050,6 +4056,9 @@
 .search-show{align-items:start;flex-wrap:wrap}
 .search-show>img{width:64px;height:64px}
 .search-show>.search-action{margin-left:calc(64px + .85rem)}
+/* flex:1 alone starts the text at zero width, so the button kept the line and crushed the
+   title to a sliver (24px at 360). Starting it at the row minus the artwork makes the button wrap. */
+.search-show>.search-copy{flex-basis:calc(100% - 64px - .85rem)}
 .search-title{font-size:1.05rem}
 .search-episode .search-title{font-size:.95rem}
 .search-episode>img{width:38px;height:38px}
@@ -4574,7 +4583,8 @@
     background:var(--accent); color:var(--accent-ink); border-color:transparent;
   }
   .sheet .sv .sheet-episode-play svg{ width:15px; height:15px; }
-  .sheet .sv .sheet-episode-open{ padding:0; gap:.2rem; background:transparent; }
+  /* as tall as the 40px play button beside it — with padding 0 it was just its text (16px) */
+  .sheet .sv .sheet-episode-open{ padding:0; gap:.2rem; background:transparent; min-height:40px; justify-content:center; }
   .sheet-episode-when{ display:flex; align-items:center; flex-wrap:wrap; gap:.2rem .55rem; font-size:.84rem; color:var(--ink-dim); font-variant-numeric:tabular-nums; }
   .sheet .sv .sheet-episode-date{ font-size:.86rem; font-weight:700; color:var(--ink); }
   .sheet .sv .sheet-episode-time{ font-family:inherit; font-size:inherit; }

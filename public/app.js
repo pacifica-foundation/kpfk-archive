@@ -13,6 +13,14 @@
     {key:'special', label:'Special Programming', color:'#d17fb0'}
   ];
   var CAT_BY_KEY = {}; CATS.forEach(function(c){ CAT_BY_KEY[c.key]=c; });
+  // Detail lines that can wrap (category, date, time, length) break only after a dot or
+  // inside the first part (a title may wrap between its words): later parts' spaces become
+  // no-break, and so does the space before each dot, so a line never starts with a dot or
+  // splits a part ("5:00 / am", "Oct / 14"). Site audit 2026-10-15.
+  var DOT = '\u00a0\u00b7 ';
+  function dots(parts){
+    return parts.filter(Boolean).map(function(p, i){ return i ? String(p).replace(/ /g, '\u00a0') : String(p); }).join(DOT);
+  }
 
   var MP3_BASE = ''; // Catalog entries already carry absolute media URLs.
   var RSS_BASE = '';
@@ -647,7 +655,7 @@
       var when = splitDateText(r.dateText);
       var mins = r.durationSec ? Math.round(r.durationSec / 60) + ' min' : '';
       // The show name gets its own bold line under the headline (Paul, 2026-09-28).
-      var details = [topic ? '' : c.label, stationDate(new Date(r.dt * 1000)), when.time, mins].filter(Boolean).join(' · ');
+      var details = dots([topic ? '' : c.label, stationDate(new Date(r.dt * 1000)), when.time, mins]);
       return '<article class="ja-item'+(fresh.indexOf(r) !== -1 ? ' ja-in' : '')+'">'+
         '<button class="ja-art show-open" type="button" data-id="'+esc(r.id)+'" tabindex="-1" aria-hidden="true">'+
           (photo ? '<img loading="lazy" alt="" src="'+esc(photo)+'">' : '')+'</button>'+
@@ -723,13 +731,13 @@
   }
   function searchEpisodeHtml(hit){
     var r = hit.row;
-    var name = window.ArchiveSearch.episodeTitle(r) || r.title + ' · ' + stationDate(new Date(r.dt * 1000));
+    var name = window.ArchiveSearch.episodeTitle(r) || dots([r.title, stationDate(new Date(r.dt * 1000))]);
     var blurb = window.ArchiveSearch.episodeBlurb(r);
     var loading = loadingMp3 === r.mp3;
     var playing = nowPlaying.mp3 === r.mp3 && !audio.paused && !audio.ended && !loading;
     return '<article class="search-episode">'+searchArt(r)+'<div class="search-copy">'+
       '<button class="search-title" data-search-episode="'+esc(r.id)+'">'+window.ArchiveSearch.highlight(name, state.query)+'</button>'+
-      '<p class="search-meta">'+esc(r.dateText)+(r.length ? ' · '+esc(r.length) : '')+'</p>'+
+      '<p class="search-meta">'+esc(dots([r.dateText, r.length]))+'</p>'+
       (blurb ? '<p class="search-excerpt">'+window.ArchiveSearch.expandable(blurb, state.query, 180)+'</p>' : '')+
       '<span class="search-reason">Matches '+esc(hit.reason.toLowerCase())+'</span></div>'+
       '<button type="button" class="play-btn search-play'+(playing?' playing':'')+(loading?' loading':'')+'" '+
@@ -754,7 +762,7 @@
             '<span class="search-reason">Matches '+esc(hit.reason.toLowerCase())+'</span>'+
             '<button class="search-title" data-search-show="'+esc(s.latest.id)+'">'+window.ArchiveSearch.highlight(s.name, state.query)+'</button>'+
             '<p class="search-excerpt">'+window.ArchiveSearch.expandable(s.desc || s.host, state.query, 180)+'</p>'+
-            '<p class="search-meta">'+s.count+' available episodes · Latest '+esc(stationDate(new Date(s.latest.dt*1000)))+'</p></div>'+
+            '<p class="search-meta">'+esc(dots([s.count+' available episodes', 'Latest '+stationDate(new Date(s.latest.dt*1000))]))+'</p></div>'+
             '<button class="search-action" data-search-show="'+esc(s.latest.id)+'">View show →</button></article>';
         }).join('')+'</div>'+ (matches.shows.length > (searchScope==='all'?6:searchLimit) ? '<button class="search-action search-more" data-search-more="shows">Show more shows</button>' : '')+'</section>';
     }
@@ -1176,6 +1184,23 @@
   var sheetCounted = {};   // episode ids whose summary / processing note was counted this visit
   function setStatus(html){ playerStatus.innerHTML = QUIET_STATES[html] ? '' : html; }
 
+  // Every archive play() goes through here. A refusal (NotAllowedError: no recent tap, iOS
+  // after a long pause, power saving) fires neither `error` nor `pause`, so nothing else
+  // would stop the spinner the click started — it span on "Loading…" for good (audit
+  // 2026-10-15). AbortError is us: a new src or a pause interrupted this play(). A broken
+  // or unsupported file also fires `error`, whose handler below explains it.
+  function playArchive(){
+    audio.play().catch(function(err){
+      if(err && err.name === 'AbortError') return;
+      console.warn('Archive play refused:', err && err.name, err && err.message);
+      if(err && err.name !== 'NotAllowedError') return;
+      loadingMp3 = null;
+      setStatus('Tap play to start');
+      setPlaybackState('paused');
+      updatePlayButtons();
+    });
+  }
+
   function refreshToggleIcon(){
     // Live has no "paused element" to read — a stopped stream has no element at
     // all — so the bar reads the intent flag the live section owns.
@@ -1265,7 +1290,7 @@
     showPlayerBar();
     stopLive();                   // hand the bar to the archive track
     audio.src = mp3;
-    audio.play().catch(function(){ /* surfaced by the error event below */ });
+    playArchive();
     updatePlayButtons();
   }
 
@@ -1478,7 +1503,7 @@
         // it makes a sound — so it gets the same spinner as a fresh play. The
         // `playing` / `pause` handlers clear the flag.
         loadingMp3 = nowPlaying.mp3;
-        audio.play().catch(function(){});
+        playArchive();
         updatePlayButtons();
       } else {
         audio.pause();
@@ -2738,7 +2763,7 @@
       album: (STATION.name + ' Archive'),
       artwork: artworkFor(nowPlaying.photo)
     });
-    setHandler('play', function(){ audio.play().catch(function(){}); });
+    setHandler('play', function(){ playArchive(); });
     setHandler('pause', function(){ audio.pause(); });
     setHandler('stop', function(){ audio.pause(); });
     setHandler('seekbackward', function(d){ seekBy(-((d && d.seekOffset) || SKIP_SECONDS)); });
@@ -2963,7 +2988,7 @@
       if(!r || !r.mp3) return;
       if(nowPlaying.mp3 === r.mp3 && barMode === 'archive'){
         audio.currentTime = seconds;
-        if(audio.paused) audio.play().catch(function(e){ console.warn('Play from line failed:', e.message); });
+        if(audio.paused) playArchive();
         return;
       }
       var c = CAT_BY_KEY[r.cat] || {label:''};
@@ -4648,7 +4673,7 @@
     var bits = [];
     if(done) bits.push(done+' played');
     if(part) bits.push(part+' in progress');
-    return bits.join(' · ');
+    return dots(bits);
   }
 
   function episodeOpenLabel(r, status){
@@ -4744,7 +4769,7 @@
     var summary = listeningSummary(list);
     var more = list.length - sheetShown;
     return '<div class="sheet-list-head"><h3>Episodes</h3>'+
-        '<span class="sheet-archive-tally">'+list.length+(list.length === 1 ? ' episode' : ' episodes')+(summary ? ' · '+esc(summary) : '')+'</span></div>'+
+        '<span class="sheet-archive-tally">'+esc(dots([list.length+(list.length === 1 ? ' episode' : ' episodes'), summary]))+'</span></div>'+
       '<div class="sheet-episode-list" role="list" aria-label="Episodes of '+esc(r.title)+'">'+
         list.slice(0, sheetShown).map(function(e){ return episodeRowHtml(e, photo); }).join('')+'</div>'+
       (more > 0 ? '<button class="sheet-show-more" type="button">Show '+Math.min(SHEET_PAGE, more)+' more</button>' : '');
@@ -4848,7 +4873,7 @@
     if(context && tally){
       var episodes = episodesFor(context);
       var summary = listeningSummary(episodes);
-      tally.textContent = episodes.length+(episodes.length === 1 ? ' episode' : ' episodes')+(summary ? ' · '+summary : '');
+      tally.textContent = dots([episodes.length+(episodes.length === 1 ? ' episode' : ' episodes'), summary]);
     }
     applyListenProgress(sheet);
     syncSelectedListening();
@@ -4970,7 +4995,7 @@
     // already loaded: rewind in place rather than re-buffering the whole file
     if(nowPlaying.mp3 === btn.dataset.mp3){
       startOver();
-      if(audio.paused) audio.play().catch(function(){});
+      if(audio.paused) playArchive();
       return;
     }
     playTrack(btn.dataset.mp3, btn.dataset.title, btn.dataset.sub, btn.dataset.photo, true);

@@ -153,6 +153,11 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
 - **KPFK browser suites** (`test/homepage/*.cjs`, `test/schedule-grid/run.sh`) run on a
   scratch server (port 8091, copy of `data/` without `stats/`), never on 8081 —
   `test/schedule-grid/run.sh` starts and removes its own.
+- **Desktop Chrome is not Safari.** Current Chrome dropped `<button>`'s default
+  `align-items:flex-start`; Safari (every iPhone browser) keeps it, so a column-flex button
+  with "…" text broke only on iPhones. `test/homepage/layout-fit.cjs` reproduces that default
+  through an inspector stylesheet. Check iPhone-only behaviour in WebKit (Playwright, outside
+  the repo) or reproduce it the same way — never conclude from Chrome alone.
 
 ## 7. Working agreements
 
