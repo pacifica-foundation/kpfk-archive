@@ -8,7 +8,8 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 
 ## 2026-10-15 — site audit: layout and play fixes (live and checked)
 
-**Live 2026-10-15** (Paul redeployed `577597d`): version `45f9d-mv9qjrbk…`, `instanceId` `73039ae5…`
+**Live 2026-10-15** (Paul's last redeploy that evening, GitHub at `6280446` — includes the focus-ring fix
+`abfb3cc`): version `45f9d-mv9t1o7c…`, `instanceId` `73039ae5…`
 unchanged, `freshVolume:false`; live `app.js` carries the iPhone race fix. Share previews checked live:
 `BASE=https://podcasts.kpfk.org node test/share/og-tests.js` **23/23**, including the QIR-headline check
 (section 3 fixed the same day: it sent a WBAI-era forwarded host, which Coolify's proxy rightly
@@ -69,7 +70,7 @@ site, no page errors, no sideways scroll. Fixed (Paul approved):
   dashboard, Import / Export, printable report — at computer size from a scratch copy with example
   figures). Same layout and fonts as the app's overview. Paul: "The PDF is great!" Regenerate steps in
   its README (`capture.cjs`, `capture-studio.cjs`).
-- **Fixed: focus ring on arrival from a link.** A show or episode opened from a link drew the close
+- **Fixed (live 2026-10-15): focus ring on arrival from a link.** A show or episode opened from a link drew the close
   button's ring (no tap or key yet, so no input mode; the page moves focus there). `theme-boot.js` now
   starts in "pointer" mode; the first key press brings rings back. `test/homepage/focus-rings.cjs`
   gained the link case (focus emulated — a headless page has no window focus); fails on the old code.
@@ -89,7 +90,7 @@ live 2026-10-15 (23/23, see the 2026-10-15 section).** What changed:
 
 Verified 2026-10-14: `npm test` 198/198; local 8081 `BASE=http://localhost:8081 node test/share/og-tests.js` 23/23; the
 station-topic check **failed on the old server code** ("BradCast w/ Brad Friedman") and passes on the new
-("Courts; Corruption; Environment — BradCast w/ Brad Friedman"). **To finish:** commit, push, **Coolify
+("Courts; Corruption; Environment — BradCast w/ Brad Friedman"). **(Done 2026-10-15.)** Was: commit, push, **Coolify
 redeploy** (push is not deploy, §4), then `BASE=https://podcast.kpfk.org node test/share/og-tests.js` — the
 QIR-headline check runs only there, and it matters: only 95 of 1,175 episodes have a station topic, the
 rest are named by QIR. Then refresh a link in the Facebook Sharing Debugger / LinkedIn Post Inspector
@@ -154,7 +155,7 @@ other descriptions in the audit.
 ## Remind Paul first (say these at the start of every session)
 
 1. **Live and checked (2026-10-15):** everything below is deployed (last: the 2026-10-15 audit fixes,
-   iPhone transcript race, Playlist, A−/A+, share previews — version `45f9d-mv9qjrbk…`); `storage.instanceId` =
+   iPhone transcript race, Playlist, A−/A+, share previews, focus ring on links — version `45f9d-mv9t1o7c…`); `storage.instanceId` =
    `73039ae5-6589-4ec2-9df5-354de84c0989`, `freshVolume:false`. Player settled (floating card — do not
    re-raise). podcasts.kpfk.org and podcast.kpfk.org are the same app.
 2. **Ace / QIR:** email sent 2026-09-28. As of 2026-09-29 the 7 show keys (All Of The Above, Nightscapes,
@@ -373,7 +374,7 @@ Just aired hides them (its W5).
 | --- | --- |
 | Live | **https://podcast.kpfk.org** — Coolify app "KPFK Podcasts" on the Pacifica/Contabo server, Dockerfile build, container port 8080. Deployed 2026-09-19; `kpfk-archive.supersoul.top` was stopped the same day |
 | Repo | https://github.com/pacifica-foundation/kpfk-archive · `main` · push to `origin` only (never `wbai-baseline`). **Moved from `Catskill909` on 2026-09-30**; the old URL redirects, Coolify's stored path and this Mac's `origin` were updated the same day. First deploy from the new location done 2026-10-01 (`32130a1`, storage id unchanged) |
-| Deploy | Manual Coolify redeploy after push. **Last: 2026-10-15, `577597d`** (site audit fixes), checked live by Claude the same day: new `version`, `instanceId` unchanged, `freshVolume:false`. |
+| Deploy | Manual Coolify redeploy after push. **Last: 2026-10-15, `abfb3cc`/`6280446`** (site audit fixes; later commits are docs), checked live by Claude the same day: new `version`, `instanceId` unchanged, `freshVolume:false`. |
 | Storage | Named volume `f6vn03cy47znqlbemewq8dd0-kpfk-archive-data` at `/app/data` for the podcast.kpfk.org app: `instanceId` `73039ae5-6589-4ec2-9df5-354de84c0989`, `persistedSince` 2026-09-19, `freshVolume:false` after the 2026-09-24 redeploy. (`e4a9aac9…` below belongs to the retired supersoul.top deployment.) |
 | Studio | `/studio`, password in Coolify env `STUDIO_PASSWORD` (runtime only — **not** on the Mac and not in the repo; read it from Coolify, never from a file) |
 | Local | `npm start` → http://localhost:8081, `./data` |
