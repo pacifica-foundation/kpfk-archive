@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KPFK Archive website — an overview</title>
+<style>
+  /* Printed overview of podcasts.kpfk.org for Pacifica's Executive Director and staff
+     (2026-10-15), the companion to the KPFK Podcasts app overview (kpfk-podcast
+     docs/overview/). Plain language; screenshots from capture.cjs (live site, beacon
+     blocked). PDF: see README.md. Claims are only what was checked on 2026-10-15. */
+  @font-face { font-family: 'Oswald'; src: url('fonts/Oswald-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Oswald'; src: url('fonts/Oswald-Medium.ttf'); font-weight: 500; }
+  @font-face { font-family: 'Oswald'; src: url('fonts/Oswald-SemiBold.ttf'); font-weight: 600; }
+  @font-face { font-family: 'Oswald'; src: url('fonts/Oswald-Bold.ttf'); font-weight: 700; }
+  @font-face { font-family: 'Nunito'; src: url('fonts/Nunito-Regular.ttf'); font-weight: 400; }
+  @font-face { font-family: 'Nunito'; src: url('fonts/Nunito-SemiBold.ttf'); font-weight: 600; }
+  @font-face { font-family: 'Nunito'; src: url('fonts/Nunito-Bold.ttf'); font-weight: 700; }
+  :root {
+    --paper: #f6f1ea; --card: #ffffff;
+    --ink: #231a15; --ink-dim: #5b4c42; --ink-faint: #8a7b6f;
+    --on-air: #c8371e; --rule: rgba(30, 20, 15, .12);
+    --night: #14100f;
+  }
+  @page { size: Letter; margin: 0.55in 0.6in; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); }
+  body { font-family: 'Nunito', -apple-system, sans-serif; font-size: 11.5pt; line-height: 1.5;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  h1, h2, h3 { font-family: 'Oswald', 'Arial Narrow', sans-serif; margin: 0; line-height: 1.15; }
+  .eyebrow { font-family: 'Oswald', sans-serif; font-size: 9pt; letter-spacing: .16em; text-transform: uppercase;
+             color: var(--on-air); font-weight: 500; }
+  p { margin: 0 0 8pt; }
+
+  /* Cover */
+  .cover { background: var(--night); color: #f3ece4; border-radius: 14px; padding: 30pt 30pt 28pt;
+           display: grid; grid-template-columns: 1fr 1.05fr; gap: 22pt; align-items: center; }
+  .cover img.logo { height: 38pt; display: block; margin-bottom: 16pt; }
+  .cover .eyebrow { color: #e8604a; }
+  .cover h1 { font-size: 27pt; font-weight: 600; margin: 4pt 0 10pt; }
+  .cover p { color: #d7cbbf; font-size: 11.5pt; }
+  .cover .url { font-family: 'Oswald', sans-serif; font-size: 13pt; color: #f3ece4; letter-spacing: .02em; }
+  .devices { position: relative; padding-bottom: 18pt; }
+  .devices .desk { width: 100%; border-radius: 8px; border: 1px solid rgba(243,236,228,.25); display: block; }
+  .devices .phone { position: absolute; right: -6pt; bottom: 0; width: 30%; border-radius: 12px;
+                    border: 2px solid #14100f; box-shadow: 0 6pt 18pt rgba(0,0,0,.5); }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10pt; margin: 16pt 0 4pt; }
+  .fact { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 10pt 12pt; }
+  .fact b { display: block; font-family: 'Oswald', sans-serif; font-size: 16pt; font-weight: 600; color: var(--on-air); }
+  .fact span { font-size: 9.5pt; color: var(--ink-dim); }
+  .why { margin-top: 14pt; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 14pt 18pt; }
+  .why h2 { font-size: 16pt; margin: 0 0 6pt; }
+
+  /* Sections */
+  section { margin-top: 18pt; }
+  .page { break-before: page; }
+  h2 { font-size: 20pt; font-weight: 600; margin: 4pt 0 10pt; }
+  .feature { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16pt; align-items: center;
+             background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 11pt 14pt;
+             margin-bottom: 9pt; break-inside: avoid; }
+  .feature h3 { font-size: 14pt; font-weight: 600; margin-bottom: 6pt; }
+  .feature p { font-size: 10.5pt; }
+  .pair { display: flex; gap: 8pt; justify-content: center; }
+  figure { margin: 0; text-align: center; }
+  .pair img { height: 2.9in; width: auto; border-radius: 10px; border: 1px solid var(--rule); display: block; }
+  figcaption { font-size: 7.5pt; color: var(--ink-faint); margin-top: 3pt; letter-spacing: .08em;
+               text-transform: uppercase; font-family: 'Oswald', sans-serif; }
+  /* Wide (tablet / desktop) pictures: text above, picture across the card */
+  .feature.wide { grid-template-columns: 1fr; gap: 8pt; }
+  .feature.wide img { width: 100%; border-radius: 8px; border: 1px solid var(--rule); display: block; }
+  .feature.split { grid-template-columns: 1fr 1fr; }
+  .feature.split img { width: 100%; border-radius: 8px; border: 1px solid var(--rule); display: block; }
+
+  /* Every screen */
+  .screens { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; }
+  .screens figure { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 9pt; break-inside: avoid; }
+  .screens img { width: 100%; border-radius: 8px; border: 1px solid var(--rule); display: block; }
+  .screens .tall { grid-row: span 2; display: flex; flex-direction: column; justify-content: center; }
+  .screens .tall img { width: auto; max-height: 4.6in; margin: 0 auto; }
+  .note { font-size: 10.5pt; color: var(--ink-dim); margin-bottom: 10pt; }
+
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 8pt; }
+  .rule { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 9pt 12pt; break-inside: avoid; }
+  .rule h3 { font-size: 12pt; font-weight: 600; margin-bottom: 3pt; }
+  .rule p { font-size: 9.5pt; line-height: 1.35; color: var(--ink-dim); margin: 0; }
+  .status { background: var(--card); border-left: 4px solid var(--on-air); border-radius: 8px; padding: 8pt 14pt; break-inside: avoid; }
+  .status ul { margin: 0; padding-left: 14pt; }
+  .status li { margin-bottom: 2pt; font-size: 10pt; line-height: 1.35; }
+  .keep { break-inside: avoid; }
+  footer { margin-top: 18pt; font-size: 9pt; color: var(--ink-faint); text-align: center; }
+</style>
+</head>
+<body>
+<div class="cover">
+  <div>
+    <img class="logo" src="../../public/assets/kpfk-logo.png" alt="KPFK 90.7 FM">
+    <div class="eyebrow">An overview for Pacifica</div>
+    <h1>KPFK's whole archive, on the web, on every screen</h1>
+    <p>The KPFK Archive website lets anyone browse every program on KPFK's schedule, play any episode, listen live, search everything, and read along with the transcript — on a phone, a tablet or a computer. Nothing to install, no account, no sign-in.</p>
+    <p class="url">podcasts.kpfk.org</p>
+  </div>
+  <div class="devices">
+    <img class="desk" src="img/desktop-home-light.jpg" alt="The website on a computer">
+    <img class="phone" src="img/phone-home-light.jpg" alt="The website on a phone">
+  </div>
+</div>
+<div class="facts">
+  <div class="fact"><b>106 programs</b><span>And about 1,190 episodes today — everything on KPFK's published schedule, plus its podcasts.</span></div>
+  <div class="fact"><b>Read along</b><span>A title, a summary and a full transcript for nearly every talk episode, in English and Spanish.</span></div>
+  <div class="fact"><b>No personal data</b><span>No accounts, no tracking, no advertising. The station sees counts — never who.</span></div>
+</div>
+<div class="why">
+  <h2>Why it matters</h2>
+  <p>KPFK's programs keep their value long after they air. The website gives every listener — and anyone a listener shares a link with — a way back to them: catch up on a show they missed, find the moment someone said something, read along, or tune in live.</p>
+  <p>It runs on its own: it reads Pacifica's archive feeds directly, so every program that airs and is archived appears on its own, with no extra work for station staff. The same archive powers the KPFK Podcasts app for iPhone, iPad and Android.</p>
+</div>
+
+<section class="page">
+  <div class="eyebrow">For listeners</div>
+  <h2>What the website does</h2>
+  <div class="feature">
+    <div>
+      <h3>Every program, one tap away</h3>
+      <p>The home page shows what just aired and every program with its artwork, host and latest broadcast. Listeners can sort A to Z, by what aired most recently, or by category — News, Public Affairs, Arts &amp; Culture, Health, Music, En Español.</p>
+      <p>Each program has its own page: description, links, and every episode, newest first, with the episode's title and summary.</p>
+    </div>
+    <div class="pair">
+      <figure><img src="img/phone-home-light.jpg" alt=""><figcaption>Home — light</figcaption></figure>
+      <figure><img src="img/phone-show-dark.jpg" alt=""><figcaption>A program — dark</figcaption></figure>
+    </div>
+  </div>
+  <div class="feature">
+    <div>
+      <h3>The player, and KPFK live</h3>
+      <p>One tap plays an episode; the player stays at the bottom of the screen while listeners keep browsing, and remembers where each listener stopped.</p>
+      <p><b>Listen live</b> shows what is on air now, the host, the time slot and what comes next — with a link to the program's past episodes.</p>
+    </div>
+    <div class="pair">
+      <figure><img src="img/phone-player-light.jpg" alt=""><figcaption>Now playing — light</figcaption></figure>
+      <figure><img src="img/phone-live-dark.jpg" alt=""><figcaption>Listen live — dark</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="page">
+  <div class="feature">
+    <div>
+      <h3>Listen along — the transcript, as it plays</h3>
+      <p>The transcript scrolls with the broadcast, the line being spoken highlighted. Listeners tap any line to jump there, search within the episode, and make the text larger or smaller.</p>
+      <p>For music programs, <b>Playlist</b> shows the station's logged songs the same way.</p>
+      <p>Valuable for people who are deaf or hard of hearing, for following a fast conversation, and for finding a quote.</p>
+    </div>
+    <div class="pair">
+      <figure><img src="img/phone-transcript-dark.jpg" alt=""><figcaption>Transcript — dark</figcaption></figure>
+    </div>
+  </div>
+  <div class="feature">
+    <div>
+      <h3>Search everything</h3>
+      <p>One search covers program names, hosts, episode titles and summaries. Searching "climate" finds the program that covers it and 76 episodes that discuss it, grouped by program, with the matching words highlighted.</p>
+    </div>
+    <div class="pair">
+      <figure><img src="img/tablet-search-light.jpg" alt=""><figcaption>Search on a tablet — light</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="page">
+  <div class="feature wide">
+    <div>
+      <h3>The schedule, and a week at a glance</h3>
+      <p>The schedule shows the next seven days as KPFK publishes them, with what is live right now marked. On a computer, <b>Grid</b> lays the whole week out side by side, like a printed program guide.</p>
+    </div>
+    <figure><img src="img/desktop-grid-dark.jpg" alt=""><figcaption>The week grid on a computer — dark</figcaption></figure>
+  </div>
+  <div class="rule keep" style="margin-top:4pt">
+    <h3>Sharing</h3>
+    <p>Every episode has a link. Shared in Messages, WhatsApp, Facebook or Slack, it shows a card with the program's artwork and the episode's own title — and it opens on this website for anyone, app or not.</p>
+  </div>
+</section>
+
+<section class="page">
+  <div class="eyebrow">One website</div>
+  <h2>Made for every screen</h2>
+  <p class="note">The same address works everywhere and arranges itself for the screen in hand. On a phone, the player, program pages and transcript slide up from the bottom; on a computer, an episode opens as a two-column card and the transcript sits beside the page while listeners keep browsing. Light and dark follow the device's own setting.</p>
+  <div class="screens">
+    <figure class="tall"><img src="img/tablet-home-dark.jpg" alt=""><figcaption>Tablet — home, dark</figcaption></figure>
+    <figure><img src="img/desktop-episode-dark.jpg" alt=""><figcaption>Computer — an episode, dark</figcaption></figure>
+    <figure><img src="img/desktop-transcript-light.jpg" alt=""><figcaption>Computer — transcript beside the page, light</figcaption></figure>
+  </div>
+</section>
+
+<section class="page">
+  <div class="eyebrow">For KPFK and Pacifica</div>
+  <h2>Built around the station's rules</h2>
+  <div class="rules">
+    <div class="rule"><h3>The station decides what is shown</h3><p>Every program on KPFK's published schedule, plus its podcasts. Programs that leave the schedule leave the archive; music programs stay for 14 days; a program the station has no on-demand rights to can be held back entirely.</p></div>
+    <div class="rule"><h3>No extra work for the station</h3><p>The website reads Pacifica's own archive feeds. When a program airs and is archived, it appears on its own; failed recordings are hidden and wrong running times corrected automatically.</p></div>
+    <div class="rule"><h3>Privacy first</h3><p>No accounts, sign-ins, cookies for tracking, or ads. The station counts plays, listening time and page views — with no identifier of any kind, and never the words people search for. The website's public README says so.</p></div>
+    <div class="rule"><h3>A studio for staff</h3><p>A password-protected dashboard: what is being listened to, by program and by day; exports and a printable report for Pacifica; a backup that carries the listening records and settings to a new server.</p></div>
+    <div class="rule"><h3>Honest about machine transcripts</h3><p>Titles, summaries and transcripts come from Pacifica's transcript service and are labelled as machine-made ("names and words may be wrong"). The station's own descriptions always take priority.</p></div>
+    <div class="rule"><h3>One archive, the website and the app</h3><p>The KPFK Podcasts app reads this website's archive, so a fix or a new program here reaches the app too — and every Share in the app opens here.</p></div>
+  </div>
+  <div class="keep">
+  <h2 style="margin-top:10pt; font-size:17pt">Where it stands</h2>
+  <div class="status">
+    <ul>
+      <li><b>Live</b> at podcasts.kpfk.org since September 2026.</li>
+      <li><b>Audited 15 October 2026</b> in the engines behind Safari and Chrome, on phone, tablet and computer sizes, in light and dark — every main screen and button clicked through; fixes tested on an iPhone and a desktop the same day.</li>
+      <li><b>Checked automatically</b> by about two hundred tests, plus browser tests that measure what a listener actually sees.</li>
+    </ul>
+  </div>
+  </div>
+  <div class="keep">
+  <h2 style="margin-top:8pt; font-size:17pt">What's next</h2>
+  <div class="status" style="border-left-color: var(--ink-faint)">
+    <ul>
+      <li><b>Links that open the app:</b> a shared KPFK link opens straight in the app when it is installed, and on the website otherwise.</li>
+      <li><b>Hold back a program or episode from the studio</b> — for rights, legal or a bad recording — without a technical change.</li>
+      <li><b>A picture to share:</b> a designed image of each episode for Instagram and other image-first platforms.</li>
+      <li><b>The same website for other Pacifica stations:</b> everything station-specific is in one settings file, so a sister station's archive can power its own copy.</li>
+    </ul>
+  </div>
+  </div>
+</section>
+<footer>KPFK 90.7 FM · Pacifica Foundation · KPFK Archive website overview, October 2026</footer>
+</body>
+</html>

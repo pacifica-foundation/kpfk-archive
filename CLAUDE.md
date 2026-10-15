@@ -50,6 +50,11 @@ is verified.
 - **Prefer the boring standard model.** Before touching live audio read
   [docs/live-audio-pattern.md](docs/live-audio-pattern.md): the live element is
   built and thrown away per play — never reuse it, never branch on `element.paused`.
+- **Never open a layer on a timer after a history step.** Closing a sheet, the schedule
+  or Now Playing calls `history.back()`/`go()`; on an iPhone the popstate lands late and
+  closes whatever opened meanwhile (2026-10-15: Transcript and Episodes from Now Playing
+  "did nothing"). Use `ArchiveApp.closePopups(then)` — it waits for the popstate. Test
+  such paths with history held back (`test/homepage/listen-along-popups.cjs` "slow phone").
 
 ## 3a. ASSERT THE EFFECT, NOT THE DECLARATION
 
@@ -129,6 +134,11 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
   way out lands back on it. A show opens an info card beside it (no links yet).
 - **Two `<audio>` elements share one player bar** via `barMode`
   (`'archive' | 'live'`). Keep the live side as close to the archive side as possible.
+- **Popups are one at a time** (Paul, 2026-10-15): a new kind of layer replaces the open
+  one (`closePopups`); show → episode stays in one sheet; only the artwork zoom and
+  schedule/grid → show stack; Back undoes one step. The player bar sits above every popup.
+- **Listen along naming:** "Transcript" (QIR) and **"Playlist"** (cue-file song list, was
+  "Songs"). Never rename "Transcript" (Paul).
 - **`/studio`** is password-gated (`STUDIO_PASSWORD`; unset = routes don't exist).
   Markup in `admin/` — deliberately outside `public/`. Its actions are the only
   state-changing routes: keep them idempotent, rate-limited, CSRF-guarded.

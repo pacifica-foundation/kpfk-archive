@@ -140,15 +140,20 @@ async function getHtml(pathAndQuery, headers) {
 
   section('3. absolute URLs are built from the proxy, not from localhost');
   // Prod terminates TLS ahead of us; a card advertising http://internal-host is
-  // one no crawler can fetch.
-  const fwd = await getHtml('/?show=' + encodeURIComponent(row.id), {
-    'X-Forwarded-Proto': 'https', 'X-Forwarded-Host': 'wbai.supersoul.top',
-  });
-  ok('og:url uses the forwarded scheme and host',
-    meta(fwd.html, 'og:url') === 'https://wbai.supersoul.top/?show=' + row.id,
+  // one no crawler can fetch. Against a local server we play the proxy ourselves.
+  // Against a deployed site the real proxy (Coolify) replaces any X-Forwarded-Host a
+  // client sends — rightly, or anyone could put their own address in our cards — so
+  // there the URLs must carry the site's own public address (2026-10-15: this
+  // section sent a WBAI-era host and failed on podcasts.kpfk.org for that reason).
+  const local = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(BASE);
+  const want = local ? 'https://proxy.example.org' : new URL(BASE).origin;
+  const fwd = await getHtml('/?show=' + encodeURIComponent(row.id),
+    local ? { 'X-Forwarded-Proto': 'https', 'X-Forwarded-Host': 'proxy.example.org' } : {});
+  ok(`og:url uses the ${local ? 'forwarded' : 'public'} scheme and host`,
+    meta(fwd.html, 'og:url') === want + '/?show=' + row.id,
     meta(fwd.html, 'og:url'));
-  ok('og:image uses the forwarded scheme and host',
-    meta(fwd.html, 'og:image') === 'https://wbai.supersoul.top' + row.photo,
+  ok(`og:image uses the ${local ? 'forwarded' : 'public'} scheme and host`,
+    meta(fwd.html, 'og:image') === want + row.photo,
     meta(fwd.html, 'og:image'));
 
   section('4. fallbacks');

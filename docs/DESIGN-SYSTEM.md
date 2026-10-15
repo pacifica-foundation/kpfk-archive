@@ -184,8 +184,12 @@ separate "Past episodes" screen.
   rows with the round play button on the left, date · time · length · status, topic (2 lines),
   notes (1 line), progress. First 20, then "Show 20 more" in the flow of the list.
 - **Episode view** in the same panel: back link to the show, title (topic, else the date),
-  meta, Play · Start over · Transcript / Songs (Discovery) · Share, notes, "More from this show"
-  (3 rows) and All episodes.
+  meta, Play · Start over · Transcript / Playlist (Discovery) · Share — one height for the row
+  (32 px desktop, 44 px touch; 2026-10-15) — notes, "More from this show" (3 rows) and All episodes.
+- **Listen along panel** (Discovery): "Transcript" (QIR) or "Playlist" (the station's cue-file song
+  list — called "Songs" until 2026-10-15; never rename "Transcript"). Find box with ↑/↓ shown only
+  once a search has matches; A− / A+ text size (0.9 / 1 / 1.2 / 1.45, phones skip the smallest,
+  remembered per device), as in the KPFK app.
 - **Phone:** one column; the Episode view takes the whole panel ("← show name").
   **Desktop (≥ 900 px):** 1000 px panel, the show on the left (2fr), the list or the episode on
   the right (3fr), each column scrolling on its own; the back link reads "All episodes".

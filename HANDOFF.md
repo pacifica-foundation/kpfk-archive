@@ -1,12 +1,18 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
-## 2026-10-15 — site audit: layout and play fixes (not yet deployed)
+## 2026-10-15 — site audit: layout and play fixes (live and checked)
+
+**Live 2026-10-15** (Paul redeployed `577597d`): version `45f9d-mv9qjrbk…`, `instanceId` `73039ae5…`
+unchanged, `freshVolume:false`; live `app.js` carries the iPhone race fix. Share previews checked live:
+`BASE=https://podcasts.kpfk.org node test/share/og-tests.js` **23/23**, including the QIR-headline check
+(section 3 fixed the same day: it sent a WBAI-era forwarded host, which Coolify's proxy rightly
+replaces). Paul tested on desktop and iPhone: "fixes and features work great".
 
 Click-through audit in Chrome **and WebKit** (Playwright from the session scratchpad, not a
 repo dependency) at 390/768/1280, light and dark, scratch server 8091. Working well: playback,
@@ -55,13 +61,19 @@ site, no page errors, no sideways scroll. Fixed (Paul approved):
   "Transcript" untouched (Paul: do not touch it). Find arrows show only once a search has
   matches. **A− / A+ text size** in the Listen along panel, as in the Flutter app
   (0.9/1/1.2/1.45, phones skip the smallest, remembered per device).
+- **Overview PDF for Pacifica's ED and staff:** [docs/overview/](docs/overview/README.md) →
+  `KPFK-Archive-Website-Overview.pdf` (6 pages, 11 screenshots from the live site at phone / tablet /
+  computer sizes, light and dark mixed; the week grid included). Same layout and fonts as the app's
+  overview. Regenerate steps in its README (`capture.cjs`, beacon blocked).
+- Seen while capturing, not fixed: a show or episode opened **from a link** shows the close button's
+  focus ring on arrival (taps don't; `test/homepage/focus-rings.cjs` covers taps only).
 - Not done: the 16 WBAI-era comments in `app.js` describe inherited code that may be dead on KPFK
   (wbai.org program directory, schedule "ghost" filter) — tidy when touching those areas.
 
 ## 2026-10-14 — from the Flutter app session (read before working here)
 
-A long session in `kpfk-podcast` touched this site. **Three files here are changed and NOT committed**
-(made 2026-10-14, checked locally, not deployed):
+A long session in `kpfk-podcast` touched this site. **Done: committed (`b5943f8`), deployed and checked
+live 2026-10-15 (23/23, see the 2026-10-15 section).** What changed:
 
 | File | Change |
 |---|---|
@@ -135,8 +147,8 @@ other descriptions in the audit.
 
 ## Remind Paul first (say these at the start of every session)
 
-1. **Live and checked (2026-10-13):** everything below is deployed (last: tabs as cards, LA studio days,
-   top-level request catch — version `45351-mv7i71z4…`, studio chart showed 10-13 that evening); `storage.instanceId` =
+1. **Live and checked (2026-10-15):** everything below is deployed (last: the 2026-10-15 audit fixes,
+   iPhone transcript race, Playlist, A−/A+, share previews — version `45f9d-mv9qjrbk…`); `storage.instanceId` =
    `73039ae5-6589-4ec2-9df5-354de84c0989`, `freshVolume:false`. Player settled (floating card — do not
    re-raise). podcasts.kpfk.org and podcast.kpfk.org are the same app.
 2. **Ace / QIR:** email sent 2026-09-28. As of 2026-09-29 the 7 show keys (All Of The Above, Nightscapes,
@@ -355,11 +367,11 @@ Just aired hides them (its W5).
 | --- | --- |
 | Live | **https://podcast.kpfk.org** — Coolify app "KPFK Podcasts" on the Pacifica/Contabo server, Dockerfile build, container port 8080. Deployed 2026-09-19; `kpfk-archive.supersoul.top` was stopped the same day |
 | Repo | https://github.com/pacifica-foundation/kpfk-archive · `main` · push to `origin` only (never `wbai-baseline`). **Moved from `Catskill909` on 2026-09-30**; the old URL redirects, Coolify's stored path and this Mac's `origin` were updated the same day. First deploy from the new location done 2026-10-01 (`32130a1`, storage id unchanged) |
-| Deploy | Manual Coolify redeploy after push. **Last: 2026-10-01, `32130a1`** (Aware withheld), checked live by Claude the same day: new `version`, `instanceId` unchanged, `freshVolume:false`. |
+| Deploy | Manual Coolify redeploy after push. **Last: 2026-10-15, `577597d`** (site audit fixes), checked live by Claude the same day: new `version`, `instanceId` unchanged, `freshVolume:false`. |
 | Storage | Named volume `f6vn03cy47znqlbemewq8dd0-kpfk-archive-data` at `/app/data` for the podcast.kpfk.org app: `instanceId` `73039ae5-6589-4ec2-9df5-354de84c0989`, `persistedSince` 2026-09-19, `freshVolume:false` after the 2026-09-24 redeploy. (`e4a9aac9…` below belongs to the retired supersoul.top deployment.) |
 | Studio | `/studio`, password in Coolify env `STUDIO_PASSWORD` (runtime only — **not** on the Mac and not in the repo; read it from Coolify, never from a file) |
 | Local | `npm start` → http://localhost:8081, `./data` |
-| Tests | `npm test` 196/196 on 2026-10-01 (inherited offline suites + Pacifica + Discovery plugin suites). |
+| Tests | `npm test` 199/199 on 2026-10-15 (inherited offline suites + Pacifica + Discovery plugin suites). Browser (scratch 8091): `test/homepage/layout-fit.cjs` 47, `listen-along-popups.cjs` 66. |
 
 **Artwork caching (2026-09-24).** `/api/artwork/<id>` used to fetch from Pacifica on every
 request (~0.45 s per image, the same on repeats). Images are now kept in memory
