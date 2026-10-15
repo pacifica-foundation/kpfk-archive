@@ -42,6 +42,27 @@ const base = process.env.APP_URL || 'http://localhost:8081';
   const afterKey = JSON.parse(await p.eval(ring));
   check('after Tab, the focused element shows a ring (keyboard users keep them)', afterKey.outline !== 'none' && afterKey.input === 'keyboard', JSON.stringify(afterKey));
 
+  // A show opened straight from a link (2026-10-15): no tap or key yet, the page focuses the
+  // sheet's close button, and with no input mode set the ring was drawn on arrival.
+  const path = await p.eval(`return fetch('/api/archive').then(function(r){ return r.json(); }).then(function(d){ return window.ShowLinks.showPath(d.shows[0].sho); });`);
+  // A headless page has no window focus, so Chrome would show no focus at all and the check
+  // would be blind; with focus emulated, Chrome marks the script-focused close button
+  // :focus-visible on arrival — the bug as seen on screen.
+  await p.send('Emulation.setFocusEmulationEnabled', { enabled: true });
+  await p.send('Page.navigate', { url: base + path });
+  const deepOpen = await until(`return document.getElementById('showSheet').classList.contains('show') && document.activeElement && document.activeElement !== document.body;`, 15000);
+  check(`a link (${path}) opens the show with focus in the sheet`, deepOpen);
+  await sleep(700);
+  const deep = JSON.parse(await p.eval(`const a = document.activeElement, s = getComputedStyle(a);
+    return JSON.stringify({ el: a.id || a.className, visible: a.matches(':focus-visible'), outline: s.outlineStyle, input: document.documentElement.getAttribute('data-input') });`));
+  check('…the browser would draw a ring there (the probe can see one)', deep.visible, JSON.stringify(deep));
+  check('…and none is drawn before any input', deep.outline === 'none', JSON.stringify(deep));
+  await p.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+  await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+  await sleep(300);
+  const deepKey = JSON.parse(await p.eval(ring));
+  check('…the first Tab brings rings back', deepKey.outline !== 'none' && deepKey.input === 'keyboard', JSON.stringify(deepKey));
+
   console.log(failed ? `\n${failed} failure(s)` : '\nOK — focus ring checks passed');
   process.exit(failed ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

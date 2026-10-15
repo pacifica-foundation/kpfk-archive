@@ -113,6 +113,10 @@
 (function () {
   var root = document.documentElement;
   function set(mode) { if (root.getAttribute('data-input') !== mode) root.setAttribute('data-input', mode); }
+  // Start as "pointer": before any input, a page opened from a link (/show/…, ?show=) moves
+  // focus to the sheet's close button, and with no mode set the browser drew the ring on
+  // arrival (2026-10-15). A keyboard user's first key press switches to "keyboard" as before.
+  set('pointer');
   document.addEventListener('pointerdown', function () { set('pointer'); }, true);
   document.addEventListener('keydown', function (e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;   // shortcuts are not navigation

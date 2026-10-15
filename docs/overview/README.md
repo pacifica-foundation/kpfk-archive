@@ -4,10 +4,11 @@
 overview of podcasts.kpfk.org for the Executive Director and staff (first made 2026-10-15). The
 companion to the app's overview (`~/Desktop/kpfk-podcast/docs/overview/`) — same layout and fonts.
 
-Six pages: cover; programs and the player / Listen live; Listen along and search; the schedule week
-grid and sharing; phone, tablet and computer side by side; the station's rules, where it stands and
-what's next. Eleven screenshots: phone (390 px), tablet (834 px) and computer (1440 px), light and
-dark mixed — not every screen at every size.
+Eight pages: cover; programs and the player / Listen live; Listen along and search; the schedule week
+grid and sharing; phone, tablet and computer side by side; **the studio** (sign-in and dashboard;
+Import / Export, printable report and settings — added 2026-10-15 at Paul's request); the station's
+rules, where it stands and what's next. Fifteen screenshots: listener pages at phone (390 px), tablet
+(834 px) and computer (1440 px), light and dark mixed; the studio at computer size only (Paul).
 
 ## Regenerate
 
@@ -20,7 +21,18 @@ dark mixed — not every screen at every size.
    ```
    PNGs land in `docs/overview/raw/` (git-ignored). The featured program is Democracy Now!
    (`SHOW` in capture.cjs); its newest episode is used, so the transcript is real.
-2. **Shrink** into `img/` as JPEG 82 — phone 1100 px, tablet 1400 px, computer 1800 px:
+
+   **1b. Studio** (`capture-studio.cjs`): the live studio's password is only in Coolify (never read
+   it), so the studio is captured from a **scratch server** on 8091 with a throwaway password and a
+   **copy** of a data folder — its stats are example figures, and the captions say so. The script
+   refuses any kpfk.org address. Never use port 8081 or the real data folder:
+   ```sh
+   cp -R data/. /tmp/ov-data/ && PORT=8091 DATA_DIR=/tmp/ov-data STUDIO_PASSWORD=throwaway node tools/start.js &
+   NODE_PATH=/tmp/pw/node_modules STUDIO_PASSWORD=throwaway node docs/overview/capture-studio.cjs
+   ```
+   Used: `studio-login-light`, `studio-top-dark`, `studio-export-dark`, `studio-report-light`. Not used:
+   the settings tab (a scratch server says "No QIR key", untrue live).
+2. **Shrink** into `img/` as JPEG 82 — phone 1100 px, tablet 1400 px, computer and studio 1800 px:
    `sips -Z 1100 raw/phone-home-light.png --out t.png && sips -s format jpeg -s formatOptions 82 t.png --out img/phone-home-light.jpg`
 3. **PDF** (Letter, the bundled Oswald and Nunito in `fonts/`, OFL):
    ```sh

@@ -62,11 +62,15 @@ site, no page errors, no sideways scroll. Fixed (Paul approved):
   matches. **A− / A+ text size** in the Listen along panel, as in the Flutter app
   (0.9/1/1.2/1.45, phones skip the smallest, remembered per device).
 - **Overview PDF for Pacifica's ED and staff:** [docs/overview/](docs/overview/README.md) →
-  `KPFK-Archive-Website-Overview.pdf` (6 pages, 11 screenshots from the live site at phone / tablet /
-  computer sizes, light and dark mixed; the week grid included). Same layout and fonts as the app's
-  overview. Regenerate steps in its README (`capture.cjs`, beacon blocked).
-- Seen while capturing, not fixed: a show or episode opened **from a link** shows the close button's
-  focus ring on arrival (taps don't; `test/homepage/focus-rings.cjs` covers taps only).
+  `KPFK-Archive-Website-Overview.pdf` (8 pages, 15 screenshots: listener pages from the live site at
+  phone / tablet / computer sizes, light and dark mixed, week grid included; **the studio** — sign-in,
+  dashboard, Import / Export, printable report — at computer size from a scratch copy with example
+  figures). Same layout and fonts as the app's overview. Paul: "The PDF is great!" Regenerate steps in
+  its README (`capture.cjs`, `capture-studio.cjs`).
+- **Fixed: focus ring on arrival from a link.** A show or episode opened from a link drew the close
+  button's ring (no tap or key yet, so no input mode; the page moves focus there). `theme-boot.js` now
+  starts in "pointer" mode; the first key press brings rings back. `test/homepage/focus-rings.cjs`
+  gained the link case (focus emulated — a headless page has no window focus); fails on the old code.
 - Not done: the 16 WBAI-era comments in `app.js` describe inherited code that may be dead on KPFK
   (wbai.org program directory, schedule "ghost" filter) — tidy when touching those areas.
 
