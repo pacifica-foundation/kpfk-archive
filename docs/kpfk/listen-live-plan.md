@@ -145,8 +145,10 @@ stay file-only on purpose.
 
 ### Phase 4 — Fund drive mode (INT-967)
 
-- Settings and a **studio switch** (Ace's "admin toggle", no deploy): on/off, banner text, embed
-  link. The donate link is the existing Donate menu link, used by every donate button.
+- A **Fund drive screen in the studio** (Paul, 2026-10-23: a full screen, not just Ace's "admin
+  toggle"), no deploy: on/off, banner text, donate link (defaults to the Donate menu link, used by
+  every donate button), the embed (URL or snippet), and a live preview of the banner and Listen Live
+  layout before switching on. Same history, undo and backup as Station & appearance.
 - While on: the red banner on Listen Live and show pages, the embed under the player, the large
   Donate button. Ace builds KPFK's embed (goal progress, thank-you gift).
 
