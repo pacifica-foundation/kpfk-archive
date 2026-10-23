@@ -90,6 +90,9 @@ Behaviour:
    its HTML), and the app does not scrape Aiir, which is being retired. Placeholders until Ace
    sends them; they go in the station file (INT-968).
 
+5. **Dark mode card borders (2026-10-23):** stronger on this page only — card border 20% (site: 10%),
+   dividers 30% (site: 22%). Rest of the site's dark mode unchanged for now.
+
 ## 5. Tests (to write with the build)
 
 Real taps in Chrome and WebKit at 390 / 420 / 768 / 1280, light and dark: arrive at `/live` →
