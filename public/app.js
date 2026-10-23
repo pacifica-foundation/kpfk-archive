@@ -101,9 +101,9 @@
   // `cat` is checked against our own table rather than trusted from the URL.
   // view 'show' addresses the Show view by the show's own link (/show/<code>); anything else
   // (the Episode view) by the episode's (/show/<code>/<episode>). docs/LINKS.md.
-  // onSchedule: no popup is open over the schedule, so the address is /schedule — or /grid
-  // when it is 'grid', the week grid on top (links.js).
-  function urlFor(sheetId, view, onSchedule){
+  // layer, when no show popup is open: true = the schedule (/schedule), 'grid' = its week grid
+  // (/grid), 'live' = the Live popup (/live) — each has its own address (links.js).
+  function urlFor(sheetId, view, layer){
     var q = [];
     if(state.cat !== 'all' && CAT_BY_KEY[state.cat]) q.push('cat=' + encodeURIComponent(state.cat));
     var sortName = currentSort();
@@ -115,7 +115,7 @@
     // An open popup is addressed by its permanent link (public/links.js), so the address
     // bar is always something that can be copied into a post or a web page.
     var open = sheetId && rowById(sheetId);
-    var path = !open ? (onSchedule === 'grid' ? window.ShowLinks.GRID_PATH : onSchedule ? window.ShowLinks.SCHEDULE_PATH : '/') : view === 'show' ? window.ShowLinks.showPath(open.sho) : window.ShowLinks.episodePath(open);
+    var path = !open ? (layer === 'live' ? window.ShowLinks.LIVE_PATH : layer === 'grid' ? window.ShowLinks.GRID_PATH : layer ? window.ShowLinks.SCHEDULE_PATH : '/') : view === 'show' ? window.ShowLinks.showPath(open.sho) : window.ShowLinks.episodePath(open);
     return path + (q.length ? '?' + q.join('&') : '');
   }
   var canHistory = !!(window.history && history.replaceState);
@@ -141,7 +141,8 @@
     // runs during that popstate, so keep the destination's claim intact rather
     // than replacing it with a plain listing entry mid-transition.
     if(history.state && history.state.live){ st = st || {}; st.live = 1; }
-    try { history.replaceState(st, '', urlFor(open, open ? sheetView : null, st && st.sched && !st.live ? (st.schedGrid ? 'grid' : true) : false)); } catch(e){}
+    var layer = !st ? false : st.live ? 'live' : st.sched ? (st.schedGrid ? 'grid' : true) : false;
+    try { history.replaceState(st, '', urlFor(open, open ? sheetView : null, layer)); } catch(e){}
   }
 
   function retentionClass(d){
@@ -2519,7 +2520,7 @@
     document.addEventListener('keydown', onLivePlayerKey);
     paintLiveAlert();      // a failure that happened while this was closed
     if(canHistory && fromHistory !== true){
-      try { history.pushState({live:1}, '', urlFor(null)); } catch(e){}
+      try { history.pushState({live:1}, '', urlFor(null, null, 'live')); } catch(e){}
     }
   }
   // ---- Collapse the card toward the player bar on close-while-playing, so the
@@ -3131,6 +3132,12 @@
     // /schedule and /grid: the home page beneath, the schedule on top (and the week grid on that),
     // as if opened from the header — so Back and close step down to the page, never off the site.
     // The grid is 1024px and up only; a narrower screen gets the schedule, at /schedule.
+    // /live: the Live popup over the home page (until the Listen Live page takes this address).
+    if(window.ShowLinks.isLive(location.pathname)){
+      if(canHistory){ try { history.replaceState(null, '', urlFor(null)); } catch(e){} }
+      openLivePlayer();
+      return;
+    }
     var toGrid = window.ShowLinks.isGrid(location.pathname);
     if(toGrid || window.ShowLinks.isSchedule(location.pathname)){
       if(canHistory){ try { history.replaceState(null, '', urlFor(null)); } catch(e){} }
@@ -4117,7 +4124,7 @@
     // avoids leaving two visually identical page entries beneath Live.
     var transferred = !!(canHistory && history.state && history.state.sched);
     if(transferred){
-      try { history.replaceState({live:1}, '', urlFor(null)); } catch(e2){}
+      try { history.replaceState({live:1}, '', urlFor(null, null, 'live')); } catch(e2){}
     }
     dismissSchedule();
     openLivePlayer(transferred);

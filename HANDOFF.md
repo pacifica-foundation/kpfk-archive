@@ -30,6 +30,10 @@ Done, offline tests 204/204, not yet checked in a browser:
 - **`/grid` link** (third commit, Paul's ask): the week grid over the schedule; Back steps grid → schedule
   → page; the Grid button shows `/grid`; below 1024px it opens the schedule at `/schedule` (grid is never
   on phones). Same test file: 27/27; the `/grid` checks fail on the previous commit.
+- **`/live` link, quick version** (fourth commit, Paul's call: quick now, the real page next): opens the
+  existing Live popup over the home page; the On Air button shows `/live`; Past episodes → show → Back
+  returns to `/live`. Still one tap to play (no autoplay attempt; live audio untouched). The Listen Live
+  page (INT-966) takes this address over. Test `test/homepage/live-link.cjs`: 19/19, fails on the old code.
 - Not reproduced: Ace's Nader 9 vs 8 episode count — both views count with `episodesFor()` on the
   same rows; likely two moments/tabs. Needs a live repro.
 - Bigger items from the doc (Listen Live page, fund drive module, footer, schedule URL, schedule card

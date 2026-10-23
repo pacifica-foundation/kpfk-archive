@@ -2236,6 +2236,10 @@ function ogTags(req, reqUrl) {
     title = 'Schedule — ' + ogDefaultTitle();
     desc = station ? `What's on ${station.name} ${station.frequency} today and this week.` : desc;
     pageUrl = origin + ShowLinks.SCHEDULE_PATH;
+  } else if (!id && ShowLinks.isLive(reqUrl.split('?')[0])) {
+    title = 'Listen live — ' + (station ? `${station.name} ${station.frequency}` : ogDefaultTitle());
+    desc = station ? `${station.name} ${station.frequency}, live from ${station.city}: Pacifica Radio.` : desc;
+    pageUrl = origin + ShowLinks.LIVE_PATH;
   } else if (!id && ShowLinks.isGrid(reqUrl.split('?')[0])) {
     title = 'Weekly schedule — ' + ogDefaultTitle();
     desc = station ? `The week on ${station.name} ${station.frequency}, show by show.` : desc;

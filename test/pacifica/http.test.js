@@ -138,6 +138,8 @@ test('real HTTP archive serves every episode of scheduled programs only, exact s
   assert.equal(og(await (await fetch(url + '/schedule/')).text()).url, url + '/schedule', 'trailing slash');
   assert.equal(og(await (await fetch(url + '/schedules')).text()).url, url + '/', 'a near miss is not the schedule');
   const gridOg = og(await (await fetch(url + '/grid')).text());
+  const liveOg = og(await (await fetch(url + '/live')).text());
+  assert.equal(liveOg.url, url + '/live'); assert.match(liveOg.title, /^Listen live — KPFK 90\.7 FM$/);
   assert.equal(gridOg.url, url + '/grid'); assert.match(gridOg.title, /^Weekly schedule — KPFK 90\.7 FM Podcasts$/);
   const unknown = await fetch(url + '/show/no-such-show');
   assert.equal(unknown.status, 200); assert.equal(og(await unknown.text()).url, url + '/', 'unknown show: the station card');
