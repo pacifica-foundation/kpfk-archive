@@ -99,3 +99,69 @@ Real taps in Chrome and WebKit at 390 / 420 / 768 / 1280, light and dark: arrive
 one tap at most to audio; Back and close never leave the site; rollover with a mocked clock;
 Expand stops the small window; show links keep the stream playing; the player bar always visible;
 autoplay refused → one big button, the refusal logged (never swallowed).
+
+## 6. Build phases (Paul, 2026-10-23)
+
+Each phase ends the same way: tests (offline, plus real-tap browser checks at phone and desktop,
+Chrome and WebKit, light and dark, each shown to fail on the old code) → commit → Paul OKs the push
+→ Paul redeploys → checked live → tracker updated. Nothing in a later phase is started before the
+earlier one is live.
+
+**What the studio has today** (Station & appearance, `lib/station-overrides.js`): station name,
+frequency, city, logo, side-menu links, social accounts — instant, with history, undo and the
+Import / Export backup. Plus the Discovery and transcript switches. Feeds, timezone and identity
+stay file-only on purpose.
+
+### Phase 1 — Station settings: Contact and Wording (INT-968, first half)
+
+- Station file (`stations/<id>.json`) gains an optional **contact** block: studio call-in line,
+  office line, studio email, WhatsApp/text, signal list, app link. Each optional; a blank one is not
+  shown. Validated in `lib/station-config.js` (phone digits, email shape, https links).
+- **Studio, Station & appearance** gains two groups using the existing overrides (same checks,
+  history, undo, backup): **Contact** (the fields above) and **Wording** (the home page paragraph
+  and the transcript note, `copy.*`, added 2026-10-23).
+- Listeners see nothing new yet. KPFK's values: call-in (818) 985-5735, office (818) 985-2711,
+  signals 90.7 Los Angeles · 98.7 Santa Barbara · 93.7 N. San Diego · 99.5 Ridgecrest/China Lake,
+  app link kpfk.org/app. Email and WhatsApp left blank until Ace sends them.
+
+### Phase 2 — The Listen Live page (INT-966)
+
+- `/live` becomes the page in the approved mockup, inside the app (the home page hidden behind it):
+  compact layout for popups and phones, full-window layout from ~900px, Expand between them.
+- One click to audio: play is tried on arrival; a refusal (Safari) leaves one large Play button, and
+  the refusal is logged. The existing live audio code (built per play, never reused).
+- Rolls over at the top of the hour from the now-playing poll; today's schedule from Confessor;
+  "Now playing" song line; Show page / Past episodes / latest episodes open in place without stopping
+  the stream; contacts and signals from Phase 1; "Listen in the KPFK app" on phones; the player bar
+  always visible; stronger dark card borders on this page only.
+- The Live popup stays for the On Air button and the schedule's live row.
+- A fund drive banner/embed **slot** in the layout, empty until Phase 4.
+- Then Ace points kpfk.org/listen and Aiir's player at `/live` (INT-980).
+
+### Phase 3 — Site footer (INT-968, second half)
+
+- A footer on the home page from the same settings: station line, call-in and office numbers,
+  signals, donate, socials, privacy, app links, optional public file link (new optional link).
+
+### Phase 4 — Fund drive mode (INT-967)
+
+- Settings and a **studio switch** (Ace's "admin toggle", no deploy): on/off, banner text, embed
+  link. The donate link is the existing Donate menu link, used by every donate button.
+- While on: the red banner on Listen Live and show pages, the embed under the player, the large
+  Donate button. Ace builds KPFK's embed (goal progress, thank-you gift).
+
+### Phase 5 — Schedule finish (INT-969, rest)
+
+- The schedule's live row: its main tap opens Live (the popup, in the app), with a small separate
+  Past episodes link — no choice dialog.
+- The schedule's show card gets Show page and Past episodes buttons, plus Listen Live when on air.
+
+### After these
+
+Search fixes (INT-970), episode count and duplicate audio (INT-974), missing-art and host fallbacks
+(INT-975); chapters (INT-971) when Ace's Making Contact MP3 arrives.
+
+### Needed from Ace
+
+Studio email address and WhatsApp/text number (before Phase 2 ships, or those lines stay hidden);
+the fund drive embed (Phase 4); the Making Contact MP3 (chapters).
