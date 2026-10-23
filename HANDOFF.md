@@ -34,6 +34,11 @@ Done, offline tests 204/204, not yet checked in a browser:
   existing Live popup over the home page; the On Air button shows `/live`; Past episodes → show → Back
   returns to `/live`. Still one tap to play (no autoplay attempt; live audio untouched). The Listen Live
   page (INT-966) takes this address over. Test `test/homepage/live-link.cjs`: 19/19, fails on the old code.
+- **Next up — Listen Live build, in 5 phases** ([docs/kpfk/listen-live-plan.md](docs/kpfk/listen-live-plan.md) §6):
+  1 station Contact + Wording settings (file and studio) → 2 the `/live` page → 3 footer → 4 fund drive
+  (studio switch) → 5 schedule finish. Mockup approved (private, not shared with Ace):
+  https://claude.ai/artifact/725PpZY5mGgTEDUwpT7NC1. Tracker: INT-966/967/968/969 carry the phases.
+  Waiting on Ace: studio email, WhatsApp number, fund drive embed, Making Contact MP3.
 - Not reproduced: Ace's Nader 9 vs 8 episode count — both views count with `episodesFor()` on the
   same rows; likely two moments/tabs. Needs a live repro.
 - Bigger items from the doc (Listen Live page, fund drive module, footer, schedule URL, schedule card
