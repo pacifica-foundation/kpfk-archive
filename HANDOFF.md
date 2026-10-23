@@ -26,6 +26,10 @@ Done, offline tests 204/204, not yet checked in a browser:
   its own share card; the menu's Schedule item links there instead of kpfk.org's (Aiir) page. Rule in
   `public/links.js` (`isSchedule`). Browser test `test/homepage/schedule-link.cjs` (8091): 15/15, and
   fails on the old code (no schedule; Back left the site). `/live` is reserved for the Listen Live page.
+  Live and checked by Paul.
+- **`/grid` link** (third commit, Paul's ask): the week grid over the schedule; Back steps grid → schedule
+  → page; the Grid button shows `/grid`; below 1024px it opens the schedule at `/schedule` (grid is never
+  on phones). Same test file: 27/27; the `/grid` checks fail on the previous commit.
 - Not reproduced: Ace's Nader 9 vs 8 episode count — both views count with `episodesFor()` on the
   same rows; likely two moments/tabs. Needs a live repro.
 - Bigger items from the doc (Listen Live page, fund drive module, footer, schedule URL, schedule card

@@ -101,7 +101,8 @@
   // `cat` is checked against our own table rather than trusted from the URL.
   // view 'show' addresses the Show view by the show's own link (/show/<code>); anything else
   // (the Episode view) by the episode's (/show/<code>/<episode>). docs/LINKS.md.
-  // onSchedule: no popup is open over the schedule, so the address is /schedule (links.js).
+  // onSchedule: no popup is open over the schedule, so the address is /schedule — or /grid
+  // when it is 'grid', the week grid on top (links.js).
   function urlFor(sheetId, view, onSchedule){
     var q = [];
     if(state.cat !== 'all' && CAT_BY_KEY[state.cat]) q.push('cat=' + encodeURIComponent(state.cat));
@@ -114,7 +115,7 @@
     // An open popup is addressed by its permanent link (public/links.js), so the address
     // bar is always something that can be copied into a post or a web page.
     var open = sheetId && rowById(sheetId);
-    var path = !open ? (onSchedule ? window.ShowLinks.SCHEDULE_PATH : '/') : view === 'show' ? window.ShowLinks.showPath(open.sho) : window.ShowLinks.episodePath(open);
+    var path = !open ? (onSchedule === 'grid' ? window.ShowLinks.GRID_PATH : onSchedule ? window.ShowLinks.SCHEDULE_PATH : '/') : view === 'show' ? window.ShowLinks.showPath(open.sho) : window.ShowLinks.episodePath(open);
     return path + (q.length ? '?' + q.join('&') : '');
   }
   var canHistory = !!(window.history && history.replaceState);
@@ -135,12 +136,12 @@
     // schedule (its dialog stacks above, see openSchedule), and this replace
     // runs from dismissSheet mid-popstate — wiping {sched:1} here made Back
     // from a schedule-opened sheet close both layers at once.
-    if(history.state && history.state.sched){ st = st || {}; st.sched = 1; }
+    if(history.state && history.state.sched){ st = st || {}; st.sched = 1; if(!open && history.state.schedGrid) st.schedGrid = 1; }
     // A Live-originated sheet closes back onto the Live Player. dismissSheet()
     // runs during that popstate, so keep the destination's claim intact rather
     // than replacing it with a plain listing entry mid-transition.
     if(history.state && history.state.live){ st = st || {}; st.live = 1; }
-    try { history.replaceState(st, '', urlFor(open, open ? sheetView : null, !!(st && st.sched && !st.live))); } catch(e){}
+    try { history.replaceState(st, '', urlFor(open, open ? sheetView : null, st && st.sched && !st.live ? (st.schedGrid ? 'grid' : true) : false)); } catch(e){}
   }
 
   function retentionClass(d){
@@ -3127,11 +3128,14 @@
   function openDeepLink(){
     if(deepLinkDone) return;
     deepLinkDone = true;
-    // /schedule: the home page beneath, the schedule on top, as if opened from the header —
-    // so Back and close land on the page, not off the site.
-    if(window.ShowLinks.isSchedule(location.pathname)){
+    // /schedule and /grid: the home page beneath, the schedule on top (and the week grid on that),
+    // as if opened from the header — so Back and close step down to the page, never off the site.
+    // The grid is 1024px and up only; a narrower screen gets the schedule, at /schedule.
+    var toGrid = window.ShowLinks.isGrid(location.pathname);
+    if(toGrid || window.ShowLinks.isSchedule(location.pathname)){
       if(canHistory){ try { history.replaceState(null, '', urlFor(null)); } catch(e){} }
       openSchedule();
+      if(toGrid) openGrid();
       return;
     }
     // Permanent link: /show/<code>[/<episode>] (public/links.js).
@@ -4451,7 +4455,7 @@
       // Back/Forward onto a grid entry this screen can no longer show: fold it
       // into the plain schedule entry so the next Back is not a dead press.
       if(fromHistory && canHistory && history.state && history.state.schedGrid){
-        try { history.replaceState({sched:1}, '', location.href); } catch(e){}
+        try { history.replaceState({sched:1}, '', urlFor(null, null, true)); } catch(e){}
       }
       return;
     }
@@ -4463,7 +4467,7 @@
     schedGridBtn.setAttribute('aria-expanded', 'true');
     paintGrid(true);
     if(canHistory && !fromHistory){
-      try { history.pushState({sched:1, schedGrid:1}, '', location.href); } catch(e){}
+      try { history.pushState({sched:1, schedGrid:1}, '', urlFor(null, null, 'grid')); } catch(e){}
     }
     refreshOverlayState();
     gridCloseBtn.focus();

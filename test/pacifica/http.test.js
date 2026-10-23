@@ -137,6 +137,8 @@ test('real HTTP archive serves every episode of scheduled programs only, exact s
   assert.equal(schedOg.url, url + '/schedule'); assert.match(schedOg.title, /^Schedule — KPFK 90\.7 FM Podcasts$/);
   assert.equal(og(await (await fetch(url + '/schedule/')).text()).url, url + '/schedule', 'trailing slash');
   assert.equal(og(await (await fetch(url + '/schedules')).text()).url, url + '/', 'a near miss is not the schedule');
+  const gridOg = og(await (await fetch(url + '/grid')).text());
+  assert.equal(gridOg.url, url + '/grid'); assert.match(gridOg.title, /^Weekly schedule — KPFK 90\.7 FM Podcasts$/);
   const unknown = await fetch(url + '/show/no-such-show');
   assert.equal(unknown.status, 200); assert.equal(og(await unknown.text()).url, url + '/', 'unknown show: the station card');
   // Step 5: the profile only says this station MAY have Discovery; it starts switched off.

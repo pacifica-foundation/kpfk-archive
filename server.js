@@ -2236,6 +2236,10 @@ function ogTags(req, reqUrl) {
     title = 'Schedule — ' + ogDefaultTitle();
     desc = station ? `What's on ${station.name} ${station.frequency} today and this week.` : desc;
     pageUrl = origin + ShowLinks.SCHEDULE_PATH;
+  } else if (!id && ShowLinks.isGrid(reqUrl.split('?')[0])) {
+    title = 'Weekly schedule — ' + ogDefaultTitle();
+    desc = station ? `The week on ${station.name} ${station.frequency}, show by show.` : desc;
+    pageUrl = origin + ShowLinks.GRID_PATH;
   }
   const link = !id && ShowLinks.parse(reqUrl.split('?')[0]);
   if (link) {

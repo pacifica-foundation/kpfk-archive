@@ -9,6 +9,7 @@ For station web pages, newsletters and social posts. Added 2026-09-28.
 | **Show** | the show and its list of episodes | `https://podcasts.kpfk.org/show/lawsnddisor` |
 | **Episode** | that episode, with a link back to the show | `https://podcasts.kpfk.org/show/lawsnddisor/138584` |
 | **Schedule** | the schedule, today first (added 2026-10-23) | `https://podcasts.kpfk.org/schedule` |
+| **Week grid** | the week as a grid, on computers and large tablets; phones get the schedule (added 2026-10-23) | `https://podcasts.kpfk.org/grid` |
 
 - **Show links never expire** while the show is on the air. Use them for "listen to our show"
   links on websites and in bios.

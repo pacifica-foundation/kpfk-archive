@@ -59,3 +59,10 @@ test('/schedule is the schedule, with or without a trailing slash; nothing else 
   for (const p of ['/', '/schedules', '/schedule/today', '/show/schedule', '/Schedule', '']) assert.equal(L.isSchedule(p), false, p);
   assert.equal(L.parse('/schedule'), null, 'not a show link');
 });
+
+test('/grid is the week grid, with or without a trailing slash; nothing else is', () => {
+  assert.equal(L.GRID_PATH, '/grid');
+  for (const p of ['/grid', '/grid/']) assert.equal(L.isGrid(p), true, p);
+  for (const p of ['/', '/grids', '/schedule', '/grid/week', '/show/grid', '']) assert.equal(L.isGrid(p), false, p);
+  assert.equal(L.isSchedule('/grid'), false); assert.equal(L.parse('/grid'), null);
+});

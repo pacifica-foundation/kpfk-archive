@@ -4,6 +4,7 @@
  *
  *   /show/<code>             the show, on its latest episode
  *   /schedule                the schedule (2026-10-23, Ace's review: kpfk.org and social link to it)
+ *   /grid                    the schedule's week grid (1024px and up; narrower screens get /schedule)
  *   /show/<code>/<episode>   that episode; once it rotates out of the archive, the show on its
  *                            latest episode instead (with a note), so a posted link never dies
  *
@@ -48,7 +49,9 @@
     return {sho: sho, row: row || latest, rotated: !!link.episode && !row};
   }
   var SCHEDULE_PATH = '/schedule';
+  var GRID_PATH = '/grid';
   function isSchedule(pathname){ return /^\/schedule\/?$/.test(String(pathname || '')); }
+  function isGrid(pathname){ return /^\/grid\/?$/.test(String(pathname || '')); }
   return {slug: slug, showPath: showPath, episodePath: episodePath, parse: parse, resolve: resolve,
-    SCHEDULE_PATH: SCHEDULE_PATH, isSchedule: isSchedule};
+    SCHEDULE_PATH: SCHEDULE_PATH, GRID_PATH: GRID_PATH, isSchedule: isSchedule, isGrid: isGrid};
 });

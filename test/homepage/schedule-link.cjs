@@ -65,6 +65,38 @@ const base = process.env.APP_URL || 'http://localhost:8081';
     s = await state();
     check('… onto the home page', s.path === '/' && s.origin === base, JSON.stringify(s));
   }
+  // 4. /grid (the week grid, 1024px and up). Desktop: schedule beneath, grid on top; Back steps
+  // grid → schedule → page. Opening the grid from the schedule shows /grid. Phone: the schedule, at /schedule.
+  const gridOpen = `var g = document.getElementById('schedGrid'); return !!g && g.classList.contains('show') && g.querySelectorAll('.grid-block').length > 0;`;
+  const gridShut = `return !document.getElementById('schedGrid').classList.contains('show');`;
+  await p.send('Page.navigate', { url: base + '/grid' });
+  await until(loaded, 30000);
+  check('/grid opens the week grid (desktop)', await until(gridOpen, 15000), JSON.stringify(await state()));
+  s = await state();
+  check('… over the schedule, at /grid', s.sched && s.path === '/grid', JSON.stringify(s));
+  await p.eval(`history.back(); return 1;`);
+  check('Back closes the grid', await until(gridShut, 5000));
+  s = await state();
+  check('… onto the schedule, at /schedule', s.sched && s.path === '/schedule', JSON.stringify(s));
+  await p.clickInPlace('#schedGridBtn');
+  check('the Grid button opens the grid', await until(gridOpen, 15000));
+  check('… and the address bar shows /grid', (await state()).path === '/grid');
+  await p.clickInPlace('#gridClose');
+  check('the grid close button returns to the schedule', await until(gridShut, 5000) && (await state()).path === '/schedule');
+  await p.eval(`history.back(); return 1;`);
+  check('Back again closes the schedule', await until(schedShut, 5000));
+  s = await state();
+  check('… onto the home page', s.path === '/' && s.origin === base, JSON.stringify(s));
+  await p.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+  await p.send('Page.navigate', { url: base + '/grid' });
+  await until(loaded, 30000);
+  check('/grid on a phone opens the schedule', await until(schedOpen, 15000));
+  await sleep(500);
+  s = await state();
+  const gridShown = await p.eval(`return document.getElementById('schedGrid').classList.contains('show');`);
+  check('… without the grid, at /schedule', !gridShown && s.path === '/schedule', JSON.stringify(s));
+  await p.eval(`history.back(); return 1;`);
+  check('… and Back lands on the home page', await until(schedShut, 5000) && (await state()).path === '/');
   console.log(failed ? `\n${failed} failed` : '\nall passed');
   process.exit(failed ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });
