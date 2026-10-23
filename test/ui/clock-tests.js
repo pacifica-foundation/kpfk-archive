@@ -82,7 +82,7 @@ const ok = (n, c, d) => { c ? (pass++, console.log('  ok   ' + n))
   let l = await labelAt(3 * 3600);
   ok('tooltip names the newest broadcast', /Newest broadcast: /.test(l.title), l.title);
   ok('tooltip reports when the server last checked',
-    /Archive checked 2m ago/.test(l.title), JSON.stringify(l.title));
+    /Episodes checked 2m ago/.test(l.title), JSON.stringify(l.title));
   ok('the strip itself shows the SHOW time, not the check time',
     /3h ago/.test(l.short) && !/2m ago/.test(l.short), l.short);
 
@@ -91,7 +91,7 @@ const ok = (n, c, d) => { c ? (pass++, console.log('  ok   ' + n))
   offsetSecs = 9 * 3600; updatedAgoSecs = 60;
   l = await labelAt(9 * 3600);
   ok('quiet night: show ages but the check stays fresh',
-    /9h ago/.test(l.short) && /Archive checked 1m ago/.test(l.title),
+    /9h ago/.test(l.short) && /Episodes checked 1m ago/.test(l.title),
     l.short + ' | ' + JSON.stringify(l.title));
 
   console.log('\n4. desktop shows the wall-clock time of the newest broadcast');

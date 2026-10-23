@@ -2167,8 +2167,8 @@ function stampAssets(html) {
 // preview fetch, so nothing app.js does can add it afterwards.
 const OG_RE = /<!-- og:start -->[\s\S]*?<!-- og:end -->/;
 // Functions, not boot-time constants: the name, frequency and city are editable (step 5b).
-const ogDefaultTitle = () => (station ? `${station.name} ${station.frequency} Archive` : 'WBAI 99.5 FM Archive');
-const ogDefaultDesc = () => (station ? `Search, stream, and browse ${station.name} broadcasts from ${station.city}.` : "Search, stream, and browse WBAI 99.5 FM's on-demand broadcast archive — Free Speech Radio, Pacifica Radio in New York City.");
+const ogDefaultTitle = () => (station ? `${station.name} ${station.frequency} Podcasts` : 'WBAI 99.5 FM Archive');
+const ogDefaultDesc = () => (station ? `Listen to ${station.name}'s shows as podcasts — search, stream and browse every episode. Pacifica Radio in ${station.city}.` : "Search, stream, and browse WBAI 99.5 FM's on-demand broadcast archive — Free Speech Radio, Pacifica Radio in New York City.");
 
 function htmlAttr(s) {
   return String(s == null ? '' : s)

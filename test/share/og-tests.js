@@ -65,7 +65,7 @@ async function getHtml(pathAndQuery, headers) {
   // hard-coded "WBAI 99.5 FM Archive", so it failed on KPFK — 2026-10-14).
   const stationId = (await fetch(BASE + '/healthz').then((r) => r.json())).station;
   const stationCfg = require('../../stations/' + stationId + '.json');
-  const stationCard = `${stationCfg.name} ${stationCfg.frequency} Archive`;
+  const stationCard = `${stationCfg.name} ${stationCfg.frequency} Podcasts`;
   const stationShare = (stationCfg.assets && stationCfg.assets.share) || '/assets/icon-512.png';
   const row = archive.shows.find((r) => r.photo) || archive.shows[0];
   // QIR notes, if the station runs Discovery; {} otherwise (titles then come from topics only).

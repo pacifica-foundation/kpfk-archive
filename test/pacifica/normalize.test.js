@@ -186,6 +186,16 @@ test('profile validation rejects station confusion and public projection does no
   raw.timezone = 'bad/timezone'; assert.throws(() => validateProfile(raw), /timezone/);
 });
 
+// The live song line comes from the same playlist log as the cue files, so it gets the same
+// repeated-guests rule (Ace's review, 2026-10-23; plugins/discovery/test/playlist.test.js).
+test('live song title drops a guest list repeated after a bracketed feat.', () => {
+  const raw = fixture('fe_nowplaying_kpfk.json');
+  raw.track = { song: 'Pains of Love (feat. Majee) feat. Majee', artist: 'Nehzahr' };
+  assert.equal(n.normalizeNowPlaying(raw, profile).current.song, 'Pains of Love (feat. Majee)');
+  raw.track = { song: 'Funds feat. ODUMODUBLVCK,Chike', artist: 'Davido' };
+  assert.equal(n.normalizeNowPlaying(raw, profile).current.song, 'Funds feat. ODUMODUBLVCK,Chike');
+});
+
 test('empty track array preserves the current program and next program', () => {
   const raw = fixture('fe_nowplaying_kpfk.json');
   raw.track = [];

@@ -30,6 +30,14 @@ test('every configured KPFK link and social account is in the rendered menu', ()
   assert.match(menu, /aria-label="KPFK on YouTube"/);
   assert.deepEqual([...menu.matchAll(/<h2>([^<]+)<\/h2>/g)].map(m => m[1]), ['Listen', 'Station', 'Support &amp; contact']);
   assert.match(menu, /<span>kpfk\.org<\/span>/);
+  // Ace's review (2026-10-23): every link that leaves the app is marked, in-app ones are not.
+  const rows = [...menu.matchAll(/<li><a\b([^>]*)>([\s\S]*?)<\/a><\/li>/g)];
+  assert.ok(rows.length >= 12, `the probe sees the rows (${rows.length})`);
+  for (const [, attrs, body] of rows) {
+    const inApp = /aria-haspopup="dialog"/.test(attrs), marked = /class="menu-ext"/.test(body);
+    assert.equal(marked, !inApp, `${body.replace(/<[^>]+>/g, '').trim()}: ${inApp ? 'in-app, unmarked' : 'leaves the app, marked'}`);
+    if (marked) assert.match(body, /opens in a new tab/);
+  }
   assert.doesNotMatch(menu, /WBAI|wbai\.org/);
 });
 

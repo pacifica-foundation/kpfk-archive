@@ -49,3 +49,26 @@ test('cue text is data, never markup; non-VTT and oversized input yield nothing'
  assert.deepEqual(playlist.parse('<html>',10),[]);assert.deepEqual(playlist.parse('WEBVTT\n'+'x'.repeat(600*1024),10),[]);
  assert.deepEqual(playlist.parse('WEBVTT\n\n00:10:00.000 --> 00:11:00.000\nLate<br><i>X</i>',60),[],'beyond the recording');
 });
+
+// Ace's review (2026-10-23): KPFK's playlist log repeats the guests after a title that
+// already names them. Verbatim lines from archive.kpfk.org cue files 140377, 140358, 140352
+// (bracket and square-bracket forms), plus titles that must stay as written.
+test('a guest list repeated after a bracketed "feat." is dropped; a lone "feat." stays', () => {
+  const cue = (n, title, artist) => `${n}\n00:0${n}:00.000 --> 00:0${n}:50.000\n${title}<br>\n<i>${artist}</i>`;
+  const vtt = 'WEBVTT \n\n' + [
+    cue(1, 'Pains of Love (feat. Majee) feat. Majee', 'Nehzahr'),
+    cue(2, 'Stand Up, Rise Up (feat. Mable E. Marshall &amp; Eleanor Mapp) feat. Mable E. Marshall, Eleanor Mapp', 'Ruthie Foster'),
+    cue(3, 'For the Rest of My Life (Live) [feat. Vincent Bohanan] feat. Vincent Bohanan', 'The Victorious Army - Atl'),
+    cue(4, "It's Going Down (Instrumental Version) feat. Maya Miko", 'SOURWAH'),
+    cue(5, 'Funds feat. ODUMODUBLVCK,Chike', 'Davido'),
+    cue(6, 'Hayling (feat. Hafdis Huld) (Full Length Vocal Mix)', 'FC Kahuna'),
+  ].join('\n\n') + '\n';
+  assert.deepEqual(playlist.parse(vtt, 600).map(t => t.title), [
+    'Pains of Love (feat. Majee)',
+    'Stand Up, Rise Up (feat. Mable E. Marshall & Eleanor Mapp)',
+    'For the Rest of My Life (Live) [feat. Vincent Bohanan]',
+    "It's Going Down (Instrumental Version) feat. Maya Miko",
+    'Funds feat. ODUMODUBLVCK,Chike',
+    'Hayling (feat. Hafdis Huld) (Full Length Vocal Mix)',
+  ]);
+});

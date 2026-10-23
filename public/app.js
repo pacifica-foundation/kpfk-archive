@@ -2074,7 +2074,7 @@
     var detail = (s && s.status) ? ' (it replied ' + s.status + ')'
                : (s && s.reason === 'timeout') ? ' (it timed out)' : '';
     showLiveAlert('down', (STATION.name + '’s live stream is down'),
-      'The station’s streaming server isn’t serving audio right now' + detail + ('. That’s on ' + STATION.name + '’s end, not yours — try again in a few minutes. Archive shows still play normally.'));
+      'The station’s streaming server isn’t serving audio right now' + detail + ('. That’s on ' + STATION.name + '’s end, not yours — try again in a few minutes. Podcast episodes still play normally.'));
   }
   function probeLiveServer(){
     if(LIVE_FAIL === 'down'){ renderProbeResult({ ok:false, reason:'unreachable' }); return; }
@@ -2922,7 +2922,7 @@
     if(!canSwap) clockMode = 'show';
 
     if(clockMode === 'checked'){
-      longEl.textContent = 'Archive checked ' + relTime(archiveUpdated/1000);
+      longEl.textContent = 'Episodes checked ' + relTime(archiveUpdated/1000);
       shortEl.textContent = 'Checked · ' + relTime(archiveUpdated/1000);
     } else {
       // Wide screens get the wall-clock time of the newest broadcast; phones get
@@ -2937,7 +2937,7 @@
     // how you end up claiming a quiet night means a broken feed.
     var tip = 'Newest broadcast: ' + stamp + ', ' + relTime(latestDt);
     if(canSwap){
-      tip += '\nArchive checked ' + relTime(archiveUpdated/1000);
+      tip += '\nEpisodes checked ' + relTime(archiveUpdated/1000);
       tip += '\n(tap to swap)';
     }
     clockEl.title = tip;
@@ -3135,13 +3135,13 @@
       if(!found || found.rotated){
         var text = notice && notice.querySelector('span');
         if(text) text.textContent = found
-          ? 'That broadcast has rotated out of the archive — ' + STATION.name + ' keeps each show for a limited window. Here is the show’s latest episode.'
-          : 'That show isn’t in the archive right now. Everything currently available is listed below.';
+          ? 'That episode is no longer available — ' + STATION.name + ' keeps each show for a limited window. Here is the show’s latest episode.'
+          : 'That show has no episodes available right now. Everything currently available is listed below.';
         if(notice) notice.hidden = false;
       }
       if(canHistory){ try { history.replaceState(null, '', urlFor(null)); } catch(e){} }
       // Rotated out: say so inside the popup too; the page's note sits behind its backdrop.
-      if(found && found.rotated) sheetLinkNote = 'The episode in that link has rotated out of the archive. This is the latest one.';
+      if(found && found.rotated) sheetLinkNote = 'The episode in that link is no longer available. This is the latest one.';
       // A show link opens the Show view; an episode link (or a rotated one) the Episode view.
       if(found) openSheetById(found.row.id, null, false, link.episode ? 'episode' : 'show');
       return;
@@ -3166,7 +3166,7 @@
       .then(function(r){ if(!r.ok) throw new Error('archive '+r.status); return r.json(); })
       .then(function(data){ ingest(data.shows || [], data.updated, data.revision, data.directory); })
       .catch(function(){
-        loadingEl.hidden = true; setCount('Could not load the archive. Reload to retry.', false); emptyEl.hidden = false;
+        loadingEl.hidden = true; setCount('Could not load podcasts. Reload to retry.', false); emptyEl.hidden = false;
       });
   }
 
@@ -3197,7 +3197,7 @@
     var added = count - renderedCount;
     refreshBtnText.textContent = added > 0
       ? (added === 1 ? '1 new episode' : added + ' new episodes')
-      : 'Archive updated';
+      : 'Episodes updated';
     refreshBtn.setAttribute('aria-label', refreshBtnText.textContent + ' — refresh the listing');
     refreshBtn.hidden = false;
   }
@@ -3934,7 +3934,7 @@
     schedPaintTabs();
     var entries = schedWeek[schedDay] || [];
     if(!entries.length){
-      schedBody.innerHTML = '<p class="sched-empty">Nothing derived for '+esc(schedDay)+' yet — the archive is still loading.</p>';
+      schedBody.innerHTML = '<p class="sched-empty">Nothing derived for '+esc(schedDay)+' yet — episodes are still loading.</p>';
       return;
     }
     schedBody.innerHTML = entries.map(function(e){

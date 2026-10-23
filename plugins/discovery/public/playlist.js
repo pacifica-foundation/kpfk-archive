@@ -21,7 +21,7 @@
       var m=/^\s*(\S+)\s+-->\s+(\S+)/.exec(lines[i]);if(!m)return;
       var start=seconds(m[1]),end=seconds(m[2]);if(!Number.isFinite(start))return;
       var body=lines.slice(i+1).join('\n'),parts=body.split(/<br\s*\/?>/i);
-      var title=plain(parts[0]||''),artist=plain(parts.slice(1).join(' '));
+      var title=PlainText.songTitle(plain(parts[0]||'')),artist=plain(parts.slice(1).join(' '));
       if(!title&&!artist)return;
       if(duration>0&&start>duration+2)return;
       tracks.push({start:start,end:end,title:title||artist,artist:title?artist:''});

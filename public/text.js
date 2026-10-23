@@ -63,5 +63,15 @@
     if(!reported['lang:'+v]){reported['lang:'+v]=1;if(typeof console!=='undefined')console.warn('Unknown transcript language label: '+v);}
     return '';
   }
-  return {decode:decode,plain:plain,langCode:langCode,setUnknownHandler:function(fn){onUnknown=fn;}};
+  // Song titles from a station's playlist log (2026-10-23, Ace's review): the log sometimes
+  // repeats the guests after a title that already names them — "Pains of Love (feat. Majee)
+  // feat. Majee". A trailing "feat./ft./featuring …" is dropped only when the title already
+  // has a bracketed one; "Funds feat. Chike" (the only mention) is kept as written.
+  var BRACKET_FEAT=/[(\[]\s*(?:feat\.?|ft\.|featuring)\s/i,TRAILING_FEAT=/\s+(?:feat\.?|ft\.|featuring)\s+[^()\[\]]+$/i;
+  function songTitle(s){
+    s=String(s==null?'':s);
+    var cut=s.replace(TRAILING_FEAT,'');
+    return cut!==s&&BRACKET_FEAT.test(cut)?cut:s;
+  }
+  return {decode:decode,plain:plain,songTitle:songTitle,langCode:langCode,setUnknownHandler:function(fn){onUnknown=fn;}};
 });

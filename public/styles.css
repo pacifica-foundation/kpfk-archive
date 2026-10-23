@@ -1639,6 +1639,8 @@
   /* The glyph sits one step back from the label so the words lead the eye;
      hover pulls both to the accent together. */
   .menu-ico{ width:18px; height:18px; flex:none; color:var(--ink-faint); transition:color .15s ease; }
+  /* Leaves-the-app mark, pushed to the row's end. */
+  .menu-ext{ width:13px; height:13px; flex:none; margin-left:auto; color:var(--ink-faint); }
   @media (hover:hover) and (pointer:fine){
     .menu-group a:hover{background:var(--surface-hover); color:var(--accent-2);}
     .menu-group a:hover .menu-ico{ color:var(--accent-2); }

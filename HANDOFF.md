@@ -6,6 +6,26 @@ WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here o
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
+## 2026-10-23 — Ace's review: easy wins (committed, not pushed or deployed)
+
+Ace's review doc: "Podcast App Feedback (KPFK, for Paul)" (Google Doc, reviewed 2026-10-11/12).
+Done, offline tests 204/204, not yet checked in a browser:
+- **"Podcasts", not "Archive"** in everything a listener reads: header ("90.7 FM · Podcasts"), page
+  title, share cards (server `ogDefaultTitle`), install name (manifest), status lines.
+- **Station `copy` block** (optional, `lib/station-config.js`): `heroDesc` (home paragraph) and
+  `transcriptNote` (default "Machine transcript. Names and words may be wrong." — no "from QIR").
+- **Menu**: every link that leaves the app has the new-tab mark; Schedule/Donate/Privacy (in-app) don't.
+  The kpfk.org item now has a home icon.
+- **Doubled "feat."**: the playlist log sometimes writes "Pains of Love (feat. Majee) feat. Majee"
+  (4 of 149 recent cue files). `PlainText.songTitle()` drops the repeat, in cue playlists and the
+  live song line (`normalize.js` — reaches `/api/now-playing`; harmless for the Flutter app).
+- Tests: `test/pacifica/listener-copy.test.js`, additions to `menu.test.js`, `normalize.test.js`,
+  `plugins/discovery/test/playlist.test.js` — all shown to fail on the old code.
+- Not reproduced: Ace's Nader 9 vs 8 episode count — both views count with `episodesFor()` on the
+  same rows; likely two moments/tabs. Needs a live repro.
+- Bigger items from the doc (Listen Live page, fund drive module, footer, schedule URL, schedule card
+  buttons, search grouping/ranking, chapters) are not started.
+
 ## 2026-10-15 — site audit: layout and play fixes (live and checked)
 
 **Live 2026-10-15** (Paul's last redeploy that evening, GitHub at `6280446` — includes the focus-ring fix

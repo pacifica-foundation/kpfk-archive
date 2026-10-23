@@ -242,7 +242,7 @@
     $('alongShow').textContent = api.show ? api.show(row) : '';
     const art = api.art ? api.art(row) : ''; $('alongArt').hidden = !art; if(art) $('alongArt').src = art;
     paintAbout(api.about ? api.about(row) : '');
-    note = kind === 'transcript' ? 'Machine transcript from QIR — names and words may be wrong. Tap any line to play from there.' : kind === 'songs' ? 'From the station’s playlist log. Tap a song to play from there.' : '';
+    note = kind === 'transcript' ? window.StationConfig.copy.transcriptNote + ' Tap any line to play from there.' : kind === 'songs' ? 'From the station’s playlist log. Tap a song to play from there.' : '';
     findCounted = false; find.value = query; $('alongOnly').checked = false; $('alongOnlyLabel').hidden = !query;
     const token = ++loadToken;
     if(!kind) { lines = []; plainText = ''; list.innerHTML = '<p class="rv-along-empty">No transcript or song list is available for this episode.</p>'; paintAvailability(); return; }
