@@ -71,6 +71,9 @@ Behaviour:
 4. **Show page / Past episodes / Latest** open the existing show sheets in place, so the stream
    keeps playing (the player bar rule).
 5. **Today's schedule** from Confessor via `/api/schedule`, never Aiir.
+5a. **Now playing song** (from the feed's track, as the Live popup and player bar show it today):
+   a "♪ Now playing — song · artist" line under the player whenever the feed carries one, gone when
+   it clears; the player bar's second line shows it too. Doubled "feat." already cleaned (INT-965).
 6. **Contacts and signals** from the station file (INT-968), so every Pacifica station gets them.
 7. **Phones:** a light "Listen in the KPFK app" prompt, links from the station file.
 8. **Optional, later:** pop-out mini player (Chrome/Edge Document Picture-in-Picture only).

@@ -57,7 +57,7 @@ test('a guest list repeated after a bracketed "feat." is dropped; a lone "feat."
   const cue = (n, title, artist) => `${n}\n00:0${n}:00.000 --> 00:0${n}:50.000\n${title}<br>\n<i>${artist}</i>`;
   const vtt = 'WEBVTT \n\n' + [
     cue(1, 'Pains of Love (feat. Majee) feat. Majee', 'Nehzahr'),
-    cue(2, 'Stand Up, Rise Up (feat. Mable E. Marshall &amp; Eleanor Mapp) feat. Mable E. Marshall, Eleanor Mapp', 'Ruthie Foster'),
+    cue(2, 'Stand Up, Rise Up (feat. Mable E. Marshall &amp; Eleanor Mapp) feat. Mable E. Marshall,Eleanor Mapp', 'Kemp Harris'),
     cue(3, 'For the Rest of My Life (Live) [feat. Vincent Bohanan] feat. Vincent Bohanan', 'The Victorious Army - Atl'),
     cue(4, "It's Going Down (Instrumental Version) feat. Maya Miko", 'SOURWAH'),
     cue(5, 'Funds feat. ODUMODUBLVCK,Chike', 'Davido'),
