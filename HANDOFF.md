@@ -6,7 +6,7 @@ WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here o
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
-## 2026-10-23 — Ace's review: easy wins (committed, not pushed or deployed)
+## 2026-10-23 — Ace's review: easy wins (first commit live 2026-10-23; /schedule pushed after)
 
 Ace's review doc: "Podcast App Feedback (KPFK, for Paul)" (Google Doc, reviewed 2026-10-11/12).
 Done, offline tests 204/204, not yet checked in a browser:
@@ -21,6 +21,11 @@ Done, offline tests 204/204, not yet checked in a browser:
   live song line (`normalize.js` — reaches `/api/now-playing`; harmless for the Flutter app).
 - Tests: `test/pacifica/listener-copy.test.js`, additions to `menu.test.js`, `normalize.test.js`,
   `plugins/discovery/test/playlist.test.js` — all shown to fail on the old code.
+- **`/schedule` link** (INT-969, part; same day, second commit): arriving opens the schedule over the
+  home page (Back/close land on the page, on the site); opening it puts `/schedule` in the address bar;
+  its own share card; the menu's Schedule item links there instead of kpfk.org's (Aiir) page. Rule in
+  `public/links.js` (`isSchedule`). Browser test `test/homepage/schedule-link.cjs` (8091): 15/15, and
+  fails on the old code (no schedule; Back left the site). `/live` is reserved for the Listen Live page.
 - Not reproduced: Ace's Nader 9 vs 8 episode count — both views count with `episodesFor()` on the
   same rows; likely two moments/tabs. Needs a live repro.
 - Bigger items from the doc (Listen Live page, fund drive module, footer, schedule URL, schedule card

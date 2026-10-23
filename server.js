@@ -2231,6 +2231,12 @@ function ogTags(req, reqUrl) {
   // Permanent links (public/links.js): /show/<code> previews as the show (its name,
   // description and artwork); /show/<code>/<episode> as that episode while it is in the
   // archive, and as the show once it has rotated out (the page does the same).
+  // /schedule (2026-10-23): its own card, so a posted schedule link says what it opens.
+  if (!id && ShowLinks.isSchedule(reqUrl.split('?')[0])) {
+    title = 'Schedule — ' + ogDefaultTitle();
+    desc = station ? `What's on ${station.name} ${station.frequency} today and this week.` : desc;
+    pageUrl = origin + ShowLinks.SCHEDULE_PATH;
+  }
   const link = !id && ShowLinks.parse(reqUrl.split('?')[0]);
   if (link) {
     const data = archiveCache.get() || archiveCache.stale();

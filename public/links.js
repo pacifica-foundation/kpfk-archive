@@ -3,6 +3,7 @@
  * two can never disagree about what a link means.
  *
  *   /show/<code>             the show, on its latest episode
+ *   /schedule                the schedule (2026-10-23, Ace's review: kpfk.org and social link to it)
  *   /show/<code>/<episode>   that episode; once it rotates out of the archive, the show on its
  *                            latest episode instead (with a note), so a posted link never dies
  *
@@ -46,5 +47,8 @@
     var row = link.episode ? list.filter(function(r){ return lastPart(r.id) === link.episode; })[0] : null;
     return {sho: sho, row: row || latest, rotated: !!link.episode && !row};
   }
-  return {slug: slug, showPath: showPath, episodePath: episodePath, parse: parse, resolve: resolve};
+  var SCHEDULE_PATH = '/schedule';
+  function isSchedule(pathname){ return /^\/schedule\/?$/.test(String(pathname || '')); }
+  return {slug: slug, showPath: showPath, episodePath: episodePath, parse: parse, resolve: resolve,
+    SCHEDULE_PATH: SCHEDULE_PATH, isSchedule: isSchedule};
 });

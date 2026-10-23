@@ -52,3 +52,10 @@ test('the show code keeps working after a rename; only the name link follows the
   assert.equal(L.resolve(L.parse('/show/onconta'), rows, renamed).sho, 'kpfk.kpfk.onconta');
   assert.equal(L.resolve(L.parse('/show/the-chris-hedges-report'), rows, renamed), null);
 });
+
+test('/schedule is the schedule, with or without a trailing slash; nothing else is', () => {
+  assert.equal(L.SCHEDULE_PATH, '/schedule');
+  for (const p of ['/schedule', '/schedule/']) assert.equal(L.isSchedule(p), true, p);
+  for (const p of ['/', '/schedules', '/schedule/today', '/show/schedule', '/Schedule', '']) assert.equal(L.isSchedule(p), false, p);
+  assert.equal(L.parse('/schedule'), null, 'not a show link');
+});

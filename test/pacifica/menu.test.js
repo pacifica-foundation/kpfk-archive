@@ -21,9 +21,12 @@ test('every configured KPFK link and social account is in the rendered menu', ()
   const found = hrefs(menu);
   for (const [key, url] of Object.entries(profile.links)) {
     if (key === 'archive') continue;                 // the archive is this site, not a menu item
+    if (key === 'schedule') continue;                // Schedule is the app's own /schedule (below)
     assert.ok(found.includes(url), `menu links ${key}: ${url}`);
   }
   for (const url of Object.values(profile.social)) assert.ok(found.includes(url), `social ${url}`);
+  assert.match(menu, /<a href="\/schedule" id="menuSchedule"/, 'Schedule links to the in-app /schedule');
+  assert.ok(!found.includes(profile.links.schedule), 'not the station site schedule page');
   for (const id of ['menuSchedule', 'menuDonate', 'menuPrivacy']) {
     assert.equal(menu.split(`id="${id}"`).length - 1, 1, `exactly one #${id} for app.js`);
   }

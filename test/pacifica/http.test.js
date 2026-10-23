@@ -130,6 +130,13 @@ test('real HTTP archive serves every episode of scheduled programs only, exact s
   const epOg = og(await (await fetch(url + '/show/dn/' + epNum)).text());
   assert.equal(epOg.url, url + '/show/dn/' + epNum);
   assert.equal(og(await (await fetch(url + '/show/dn/999999999')).text()).url, url + '/show/dn', 'rotated out: previews as the show');
+  // /schedule (2026-10-23): the page, with a schedule card of its own; other paths keep the station card.
+  const schedPage = await fetch(url + '/schedule');
+  assert.equal(schedPage.status, 200);
+  const schedOg = og(await schedPage.text());
+  assert.equal(schedOg.url, url + '/schedule'); assert.match(schedOg.title, /^Schedule — KPFK 90\.7 FM Podcasts$/);
+  assert.equal(og(await (await fetch(url + '/schedule/')).text()).url, url + '/schedule', 'trailing slash');
+  assert.equal(og(await (await fetch(url + '/schedules')).text()).url, url + '/', 'a near miss is not the schedule');
   const unknown = await fetch(url + '/show/no-such-show');
   assert.equal(unknown.status, 200); assert.equal(og(await unknown.text()).url, url + '/', 'unknown show: the station card');
   // Step 5: the profile only says this station MAY have Discovery; it starts switched off.
