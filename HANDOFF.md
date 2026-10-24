@@ -27,7 +27,8 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 - Tests: `test/pacifica/app-version.test.js` (every linked file changes the build; shown to fail on the
   old formula), `test/homepage/update.cjs` (19 checks, fake deploy in the browser, real tab switch;
   9 fail on the old code, including Paul's exact error).
-- **Fixed 2026-10-24 (not yet deployed when written):** live, "The transcript service is unavailable"
+- **Fixed 2026-10-24 — live and checked** (status shows `cause`; Paul: "fix worked"). Full write-up of
+  this and every earlier transcript breakage: [docs/transcripts.md](docs/transcripts.md). Live, "The transcript service is unavailable"
   came and went. QIR's hourly catalog refresh had been failing since ~21:22 UTC (last success 20:22),
   and every failure set a 30 s cooldown in `request()` that refused **all** QIR calls, transcripts
   included. Now the cooldown pauses only the background refresh; a transcript always goes to QIR,

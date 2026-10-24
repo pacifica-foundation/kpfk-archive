@@ -16,6 +16,7 @@ Current state and working rules live at the repo root: [HANDOFF.md](../HANDOFF.m
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Coolify setup, the `/app/data` volume, `/healthz` checks, backups |
 | [exports.md](exports.md) | **Built 2026-09-16.** Studio Export dialog: listening, archive, coverage, station profile, printable report, backup and restore — spec, decisions and as-built notes per phase |
 | [exports-for-pacifica.md](exports-for-pacifica.md) | **Current.** For Pacifica: combining several stations' export files — columns, sums, clocks, versions |
+| [transcripts.md](transcripts.md) | **Current.** How a transcript reaches the listener, every time transcripts broke (cause, fix, test), and what to check when they fail |
 | [kpfk/qir-beta-build.md](kpfk/qir-beta-build.md) | KPFK QIR adapter, explicit preview/API modes, transcript search/cues, tests and live-access limits |
 | [kpfk/station-admin-template-plan.md](kpfk/station-admin-template-plan.md) | Future admin setup: station feeds, uploads, text, persistent settings, preview/rollback and new-station launch |
 | [kpfk/discover-plugin.md](kpfk/discover-plugin.md) | Optional prototype interface, station toggle, routes and enabled/disabled verification |

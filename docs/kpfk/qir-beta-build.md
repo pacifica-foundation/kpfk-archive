@@ -61,6 +61,8 @@ publish an incomplete catalog.
 
 One-hour in-memory catalog cache, bounded transcript cache (30), concurrent request
 deduplication, 429/backoff and explicit stale last-good catalog on refresh failure.
+The backoff pauses only the background catalog refresh; listener transcript requests always
+reach QIR (2026-10-24 outage, see [../transcripts.md](../transcripts.md)).
 Current iteration uses a full traversal when the cache expires. Durable snapshots,
 incremental watermark sync, ETags and distributed/process-wide rate coordination
 are later production-readiness tasks. A restart loses the plugin cache but not
