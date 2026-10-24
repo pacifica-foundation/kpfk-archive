@@ -39,9 +39,10 @@ test('no vendor or tool names in the page or the transcript note', () => {
   assert.doesNotMatch(readable(render(template, profile)), /\b(QIR|Confessor|Aiir)\b/i);
   const note = publicProfile(profile).copy.transcriptNote;
   assert.equal(note, 'Machine transcript. Names and words may be wrong.');
-  // along.js builds its note from the station setting, not a literal.
+  // along.js builds its note from the station setting, not a literal (the painted note, and
+  // the panel with an old settings file, are checked in a browser: test/homepage/update.cjs).
   const along = fs.readFileSync(path.join(root, 'plugins/discovery/public/along.js'), 'utf8');
-  assert.match(along, /StationConfig\.copy\.transcriptNote/);
+  assert.match(along, /copy\.transcriptNote/);
   // Code without its comments: any remaining tool name could only be in a string a listener reads.
   const code = along.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\s\/\/ .*$/gm, '');
   assert.match(code, /Tap any line to play from there/, 'the probe sees along.js strings');

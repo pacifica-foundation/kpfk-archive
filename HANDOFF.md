@@ -6,6 +6,31 @@ WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here o
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
+## 2026-10-23 (evening) — open pages follow deploys (not yet pushed)
+
+- **What happened:** after the "easy wins" deploy, Transcript did nothing for Paul on desktop and
+  iPhone. Console: `Cannot read properties of undefined (reading 'transcriptNote')`. His browser had
+  the new `along.js` with an old `/station.js` (no `copy`); a fresh load was fine. A page left open,
+  or loaded while Coolify ran old and new side by side, can mix builds. Listeners won't know to reload.
+- **`public/update.js`:** the page knows its build (`<meta name="app-version">`) and its settings
+  file's build (`window.AppBuild` in `/station.js`), and asks `/api/version` (tiny, no-store) when the
+  listener comes back to the page, every 5 min on screen, and when the network returns. Different →
+  reloads **only** when the listener is arriving and nothing plays; otherwise a banner ("A new version
+  of the site is ready. Reload", z-index 305: over popups, under the bar) and a reload on the next
+  return. Never under playing audio, never in the background (lock-screen controls). One automatic
+  reload per target build per 2 min, then the banner (no loop when two servers answer).
+- **`appVersion()` now covers every file the page loads** (rendered page, every stamped link,
+  plugin scripts, settings). It used to miss 12 of 16 — a Transcript-only or Now Playing-only deploy
+  left `/healthz` `version` unchanged. The format's first four parts are unchanged.
+- `along.js` shows a transcript without the station's line when the settings file is old, rather than
+  throwing. `ArchiveApp.soundOn()` is new (playing or starting, episode or live).
+- Tests: `test/pacifica/app-version.test.js` (every linked file changes the build; shown to fail on the
+  old formula), `test/homepage/update.cjs` (19 checks, fake deploy in the browser, real tab switch;
+  9 fail on the old code, including Paul's exact error).
+- Separate, small, not fixed: one QIR transcript request failed once (503 after 5 s, fine on retry);
+  `plugins/discovery/lib/qir/service.js` `request()` then pauses **all** QIR calls 30 s and drops
+  QIR's real error message. Worth a fix (keep the cause; don't let one transcript block everyone).
+
 ## 2026-10-23 — Ace's review: easy wins (first commit live 2026-10-23; /schedule pushed after)
 
 Ace's review doc: "Podcast App Feedback (KPFK, for Paul)" (Google Doc, reviewed 2026-10-11/12).

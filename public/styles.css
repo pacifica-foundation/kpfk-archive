@@ -3259,6 +3259,47 @@
     .resume-toast{left:.75rem; max-width:calc(100% - 1.5rem);}
   }
 
+  /* ---- update banner (public/update.js) ----
+     Same pill as the resume toast. Body-level and fixed, so it shows with or without a player:
+     above every popup (300 is the highest) and under the bar (310: the player frame rule), and
+     positioned above the bar and its resume toast, never on them. */
+  .update-banner{
+    position:fixed; z-index:305; left:0; right:0; margin-inline:auto;
+    bottom:calc(max(var(--player-h, 0px), env(safe-area-inset-bottom, 0px)) + var(--resume-h, 0px) + .7rem);
+    width:max-content; max-width:calc(100% - 2rem);
+    display:flex; align-items:center; gap:.5rem;
+    padding:.4rem .45rem .4rem .9rem;
+    border-radius:999px; font-size:.8rem;
+    background:var(--surface-3); color:var(--ink);
+    border:1px solid var(--outline-strong); box-shadow:var(--elev-2);
+    animation:resume-rise .22s ease both;
+  }
+  .update-banner[hidden]{display:none;}
+  .update-text{min-width:0;}
+  .update-reload{
+    flex:none; border:1px solid var(--accent-2); border-radius:999px;
+    padding:.3rem .8rem; background:transparent; color:var(--accent-2);
+    font-family:inherit; font-size:.78rem; font-weight:700; cursor:pointer;
+    transition:background .15s ease;
+  }
+  .update-dismiss{
+    flex:none; width:26px; height:26px; border-radius:50%; border:none;
+    background:transparent; color:var(--ink-faint); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .update-dismiss svg{width:13px; height:13px;}
+  @media (hover:hover) and (pointer:fine){
+    .update-reload:hover{background:var(--surface-hover);}
+    .update-dismiss:hover{background:var(--surface-hover); color:var(--ink);}
+  }
+  @media (pointer:coarse){
+    .update-reload{min-height:36px;}
+    .update-dismiss{width:36px; height:36px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .update-banner{animation:none;}
+  }
+
   .player-status{font-size:.74rem; color:var(--ink-faint); flex:0 1 auto; text-align:right; max-width:34ch;}
   .player-status a{color:var(--accent-2);}
 

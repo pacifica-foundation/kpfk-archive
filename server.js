@@ -2122,7 +2122,20 @@ function fileVer(relFromPublic) {
 // X-App-Version header so a deploy can be verified from the command line.
 function appVersion() {
   return `${fileVer('/app.js')}.${fileVer('/styles.css')}.${fileVer('/theme-boot.js')}`
-    + `.${fileVer('/track.js')}` + (station ? '.' + crypto.createHash('sha256').update(JSON.stringify(publicProfile(station))).digest('hex').slice(0,12) : '');
+    + `.${fileVer('/track.js')}.${pageHash()}`;
+}
+// Everything the listener page is built from: its rendered markup with every script and
+// stylesheet link stamped, the plugin's scripts, and the station settings file. A change to any
+// one of them changes the version. Until 2026-10-23 only the four files above and the settings
+// counted, so a deploy that changed only the Transcript panel (or Now Playing, Just aired…)
+// left the version as it was, and the page's update check (public/update.js) compares it.
+function pageHash() {
+  const html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+  return crypto.createHash('sha256')
+    .update(stampAssets(stationView.render(html, liveStation())))
+    .update(discovery ? discovery.pageScripts() : '')
+    .update(station ? stationView.script(liveStation()) : '')
+    .digest('hex').slice(0, 12);
 }
 // The studio's own assets, reported separately rather than folded into
 // appVersion(). A studio-only change must be visible on /healthz — otherwise
@@ -2297,7 +2310,9 @@ function sendFile(req, res, filePath, ext) {
         const page = injectOg(stampAssets(stationView.render(html, liveStation())), req, req.url || '/');
         // Bundled plugin scripts: only where the station has the plugin on; otherwise the
         // marker becomes nothing and the page is exactly what it is without the plugin.
-        const body = Buffer.from(page.replace(PLUGIN_MARK, () => discovery ? discovery.pageScripts() : ''), 'utf8');
+        // {{app.version}}: the build this page belongs to, for its update check (public/update.js).
+        const body = Buffer.from(page.replace(PLUGIN_MARK, () => discovery ? discovery.pageScripts() : '')
+          .replace('{{app.version}}', () => appVersion()), 'utf8');
         res.writeHead(200, {
           'Content-Type': MIME['.html'],
           'Content-Length': body.length,
@@ -4291,7 +4306,10 @@ async function handleRequest(req, res) {
       if (pathOnly === '/api/station') return sendJson(res, publicProfile(station), 200, 0);
       if (pathOnly === '/station.js') {
         res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store', ...securityHeaders() });
-        return res.end(stationView.script(liveStation()));
+        // AppBuild: the build that wrote this settings file. During a deploy a page can get its
+        // HTML from the new server and this file from the old one (2026-10-23: the new Transcript
+        // panel read a setting the old file lacked); public/update.js compares the two.
+        return res.end(stationView.script(liveStation()) + 'window.AppBuild = ' + JSON.stringify(appVersion()) + ';\n');
       }
       if (pathOnly === '/manifest.webmanifest') return sendJson(res, stationView.manifest(station), 200, 0);
       // Logos uploaded in the studio (step 5b). Named by content hash, so they never change: cache hard.
@@ -4382,6 +4400,8 @@ async function handleRequest(req, res) {
     if (url === '/api/livestatus') {
       return sendJson(res, await probeLiveStream(), 200, 5);
     }
+    // The open page's update check (public/update.js): the build a fresh load would get.
+    if (url === '/api/version') return sendJson(res, { version: appVersion() });
     if (url === '/healthz') {
       return sendJson(res, {
         ok: true,

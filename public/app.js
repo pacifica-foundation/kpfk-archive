@@ -3042,6 +3042,12 @@
     closePopups: closePopups,
     // What the player bar holds: 'archive', 'live' or null.
     barMode: function(){ return barMode; },
+    // Playing or starting, episode or live (the play button's own states): public/update.js
+    // never reloads the page while this is true.
+    soundOn: function(){
+      if(barMode === 'live') return !!liveWanted;
+      return barMode === 'archive' && (!!loadingMp3 || (!audio.paused && !audio.ended));
+    },
     // For the phone "Now Playing" sheet (public/now-playing.js, 2026-09-29): a thin window on
     // the one player — it never plays audio of its own, so the bar, the lock screen and the
     // sheet can never disagree.

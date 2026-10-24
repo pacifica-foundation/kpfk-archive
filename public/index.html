@@ -4,6 +4,8 @@
 <head>
   <script src="/station.js"></script>
   <meta charset="utf-8">
+  <!-- The build this page belongs to: server.js fills it in, public/update.js compares it. -->
+  <meta name="app-version" content="{{app.version}}">
   <!-- viewport-fit=cover is load-bearing: without it iOS resolves every
      env(safe-area-inset-*) to 0, which silently no-ops the insets the player
      bar and sheet footer already rely on. No user-scalable=no — pinch-zoom
@@ -755,6 +757,17 @@
     </button>
     <audio id="mainAudio" preload="none"></audio>
   </div>
+  <!-- A new build was deployed while this page was open (public/update.js). Shown only when
+     the page cannot reload by itself: audio is playing, or the listener is reading it. -->
+  <div class="update-banner" id="updateBanner" role="status" hidden>
+    <span class="update-text">A new version of the site is ready.</span>
+    <button class="update-reload" id="updateReload" type="button">Reload</button>
+    <button class="update-dismiss" id="updateDismiss" type="button" aria-label="Dismiss">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </div>
   <script src="/archive-search.js" defer></script>
   <script src="/links.js" defer></script>
   <script src="/just-aired.js" defer></script>
@@ -765,6 +778,7 @@
      affect playback; see the header of track.js for what it does and does not
      send. Nothing here identifies a listener. -->
   <script src="/track.js" defer></script>
+  <script src="/update.js" defer></script>
   <!-- plugins: server.js puts a bundled plugin's scripts here (Discovery, where the station has it on) -->
 </body>
 

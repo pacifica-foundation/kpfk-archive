@@ -167,6 +167,15 @@
   // Applied through a CSS variable set from script — the CSP voids inline style attributes.
   const SIZES = {sm: 0.9, md: 1, lg: 1.2, xl: 1.45};
   const SIZE_KEY = ((window.StationConfig || {}).storagePrefix || '') + 'alongTextSize';
+  // The station's line above a transcript (settings `copy`, added 2026-10-23). A settings file
+  // from an older build has no `copy`: a page loaded mid-deploy got that mix and the panel
+  // threw before loading any text. public/update.js reloads such a page; until it does, the
+  // transcript shows without the line rather than not at all. The wording lives only in
+  // lib/station-config.js, never restated here.
+  function transcriptNote() {
+    const copy = (window.StationConfig || {}).copy;
+    return copy && copy.transcriptNote ? copy.transcriptNote + ' ' : '';
+  }
   let textSize = 'md';
   // Caught: storage blocked (private browsing, site data off). The size then lasts for this visit.
   try { const saved = localStorage.getItem(SIZE_KEY); if(SIZES[saved]) textSize = saved; } catch(e) { /* visit-only size */ }
@@ -242,7 +251,7 @@
     $('alongShow').textContent = api.show ? api.show(row) : '';
     const art = api.art ? api.art(row) : ''; $('alongArt').hidden = !art; if(art) $('alongArt').src = art;
     paintAbout(api.about ? api.about(row) : '');
-    note = kind === 'transcript' ? window.StationConfig.copy.transcriptNote + ' Tap any line to play from there.' : kind === 'songs' ? 'From the station’s playlist log. Tap a song to play from there.' : '';
+    note = kind === 'transcript' ? transcriptNote() + 'Tap any line to play from there.' : kind === 'songs' ? 'From the station’s playlist log. Tap a song to play from there.' : '';
     findCounted = false; find.value = query; $('alongOnly').checked = false; $('alongOnlyLabel').hidden = !query;
     const token = ++loadToken;
     if(!kind) { lines = []; plainText = ''; list.innerHTML = '<p class="rv-along-empty">No transcript or song list is available for this episode.</p>'; paintAvailability(); return; }
