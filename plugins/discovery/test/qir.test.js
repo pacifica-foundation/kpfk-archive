@@ -124,3 +124,38 @@ test('show names lose the station prefix and doubled spaces in the directory and
   assert.equal(c.shows[0].display_name,'Demo Hour');
   assert.equal(c.episodes[0].show_name,"The People's Game");
 });
+// 2026-10-24, live: the hourly catalog refresh kept failing, and each failure refused every
+// transcript for 30 s ("The transcript service is unavailable"). Every way the background can
+// fail (HTTP error with Retry-After, timeout, refused change poll) must leave transcripts
+// working, a listener's failed transcript must not block the next one, and status keeps the cause.
+for (const [name, failure] of [
+  ['HTTP 502', () => new Response('bad gateway', {status: 502})],
+  ['429 with Retry-After', () => new Response('slow down', {status: 429, headers: {'retry-after': '120'}})],
+  ['timeout', () => { const e = new Error('The operation was aborted due to timeout'); e.name = 'TimeoutError'; throw e; }],
+]) test(`a failing background refresh (${name}) never refuses a listener's transcript`, async () => {
+  let now = 1000, listingDown = false, transcriptDown = false;
+  const s = createQirService({enabled: true, key: 'key', now: () => now, minIntervalMs: 0, ttlMs: 100, pollMs: 50,
+    fetchImpl: async url => {
+      if (url.includes('/transcript')) return transcriptDown ? new Response('', {status: 503}) : json({transcript: 'Hello', vtt: '', language: 'English'});
+      if (listingDown) return failure();
+      return json(url.endsWith('/shows') ? {shows: []} : {data: [raw], next_cursor: null});
+    }});
+  await s.catalog();
+  const warn = console.warn; const logged = []; console.warn = m => logged.push(m);
+  try {
+    listingDown = true;
+    now += 60; await s.catalog(); await s.idle(); await new Promise(r => setImmediate(r)); // failed change poll
+    now += 60; await s.catalog(); await s.idle();                                         // failed full reload
+    assert.equal(s.status().state, 'unavailable', 'the background failure is reported');
+    assert.ok(s.status().cause, 'status names the cause');
+    assert.match(s.status().cause, /^\/(?:shows|episodes)/);
+    assert.doesNotMatch(s.status().cause, /cursor|key/);
+    assert.equal((await s.transcript(id)).transcript, 'Hello', 'transcript works during the refresh cooldown');
+    transcriptDown = true;
+    await assert.rejects(s.transcript('aa4c4188-f5f7-4a19-abd2-c4ede0735912'));
+    transcriptDown = false;
+    s.catalog(); // a listener's failure must not have started a cooldown for others
+    assert.equal((await s.transcript(id)).transcript, 'Hello');
+    assert.ok(logged.some(m => /request failed/.test(m)), 'failures reach the server log');
+  } finally { console.warn = warn; }
+});

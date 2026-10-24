@@ -39,7 +39,7 @@ function episode(raw, audioOrigins) {
 function createQirService({enabled = false, key = '', audioOrigins = ['https://archive.kpfk.org'],
   fetchImpl = fetch, now = Date.now, minIntervalMs = 1100, ttlMs = 3600000, pollMs = 300000, overlapMs = 21600000} = {}) {
   const base = 'https://qir.kpfk.org/api/v1';
-  let catalog = null, pending = null, cooldown = 0, nextRequest = 0, lastError = null;
+  let catalog = null, pending = null, cooldown = 0, nextRequest = 0, lastError = null, lastCause = null;
   let queue = Promise.resolve();
   // Change polling (added 2026-09-24): QIR's unfiltered /episodes listing was found frozen
   // at the 7 AM episode while updated_since returned the newer ones. So every full load is
@@ -49,13 +49,17 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
   const transcripts = new Map(), transcriptPending = new Map();
   function status() { return { provider:'qir', station:'kpfk', configured:enabled && !!key,
     state:!enabled ? 'disabled' : !key ? 'not_configured' : lastError ? 'unavailable' : catalog ? 'ready' : 'not_verified',
-    error: lastError, lastSuccess: catalog ? catalog.fetchedAt : null, lastPoll: lastPoll || null,
+    error: lastError, cause: lastError ? lastCause : null, lastSuccess: catalog ? catalog.fetchedAt : null, lastPoll: lastPoll || null,
     episodes: catalog ? catalog.episodes.length : null, skipped: catalog ? catalog.skipped : null, chaptersSupported:false }; }
-  async function request(route) {
+  // listener: a request a listener is waiting on (a transcript). The cooldown after a failure
+  // pauses only the background catalog refresh; it never refuses a listener's request, and a
+  // listener's failed request never starts one (2026-10-24: a failing hourly refresh made every
+  // transcript on the live site fail for 30 s at a time, over and over).
+  async function request(route, {listener=false}={}) {
     if (!enabled || !key) throw problem('connection_not_configured',503);
     // Serialized provider traffic remains under the documented 60 requests/minute.
     const job = queue.then(async () => {
-      if (now() < cooldown) throw problem('provider_temporarily_unavailable',503);
+      if (!listener && now() < cooldown) throw problem('provider_temporarily_unavailable',503);
       const wait = Math.max(0,nextRequest-now());
       if(wait) await new Promise(resolve=>setTimeout(resolve,wait));
       nextRequest = now()+minIntervalMs;
@@ -72,9 +76,12 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
         return result.raw;
       } catch(e) {
         if(e.status===404) throw e;
-        cooldown=now()+Math.max(30000,e.retryAfterMs||0);
-        lastError='provider_temporarily_unavailable';
-        throw problem(lastError,503);
+        // Keep QIR's cause (HTTP status, timeout, size) for status and the server log; the
+        // route's query (cursors) is left out. Error messages never contain the key.
+        const cause=route.split('?')[0]+': '+(e.name==='TimeoutError'?'timed out':e.message);
+        console.warn('[qir] '+(listener?'listener ':'')+'request failed — '+cause);
+        if(!listener){cooldown=now()+Math.max(30000,e.retryAfterMs||0);lastError='provider_temporarily_unavailable';lastCause=cause;}
+        throw problem('provider_temporarily_unavailable',503);
       }
     });
     queue=job.catch(()=>{}); return job;
@@ -134,7 +141,7 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
       } catch(e) {
         // request() already reports transport failures as provider_temporarily_unavailable;
         // our own validation codes are kept so bad data is not mistaken for an outage.
-        lastError=/^(?:invalid_|provider_data_invalid$|catalog_exceeds_beta_limit$)/.test(e.message)?e.message:'provider_temporarily_unavailable';
+        if(/^(?:invalid_|provider_data_invalid$|catalog_exceeds_beta_limit$)/.test(e.message)){lastError=e.message;lastCause=e.message;}else lastError='provider_temporarily_unavailable';
         cooldown=Math.max(cooldown,now()+30000);
         if(catalog) return {...catalog,stale:true};
         throw problem(lastError,503);
@@ -187,7 +194,7 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
     if(transcriptPending.has(id)) return transcriptPending.get(id);
     const job=(async()=>{
       try {
-        const raw=await request('/episodes/'+id+'/transcript');
+        const raw=await request('/episodes/'+id+'/transcript',{listener:true});
         const result={provider:'qir',public_id:id,transcript:display(raw.transcript),vtt:text(raw.vtt,2000000),language:text(raw.language,40)};
         if(transcripts.size>=30) transcripts.delete(transcripts.keys().next().value);
         transcripts.set(id,result);return result;

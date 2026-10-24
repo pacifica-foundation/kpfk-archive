@@ -27,9 +27,14 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 - Tests: `test/pacifica/app-version.test.js` (every linked file changes the build; shown to fail on the
   old formula), `test/homepage/update.cjs` (19 checks, fake deploy in the browser, real tab switch;
   9 fail on the old code, including Paul's exact error).
-- Separate, small, not fixed: one QIR transcript request failed once (503 after 5 s, fine on retry);
-  `plugins/discovery/lib/qir/service.js` `request()` then pauses **all** QIR calls 30 s and drops
-  QIR's real error message. Worth a fix (keep the cause; don't let one transcript block everyone).
+- **Fixed 2026-10-24 (not yet deployed when written):** live, "The transcript service is unavailable"
+  came and went. QIR's hourly catalog refresh had been failing since ~21:22 UTC (last success 20:22),
+  and every failure set a 30 s cooldown in `request()` that refused **all** QIR calls, transcripts
+  included. Now the cooldown pauses only the background refresh; a transcript always goes to QIR,
+  and a failed transcript never blocks others. The cause (route + HTTP status / timeout) is logged
+  (`[qir] request failed — …`) and shown as `cause` in `/api/plugins/qir/status`. **After deploy,
+  read `cause`** to learn why QIR's listing refresh fails (no key locally). Test: `qir.test.js`
+  "a failing background refresh … never refuses a listener's transcript" (fails on the old code).
 
 ## 2026-10-23 — Ace's review: easy wins (first commit live 2026-10-23; /schedule pushed after)
 
