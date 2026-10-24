@@ -2436,20 +2436,29 @@
   .grid-block.grid-live{
     background:color-mix(in srgb, var(--accent) 10%, var(--surface-2));
     border-color:color-mix(in srgb, var(--accent) 45%, var(--outline-strong));
-    /* A slow breathing glow (Paul, 2026-10-24). On the outer shadow, which the block's own
-       overflow:hidden does not clip; lifted one layer so the next show does not cover it. */
+    /* A slow throb (Paul, 2026-10-24): the border brightens and a solid accent ring swells
+       out from it, then both ease back. Not a blur: a soft glow was too faint to see. On the
+       outer shadow, which the block's own overflow:hidden does not clip; lifted one layer so
+       the next show does not cover the ring. */
     z-index:2;
     --grid-live-ring: 0 0 0 0 transparent;
-    animation:grid-live-glow 2.8s ease-in-out infinite alternate;
+    animation:grid-live-throb 2.4s ease-in-out infinite alternate;
   }
-  /* Open and live: the card's ring stays on while the glow breathes around it. */
+  /* Open and live: the card's ring stays on while the throb runs around it. */
   .grid-block.grid-live.grid-block-open{ --grid-live-ring: 0 0 0 1px color-mix(in srgb, var(--ink) 55%, transparent); }
-  @keyframes grid-live-glow{
-    from{ box-shadow:var(--grid-live-ring), 0 0 2px 0 color-mix(in srgb, var(--accent) 18%, transparent); }
-    to{ box-shadow:var(--grid-live-ring), 0 0 12px 2px color-mix(in srgb, var(--accent) 42%, transparent); }
+  @keyframes grid-live-throb{
+    from{
+      border-color:color-mix(in srgb, var(--accent) 55%, var(--outline-strong));
+      box-shadow:var(--grid-live-ring), 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent);
+    }
+    to{
+      border-color:color-mix(in srgb, var(--accent) 80%, #fff);
+      box-shadow:var(--grid-live-ring), 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent);
+    }
   }
   @media (prefers-reduced-motion:reduce){
-    .grid-block.grid-live{ animation:none; box-shadow:var(--grid-live-ring), 0 0 8px 1px color-mix(in srgb, var(--accent) 30%, transparent); }
+    .grid-block.grid-live{ animation:none; border-color:var(--accent);
+      box-shadow:var(--grid-live-ring), 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent); }
   }
   .grid-live-badge{ margin:auto 0 0; align-self:flex-start; padding:.22rem .5rem; }
   .grid-block.grid-live:not(.grid-block-short) .grid-live-badge{ display:inline-flex; }
