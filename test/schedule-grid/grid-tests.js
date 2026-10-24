@@ -291,6 +291,41 @@ const AUDIO = `return [].map.call(document.querySelectorAll('audio'), function(a
   c = await p.eval(CARD);
   check('light mode: the card uses the light surface', c.shown && c.bg === c.surface && c.bg !== dark.grid, { bg: c.bg, surface: c.surface });
 
+  console.log('\n8. Show page: the show replaces the grid and the schedule (Paul, 2026-10-24)');
+  // Every card, rendered: a show with recordings offers Show page; one without has no page.
+  const titles = new Set(((await (await fetch(new URL('/api/archive', APP))).json()).shows || []).map(r => r.title.trim().toLowerCase()));
+  const cards = await p.eval(`
+    var out = [];
+    [].forEach.call(document.querySelectorAll('.grid-block'), function(b){
+      b.click();
+      var pop = document.getElementById('gridPop');
+      out.push({ title: pop.querySelector('.grid-pop-title').textContent, button: !!pop.querySelector('.grid-pop-show') });
+      b.click();
+    });
+    return out;`);
+  const withBtn = cards.filter(x => x.button), without = cards.filter(x => !x.button);
+  check('shows with recordings offer Show page', withBtn.length > 20, { with: withBtn.length, without: without.length });
+  check('a card without it is a program with no recordings', without.every(x => !titles.has(x.title.trim().toLowerCase())),
+    without.filter(x => titles.has(x.title.trim().toLowerCase())).map(x => x.title).slice(0, 5));
+  await p.eval(`document.querySelector('.grid-block[data-i="${mid}"]').scrollIntoView({ block: 'center' }); return 1;`);
+  await p.clickInPlace(`.grid-block[data-i="${mid}"]`);
+  const named = await p.eval(`var pop = document.getElementById('gridPop'); return pop.hidden ? null : { title: pop.querySelector('.grid-pop-title').textContent, button: !!pop.querySelector('.grid-pop-show') };`);
+  check('the card is open on a show with recordings', named && named.button, named);
+  await p.clickInPlace('#gridPop .grid-pop-show');
+  await sleep(2500);
+  const SHOWN = `var sh = document.getElementById('showSheet');
+    return { sheet: sh.classList.contains('show'), text: sh.innerText, path: location.pathname,
+      onTop: (function(){ var r = sh.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + 60); return sh.contains(hit); })() };`;
+  let shown = await p.eval(SHOWN);
+  s = await p.eval(STATE);
+  check('Show page closes the grid and the schedule', !s.grid && !s.sched, s);
+  check('and opens that show, on top', shown.sheet && shown.onTop && shown.text.indexOf(named.title) >= 0 && /^\/show\//.test(shown.path),
+    { sheet: shown.sheet, onTop: shown.onTop, path: shown.path, title: named.title });
+  await p.eval(`history.back(); return 1;`); await sleep(1500);
+  shown = await p.eval(SHOWN); s = await p.eval(STATE);
+  check('Back closes the show and lands on the page, not the grid or schedule', !shown.sheet && !s.grid && !s.sched && shown.path === '/',
+    { sheet: shown.sheet, grid: s.grid, sched: s.sched, path: shown.path });
+
   console.log('\n5b. still never touches audio');
   check('every <audio> is exactly as it was', (await p.eval(AUDIO)) === audioBefore);
 

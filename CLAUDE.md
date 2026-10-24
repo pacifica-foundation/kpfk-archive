@@ -131,12 +131,13 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
   **Week grid** (`paintGrid`, [docs/schedule-grid-plan.md](docs/schedule-grid-plan.md)):
   the Grid button in the schedule header, **1024 px and up only — never phones or
   small tablets**; layered above the schedule with its own history entry, so every
-  way out lands back on it. A show opens an info card beside it (no links yet).
+  way out lands back on it. A show opens an info card beside it, with **Show page** (opens the show in place of the grid).
 - **Two `<audio>` elements share one player bar** via `barMode`
   (`'archive' | 'live'`). Keep the live side as close to the archive side as possible.
 - **Popups are one at a time** (Paul, 2026-10-15): a new kind of layer replaces the open
   one (`closePopups`); show → episode stays in one sheet; only the artwork zoom and
-  schedule/grid → show stack; Back undoes one step. The player bar sits above every popup.
+  schedule list → show stack; the grid card's **Show page** replaces grid and schedule
+  (Paul, 2026-10-24); Back undoes one step. The player bar sits above every popup.
 - **Listen along naming:** "Transcript" (QIR) and **"Playlist"** (cue-file song list, was
   "Songs"). Never rename "Transcript" (Paul).
 - **`/studio`** is password-gated (`STUDIO_PASSWORD`; unset = routes don't exist).

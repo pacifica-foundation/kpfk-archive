@@ -4405,6 +4405,17 @@
       : new Intl.DateTimeFormat('en-US', {timeZone:STATION.timezone, weekday:'long'}).format(new Date(slot.startTime * 1000));
     var when = day + ' · ' + schedTimeLabel(stationMinutes(slot.startTime)) + ' – ' + schedTimeLabel(stationMinutes(slot.endTime));
     var live = block.classList.contains('grid-live');
+    // The show's page is its most recent recording's sheet, as on the schedule list. A program
+    // with no recordings has no page, so no button.
+    var rec = null;
+    rows.forEach(function(r){ if(r.sho === slot.showKey && (!rec || r.dt > rec.dt)) rec = r; });
+    var liveBadge = live ? '<span class="sched-live-badge grid-pop-live'+(block.classList.contains('sched-live-playing') ? ' is-playing' : '')+'">'+
+        '<span class="sched-live-dot"></span><span class="sched-live-word">'+
+        (block.classList.contains('sched-live-playing') ? 'On air' : 'Live')+'</span></span>' : '';
+    var showBtn = rec ? '<button class="grid-pop-show" type="button" data-id="'+esc(rec.id)+'">'+
+        '<span>Show page</span>'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>'+
+      '</button>' : '';
     pop.innerHTML =
       '<div class="grid-pop-head">'+
         '<span class="grid-pop-thumb">'+(slot.photo ? '<img alt="" src="'+esc(slot.photo)+'">' : '')+'</span>'+
@@ -4418,9 +4429,7 @@
       '</div>'+
       '<p class="grid-pop-meta">'+esc(c.label + (slot.host ? ' · ' + slot.host : ''))+'</p>'+
       (desc ? '<p class="grid-pop-desc">'+esc(desc)+'</p>' : '')+
-      (live ? '<span class="sched-live-badge grid-pop-live'+(block.classList.contains('sched-live-playing') ? ' is-playing' : '')+'">'+
-        '<span class="sched-live-dot"></span><span class="sched-live-word">'+
-        (block.classList.contains('sched-live-playing') ? 'On air' : 'Live')+'</span></span>' : '');
+      (liveBadge || showBtn ? '<div class="grid-pop-foot">'+liveBadge+showBtn+'</div>' : '');
     pop.hidden = false;
     gridPlacePop(block, pop);
     block.classList.add('grid-block-open');
@@ -4523,6 +4532,10 @@
       return;
     }
     if(e.target.closest('.grid-pop-close')){ closeGridPop(true); return; }
+    // Show page (Paul, 2026-10-24): the show replaces the grid and the schedule under it,
+    // rather than stacking on them. closePopups waits for each history step to land (iPhone).
+    var toShow = e.target.closest('.grid-pop-show');
+    if(toShow){ var id = toShow.dataset.id; closePopups(function(){ openSheetById(id, null, false, 'show'); }); return; }
     if(!e.target.closest('.grid-pop')) closeGridPop(false);
   });
   gridBody.addEventListener('error', function(e){
