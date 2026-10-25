@@ -1,6 +1,6 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
@@ -238,7 +238,13 @@ other descriptions in the audit.
 
 ## Remind Paul first (say these at the start of every session)
 
-1. **Live and checked (2026-10-15):** everything below is deployed (last: the 2026-10-15 audit fixes,
+1. **Next session first (2026-10-25):** read `curl -s https://podcast.kpfk.org/healthz` → `dns`
+   (`servedStale` = DNS failures the cache covered, `failed` = ones it couldn't) and
+   `/api/plugins/qir/status` → `recent`. Live at 17:23 UTC with `failed` 1 (confessor.kpfk.org, first
+   lookup after boot). Open options: the one-line Coolify DNS setting (docs/DEPLOYMENT.md "DNS"; Paul
+   is waiting for the Cloudflare rollout), and "use the saved answer at once, check DNS in the
+   background" to remove the ~5 s wait on a failing lookup (Paul: test later first).
+   **Live and checked (2026-10-15):** everything below is deployed (last: the 2026-10-15 audit fixes,
    iPhone transcript race, Playlist, A−/A+, share previews, focus ring on links — version `45f9d-mv9t1o7c…`); `storage.instanceId` =
    `73039ae5-6589-4ec2-9df5-354de84c0989`, `freshVolume:false`. Player settled (floating card — do not
    re-raise). podcasts.kpfk.org and podcast.kpfk.org are the same app.
