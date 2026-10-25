@@ -57,6 +57,9 @@ expires…" in `plugins/discovery/test/qir.test.js` cover this.
    see the 2026-10-23 and 2026-10-15 incidents.
 4. **Server log** (only if `recent` isn't enough, e.g. after a redeploy): every failed QIR request is logged as
    `[qir] request failed — <address>: <cause>` (`listener` in the line = a transcript request).
+   A network failure shows Node's reason in brackets: `fetch failed (ENOTFOUND …)` / `EAI_AGAIN` =
+   our server's DNS lookup (ours: Coolify/container); `ECONNREFUSED` / `ECONNRESET` = QIR's server
+   (Hostinger, 31.97.9.96); `UND_ERR_CONNECT_TIMEOUT` = the path between (we're on Contabo).
 5. **Tell Ace only if** QIR stays down: note it, recheck the next day, email only if it's still broken.
 
 ## Incidents

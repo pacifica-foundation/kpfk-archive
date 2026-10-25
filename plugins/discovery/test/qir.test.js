@@ -226,3 +226,19 @@ test('every timer tick reads QIR changes, even when requests take time', async t
   finally { s.stop(); }
   assert.equal(polls-before,4,'one change read per tick');
 });
+// 2026-10-25, live: two "fetch failed" blips with no way to tell whose end failed. Node keeps the
+// network reason in e.cause; status must show it for each kind of network failure.
+for (const [code, message] of [['ENOTFOUND','getaddrinfo ENOTFOUND qir.kpfk.org'],['ECONNRESET','read ECONNRESET'],['UND_ERR_CONNECT_TIMEOUT','Connect Timeout Error']])
+test(`a network failure keeps its reason (${code})`, async () => {
+  let down=false;
+  const warn=console.warn;console.warn=()=>{};
+  const s=createQirService({enabled:true,key:'key',minIntervalMs:0,fetchImpl:async url=>{
+    if(down&&url.includes('/transcript'))throw new TypeError('fetch failed',{cause:Object.assign(new Error(message),{code})});
+    return json(url.endsWith('/shows')?{shows:[]}:{data:[raw],next_cursor:null});
+  }});
+  try {
+    await s.catalog(); down=true;
+    await assert.rejects(s.transcript(id));
+    assert.match(s.status().recent[0].event, new RegExp('fetch failed \\('+code+' '));
+  } finally { console.warn=warn; }
+});

@@ -83,7 +83,11 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
         if(e.status===404) throw e;
         // Keep QIR's cause (HTTP status, timeout, size) for status and the server log; the
         // route's query (cursors) is left out. Error messages never contain the key.
-        const cause=route.split('?')[0]+': '+(e.name==='TimeoutError'?'timed out':e.message);
+        // Node's fetch reports every network failure as "fetch failed" and keeps the reason in
+        // e.cause (DNS ENOTFOUND/EAI_AGAIN = our server's lookup; ECONNREFUSED/ECONNRESET = QIR's
+        // server; UND_ERR_CONNECT_TIMEOUT = the path between). Keep it: it says whose end failed.
+        const why=e.cause ? [e.cause.code,e.cause.message].filter(Boolean).join(' ') : '';
+        const cause=route.split('?')[0]+': '+(e.name==='TimeoutError'?'timed out':e.message)+(why?' ('+why+')':'');
         console.warn('[qir] '+(listener?'listener ':'')+'request failed — '+cause);
         note((listener?'transcript ':'')+'request failed — '+cause);
         if(!listener){cooldown=now()+Math.max(30000,e.retryAfterMs||0);lastError='provider_temporarily_unavailable';lastCause=cause;}
