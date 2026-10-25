@@ -89,6 +89,15 @@ expires…" in `plugins/discovery/test/qir.test.js` cover this.
 - The Pacifica feeds don't have this problem: a visitor past the refresh time waits for fresh
   data instead of being given the old copy.
 
+### 2026-10-25 (afternoon) — "couldn't reach QIR" blips were our server's DNS
+- **Seen:** `fetch failed` at 13:44, 14:37 and 14:51 UTC, a few minutes each. With the reason
+  kept (commit `54a4345`): `getaddrinfo EAI_AGAIN qir.kpfk.org`, our container's DNS lookup
+  timing out. QIR's server was never contacted. Transcripts kept loading.
+- **Fix in code:** `lib/dns-cache.js` (every outbound request; see docs/DEPLOYMENT.md "DNS").
+  Server-side resolver fix recommended there, planned with Cloudflare.
+- **Tests:** `test/pacifica/dns-cache.test.js`: real fetch and http.get through a failing
+  resolver; the control without the cache fails.
+
 ### 2026-10-24 — "The transcript service is unavailable", on and off (server)
 - (Follow-up 2026-10-25: a `fetch failed` pair in the log, one transcript and one list read at the
   same moment, was a brief network blip reaching QIR. Fine on retry.)

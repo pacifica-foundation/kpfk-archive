@@ -16,8 +16,10 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 - Tests in `plugins/discovery/test/qir.test.js` and `server.test.js`, all shown to fail on the old code.
 - **Live and checked 14:23 UTC** (`ee78acc`, ticks every 5 min confirmed). **Recheck `recent` next
   session:** two short `fetch failed` blips on 2026-10-25 (13:44, 14:37–14:42 UTC) — our server
-  could not reach QIR for a few minutes; transcripts kept loading. Tell Ace only if they become
-  frequent or long.
+  could not reach QIR for a few minutes; transcripts kept loading. **Cause found (14:51 blip):
+  `EAI_AGAIN`, our container's DNS, not QIR.** Code fix: `lib/dns-cache.js` (all outbound requests;
+  `/healthz` → `dns`). Server fix recommended in docs/DEPLOYMENT.md "DNS" (Paul: Cloudflare across
+  all apps later). Next session: check `/healthz` `dns.servedStale` / `failed`.
 
 ## 2026-10-23 (evening) — open pages follow deploys (not yet pushed)
 

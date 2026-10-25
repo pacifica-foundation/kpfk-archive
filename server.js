@@ -21,6 +21,9 @@ const path = require('path');
 const crypto = require('crypto');
 const { loadProfile, publicProfile, LINK_KEYS, SOCIAL_KEYS } = require('./lib/station-config');
 const stationView = require('./lib/station-view');
+const { installDnsCache } = require('./lib/dns-cache');
+// Set when run as a program (below); /healthz reports it as `dns`.
+let dnsCache = null;
 const ShowLinks = require('./public/links');
 const { toCsv } = require('./lib/export/csv');
 const listeningExport = require('./lib/export/listening');
@@ -4429,6 +4432,9 @@ async function handleRequest(req, res) {
         // Present only where the station has the Discovery plugin on: QIR state and how far
         // behind QIR is (qirPending.behindHours; the log warns from 6 h).
         discovery: discovery ? discovery.status() : undefined,
+        // DNS answers remembered for every outbound request (lib/dns-cache.js). `servedStale`
+        // counts lookups that failed and used the last good answer; `last` is the latest one.
+        dns: dnsCache ? dnsCache.status() : undefined,
         // The app now publishes only what the feeds carry, so "how many feeds do
         // we hold" is the difference between a full archive and an empty one.
         // `held` at 0 with `lastHarvest` set means every fetch failed — the one
@@ -4489,6 +4495,8 @@ const server = http.createServer((req, res) => {
 // storage tests do, to reach probeMount without a Linux box — must not bind a
 // port or start the background harvests hanging off the listen callback.
 if (require.main === module) {
+  // Before any outbound request: the container's resolver sometimes times out (EAI_AGAIN).
+  dnsCache = installDnsCache();
   server.listen(PORT, () => {
     console.log(`${station ? station.name : 'WBAI'} Archive server listening on :${PORT}`);
     refreshProgramsIfStale();

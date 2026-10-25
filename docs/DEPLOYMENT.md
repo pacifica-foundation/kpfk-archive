@@ -128,6 +128,35 @@ and booting it with the container's environment against an empty data dir:
 What this could not cover: the real Docker build, the Coolify volume, Traefik,
 and the host's outbound network. Those are what steps 6–7 verify.
 
+## DNS (outbound lookups) — recommended actions
+
+**Found 2026-10-25.** On podcast.kpfk.org the container's DNS lookups sometimes time out
+(`getaddrinfo EAI_AGAIN qir.kpfk.org`): three times in two hours, a few minutes each. Every
+outbound request needs a lookup: Pacifica feeds, artwork, the live-stream and photo proxies,
+QIR. The likely mix: the VPS's default (Contabo) resolvers plus Alpine's resolver, which gives
+up after ~5 s and doesn't retry over TCP.
+
+**In the code now (no server change needed):** [`lib/dns-cache.js`](../lib/dns-cache.js)
+remembers each answer for a minute and, when a lookup fails temporarily, uses the last good
+answer (up to a day old). `/healthz` → `dns` shows it: `servedStale` = lookups that failed and
+were covered; `failed` = ones that couldn't be; `last` = the latest, with time and host. A
+rising `servedStale` means the resolver is still flaky. The cache keeps working; the server
+fix below is still worth doing.
+
+**Recommended server actions (not done yet; Paul plans Cloudflare across all apps and audio):**
+1. **Check what the container uses:** Coolify → the app → Terminal → `cat /etc/resolv.conf`.
+   With Coolify's network it is usually Docker's `127.0.0.11`, which forwards to the host's
+   resolvers (`cat /etc/resolv.conf` on the VPS itself).
+2. **Per app (smallest change):** Coolify → the app → General → **Custom Docker Options**:
+   `--dns=1.1.1.1 --dns=8.8.8.8` → Save → Redeploy. Affects only this app; delete the line to undo.
+3. **Whole server (every app, Ace's call):** reliable resolvers for the VPS itself, or Docker's
+   `"dns": ["1.1.1.1","8.8.8.8"]` in `/etc/docker/daemon.json` (needs a Docker restart, which
+   restarts every container: plan it).
+4. **With Cloudflare across the apps:** the resolver choice is separate from proxying sites
+   through Cloudflare. Cloudflare's 1.1.1.1 as resolver (step 2 or 3) fixes lookups either way.
+5. **Verify:** after a day, `/healthz` → `dns.servedStale` stays at 0 and
+   `/api/plugins/qir/status` → `recent` has no `EAI_AGAIN`.
+
 ## Backups
 
 **The VPS already has snapshots and full backups on a 10-day rolling window**
