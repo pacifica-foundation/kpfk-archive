@@ -140,7 +140,7 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
   (Paul, 2026-10-24); Back undoes one step. The player bar sits above every popup.
 - **Listen along naming:** "Transcript" (QIR) and **"Playlist"** (cue-file song list, was
   "Songs"). Never rename "Transcript" (Paul).
-  **Transcripts have broken four times** — read [docs/transcripts.md](docs/transcripts.md) before
+  **Transcripts and headlines have broken five times** — read [docs/transcripts.md](docs/transcripts.md) before
   changing that path. A failing QIR list refresh must never block transcript requests.
 - **`/studio`** is password-gated (`STUDIO_PASSWORD`; unset = routes don't exist).
   Markup in `admin/` — deliberately outside `public/`. Its actions are the only

@@ -102,7 +102,7 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
     const oldest = waiting.reduce((a, p) => Math.min(a, p.aired_at), Infinity);
     const behindHours = Number.isFinite(oldest) ? Math.round((now() / 1000 - oldest) / 360) / 10 : 0;
     lastPending = { count: waiting.length, skipped: pending.length - waiting.length, error: null, behindHours };
-    if (behindHours >= LAG_ALERT_HOURS && lagWarnedFor !== String(oldest)) { lagWarnedFor = String(oldest); console.warn(`[qir] QIR is behind: ${waiting.length} recent station episode(s) not processed, oldest ${behindHours} h ago; showing them as "Transcript pending"`); }
+    if (behindHours >= LAG_ALERT_HOURS && lagWarnedFor !== String(oldest)) { lagWarnedFor = String(oldest); const msg = `QIR is behind: ${waiting.length} recent station episode(s) not processed, oldest ${behindHours} h ago; showing them as "Transcript pending"`; console.warn('[qir] ' + msg); qir.note(msg); }
     return { ...catalog, episodes: withSongLists(catalog.episodes, data, station.primaryChannel).concat(applyCorrections(pending, station.episodeCorrections, { reference: catalog.episodes, warn: m => console.warn('[qir] ' + m) })), pending: lastPending };
   }
 
@@ -311,7 +311,11 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
     // recorded in qir.status(); logged so a bad key or provider change is visible at startup.
     // Also builds the notes, so the first share preview after a restart names the episode.
     warm: () => qirOn() && qir.status().configured
-      ? qir.catalog().then(c => { console.log('QIR catalog ready: ' + c.episodes.length + ' episodes'); return archiveNotes(); })
+      // From here the catalog and notes are refreshed every 5 min whether or not anyone visits,
+      // started even when this first load fails (QIR down at boot). Caught: a failed notes
+      // build after a refresh; the next tick or request retries it.
+      ? (qir.start(() => archiveNotes().catch(e => console.warn('[qir] notes rebuild failed: ' + e.message)), qirOn),
+        qir.catalog().then(c => { console.log('QIR catalog ready: ' + c.episodes.length + ' episodes'); return archiveNotes(); }))
         .catch(e => console.warn('QIR warm-up failed: ' + e.message))
       : Promise.resolve(),
   };

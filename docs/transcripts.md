@@ -4,6 +4,11 @@
 listener (or Paul) reports "transcripts don't load". Transcripts have broken in production
 several times, each for a different reason. Each one is listed below with its test.
 
+**First stop when something looks wrong:** `curl -s https://podcast.kpfk.org/api/plugins/qir/status`.
+Its `recent` list holds the last 20 QIR problems with their times (failed requests with QIR's
+error, "QIR is behind" warnings, recoveries), newest first. It's kept in memory, so a redeploy
+empties it. Nobody needs to dig through Coolify logs.
+
 ## How a transcript reaches the listener
 
 ```
@@ -18,7 +23,7 @@ Our server keeps **two separate things** from QIR:
 
 | | What | When | If QIR fails |
 |---|---|---|---|
-| **Episode list** | headlines, summaries, which episodes QIR has | full reload hourly; a "what changed" read every 5 min | the last good copy keeps being served (it goes stale); retried after a 30 s pause, or longer if QIR sends Retry-After |
+| **Episode list** | headlines, summaries, which episodes QIR has | a timer every 5 min, visitors or not: a "what changed" read, and a full reload once the copy is an hour old (since 2026-10-25; before that only when a visitor's request asked) | the last good copy keeps being served (it goes stale); retried after a 30 s pause, or longer if QIR sends Retry-After |
 | **Transcript** | the text for one episode | when a listener asks; the 30 most recent are kept in memory | that one request fails (503); nothing else is affected |
 
 **These must stay independent.** A failing list refresh must never stop transcripts loading
@@ -50,13 +55,35 @@ expires…" in `plugins/discovery/test/qir.test.js` cover this.
    200 = working. Repeat a few times; failures that come and go point at the server.
 3. **The listener's console:** a JavaScript error (not a 503) means a browser-side problem:
    see the 2026-10-23 and 2026-10-15 incidents.
-4. **Server log** (Coolify → the app → Logs): every failed QIR request is logged as
+4. **Server log** (only if `recent` isn't enough, e.g. after a redeploy): every failed QIR request is logged as
    `[qir] request failed — <address>: <cause>` (`listener` in the line = a transcript request).
 5. **Tell Ace only if** QIR stays down: note it, recheck the next day, email only if it's still broken.
 
 ## Incidents
 
+### 2026-10-25 — about 7 recent shows had no headline until a few clicks later (server)
+- **Seen:** Paul opened the site in the morning; recent shows had no headline ("Transcript
+  pending"). After a few clicks the headlines and transcripts appeared. The log had
+  `QIR is behind: 8 recent station episode(s) not processed, oldest 16.7 h ago` and no failed
+  transcript requests overnight. QIR's own records show those shows processed within minutes
+  of airing.
+- **Root cause (ours, since the start):** the episode list refreshed **only when a visitor's
+  request asked for it**, and that request was answered from the old copy while the refresh
+  ran in the background. After a quiet spell the first visitor always saw an old list. Their
+  clicks finished the refresh, which is why it "fixed itself".
+- **Fix:** `qir.start()` (started by the plugin's `warm()` at boot) refreshes the list and
+  rebuilds the notes every 5 minutes with no visitor needed. It pauses while QIR is switched
+  off in the studio, and starts even if QIR is down at boot. Status gained `recent` (above).
+- **Tests:** `qir.test.js` "with no visitors the catalog stays current (change poll / full
+  reload)…" and "the timer pauses while QIR is switched off, and status keeps timed problems…";
+  `server.test.js` "after warm-up QIR is refreshed every 5 minutes with no visitors". All fail
+  on the old code.
+- The Pacifica feeds don't have this problem: a visitor past the refresh time waits for fresh
+  data instead of being given the old copy.
+
 ### 2026-10-24 — "The transcript service is unavailable", on and off (server)
+- (Follow-up 2026-10-25: a `fetch failed` pair in the log, one transcript and one list read at the
+  same moment, was a brief network blip reaching QIR. Fine on retry.)
 - **Seen:** 503s from `/api/plugins/qir/transcript/…`. Our status said `unavailable` and the last
   good list was from 20:22 UTC. Between failures, transcripts loaded fine.
 - **Trigger (QIR's side):** from about 21:22 to 22:17 UTC, QIR failed our hourly list refresh.

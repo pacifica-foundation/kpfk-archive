@@ -94,3 +94,21 @@ test('QIR shows missing borrowed art use their catalog image, and survive an arc
  const art2=(await(await fetch(down+'/api/plugins/qir/catalog')).json()).artwork.byShow;
  assert.equal(art2.biketalk,token(bike),'catalog images survive an archive outage');
 });
+
+// 2026-10-25: the host's warm-up must leave QIR refreshing on its own. Five minutes with no
+// request at all still reaches QIR and rebuilds the notes, so the first visitor after a quiet
+// night is not shown recent shows without headlines.
+test('after warm-up QIR is refreshed every 5 minutes with no visitors',async t=>{
+ t.mock.timers.enable({apis:['setInterval','Date'],now:Date.now()});
+ let qirCalls=0;
+ const app=createApp({env:{QIR_API_KEY:'k'},fetchImpl:async url=>{
+  if(url===ARCHIVE_URL)return json({directory:{},shows:[]});
+  if(url.endsWith('/shows')){qirCalls++;return json({shows:[]});}
+  if(url.includes('/episodes')){qirCalls++;return json({data:[],next_cursor:null});}
+  throw Error('Unexpected network '+url);}});
+ await app.discovery.warm();
+ const settle=async()=>{for(let i=0;i<50;i++)await new Promise(r=>setImmediate(r));};
+ await settle();const afterWarm=qirCalls;assert.ok(afterWarm>0,'warm-up reached QIR');
+ t.mock.timers.tick(5*60*1000);await settle();
+ assert.ok(qirCalls>afterWarm,'QIR was asked again with no visitor');
+});

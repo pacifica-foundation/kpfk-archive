@@ -40,6 +40,11 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
   fetchImpl = fetch, now = Date.now, minIntervalMs = 1100, ttlMs = 3600000, pollMs = 300000, overlapMs = 21600000} = {}) {
   const base = 'https://qir.kpfk.org/api/v1';
   let catalog = null, pending = null, cooldown = 0, nextRequest = 0, lastError = null, lastCause = null;
+  // Recent QIR problems with their times, newest first, shown in status() as `recent` so an
+  // outage can be read from /api/plugins/qir/status instead of the server log (2026-10-25).
+  const events = [];
+  function note(event) { events.unshift({ at: new Date(now()).toISOString(), event: String(event).slice(0,300) }); events.length = Math.min(events.length, 20); }
+  function recovered() { if (lastError) note('recovered (was: '+(lastCause||lastError)+')'); lastError = null; }
   let queue = Promise.resolve();
   // Change polling (added 2026-09-24): QIR's unfiltered /episodes listing was found frozen
   // at the 7 AM episode while updated_since returned the newer ones. So every full load is
@@ -50,7 +55,7 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
   function status() { return { provider:'qir', station:'kpfk', configured:enabled && !!key,
     state:!enabled ? 'disabled' : !key ? 'not_configured' : lastError ? 'unavailable' : catalog ? 'ready' : 'not_verified',
     error: lastError, cause: lastError ? lastCause : null, lastSuccess: catalog ? catalog.fetchedAt : null, lastPoll: lastPoll || null,
-    episodes: catalog ? catalog.episodes.length : null, skipped: catalog ? catalog.skipped : null, chaptersSupported:false }; }
+    episodes: catalog ? catalog.episodes.length : null, skipped: catalog ? catalog.skipped : null, chaptersSupported:false, recent: events.slice() }; }
   // listener: a request a listener is waiting on (a transcript). The cooldown after a failure
   // pauses only the background catalog refresh; it never refuses a listener's request, and a
   // listener's failed request never starts one (2026-10-24: a failing hourly refresh made every
@@ -80,6 +85,7 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
         // route's query (cursors) is left out. Error messages never contain the key.
         const cause=route.split('?')[0]+': '+(e.name==='TimeoutError'?'timed out':e.message);
         console.warn('[qir] '+(listener?'listener ':'')+'request failed — '+cause);
+        note((listener?'transcript ':'')+'request failed — '+cause);
         if(!listener){cooldown=now()+Math.max(30000,e.retryAfterMs||0);lastError='provider_temporarily_unavailable';lastCause=cause;}
         throw problem('provider_temporarily_unavailable',503);
       }
@@ -134,7 +140,7 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
         byId=found;newest=listed; // re-read everything past the listing's own edge
         catalog={provider:'qir',station:'kpfk',episodes:Array.from(found.values()),shows,fetchedAt:now(),stale:false,
           skipped:{count:skippedCount,reasons:skipped}};
-        transcripts.clear();lastError=null;
+        transcripts.clear();recovered();
         // A failed change read leaves the listing published; request() has recorded the outage.
         await pollChanges().catch(()=>{});
         return {...catalog,stale:!!lastError};
@@ -180,7 +186,7 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
         if(typeof payload.next_cursor!=='string' || !payload.next_cursor || payload.next_cursor.length>4096 || cursors.has(payload.next_cursor)) throw problem('invalid_cursor');
         cursor=payload.next_cursor;cursors.add(cursor);
       }
-      lastPoll=now();lastError=null;
+      lastPoll=now();recovered();
       if(changed && catalog) catalog={...catalog,episodes:Array.from(byId.values())};
       return changed;
     })().finally(()=>{polling=null;});
@@ -203,6 +209,19 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
     transcriptPending.set(id,job);return job;
   }
   // idle(): settles once no full reload is in flight (tests and warm-up wait on it).
-  return {status,catalog:getCatalog,transcript,idle:()=>(pending||Promise.resolve()).then(()=>{},()=>{})};
+  const idle=()=>(pending||Promise.resolve()).then(()=>{},()=>{});
+  // Keeps the catalog current with no visitors (2026-10-25). getCatalog() refreshes only when
+  // asked and hands the caller the old copy while it does, so the first listener after a quiet
+  // spell saw recent shows with no headline until a few clicks later. Every pollMs this asks
+  // on nobody's behalf, waits for any full reload, then calls onFresh (the plugin rebuilds its
+  // notes). A failed tick is already recorded by request(); it is not fatal and the next tick retries.
+  let timer=null;
+  function start(onFresh=()=>{}, isOn=()=>true) {
+    if(timer || !enabled || !key) return;
+    timer=setInterval(()=>{if(!isOn())return;getCatalog().then(idle).then(()=>onFresh()).catch(()=>{});},pollMs);
+    if(timer.unref) timer.unref();
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} }
+  return {status,catalog:getCatalog,transcript,idle,note,start,stop};
 }
 module.exports={createQirService,episode,showName};

@@ -6,6 +6,15 @@ WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here o
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
+## 2026-10-25 — QIR list refreshes on its own; timed problem record in status
+
+- **What happened:** in the morning about 7 recent shows had no headline until a few clicks later.
+  Our QIR episode list refreshed only when a visitor's request asked, and that visitor got the old
+  copy. Now a 5-minute timer keeps it (and the notes) current with no visitors.
+- `/api/plugins/qir/status` → `recent`: the last 20 QIR problems and recoveries with times. Read
+  that first; no Coolify log digging. Full write-up: [docs/transcripts.md](docs/transcripts.md).
+- Tests in `plugins/discovery/test/qir.test.js` and `server.test.js`, all shown to fail on the old code.
+
 ## 2026-10-23 (evening) — open pages follow deploys (not yet pushed)
 
 - **What happened:** after the "easy wins" deploy, Transcript did nothing for Paul on desktop and

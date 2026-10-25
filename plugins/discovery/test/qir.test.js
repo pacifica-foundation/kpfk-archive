@@ -159,3 +159,50 @@ for (const [name, failure] of [
     assert.ok(logged.some(m => /request failed/.test(m)), 'failures reach the server log');
   } finally { console.warn = warn; }
 });
+// 2026-10-25, live: after a quiet night about 7 recent shows had no headline until a few clicks
+// later. The catalog refreshed only when a request asked, and that request got the old copy.
+// With start(), no visitor is needed: a newly processed episode reaches the catalog on its own
+// (both through the change poll and through the hourly full reload), and the first request
+// after the quiet spell already has it.
+const fresh='ee4c4188-f5f7-4a19-abd2-c4ede0735912';
+for (const [name, ttlMs] of [['change poll', 60000], ['full reload', 30]]) test(`with no visitors the catalog stays current (${name}); the first request after a quiet spell has the new episode`, async () => {
+  let processed=false, calls=0;
+  const s=createQirService({enabled:true,key:'key',minIntervalMs:0,pollMs:20,ttlMs,fetchImpl:async url=>{
+    calls++;
+    if(url.endsWith('/shows'))return json({shows:[]});
+    const data=[raw];if(processed)data.push({...raw,public_id:fresh,headline:'New show',updated_at:new Date().toISOString()});
+    return json({data,next_cursor:null});
+  }});
+  await s.catalog();
+  let rebuilt=0;
+  if(s.start)s.start(()=>{rebuilt++;});
+  try {
+    processed=true; const before=calls;
+    await new Promise(r=>setTimeout(r,250)); // the quiet spell: nobody asks
+    assert.ok(calls>before,'QIR was asked with no visitor');
+    assert.ok(rebuilt>0,'the plugin is told to rebuild its notes');
+    const first=await s.catalog();
+    assert.ok(first.episodes.some(e=>e.public_id===fresh),'the first request after the quiet spell has the new episode');
+  } finally { if(s.stop)s.stop(); }
+});
+test('the timer pauses while QIR is switched off, and status keeps timed problems and the recovery', async () => {
+  let down=false, calls=0, on=false, skip=0;
+  const warn=console.warn;console.warn=()=>{};
+  const s=createQirService({enabled:true,key:'key',now:()=>Date.now()+skip,minIntervalMs:0,pollMs:20,ttlMs:3600000,fetchImpl:async url=>{
+    calls++;if(down)return new Response('',{status:502});
+    return json(url.endsWith('/shows')?{shows:[]}:{data:[raw],next_cursor:null});
+  }});
+  try {
+    await s.catalog(); s.start(()=>{},()=>on);
+    const before=calls; await new Promise(r=>setTimeout(r,120));
+    assert.equal(calls,before,'no QIR calls while switched off');
+    on=true; down=true; await new Promise(r=>setTimeout(r,120));
+    const failed=s.status().recent;
+    assert.ok(failed.length && /request failed — \/episodes: Upstream HTTP 502/.test(failed[0].event));
+    assert.ok(Number.isFinite(Date.parse(failed[0].at)),'each problem has a time');
+    down=false; skip+=31000; await new Promise(r=>setTimeout(r,120)); // clock moved past the 30 s pause
+    assert.equal(s.status().state,'ready');
+    assert.match(s.status().recent[0].event,/^recovered \(was: \/episodes: Upstream HTTP 502\)/);
+    assert.ok(s.status().recent.length<=20);
+  } finally { s.stop(); console.warn=warn; }
+});
