@@ -78,6 +78,11 @@ expires…" in `plugins/discovery/test/qir.test.js` cover this.
   reload)…" and "the timer pauses while QIR is switched off, and status keeps timed problems…";
   `server.test.js` "after warm-up QIR is refreshed every 5 minutes with no visitors". All fail
   on the old code.
+- **Follow-up the same day (caught by reading live status):** ticks and the poll's own 5-minute
+  threshold were equal, and a poll's time is stamped when it finishes, so every other tick was
+  skipped (a 10-minute refresh). Ticks now always read changes, and the notes rebuild waits for
+  that read. Test: "every timer tick reads QIR changes, even when requests take time" (2 of 4 on
+  the old code).
 - The Pacifica feeds don't have this problem: a visitor past the refresh time waits for fresh
   data instead of being given the old copy.
 

@@ -206,3 +206,23 @@ test('the timer pauses while QIR is switched off, and status keeps timed problem
     assert.ok(s.status().recent.length<=20);
   } finally { s.stop(); console.warn=warn; }
 });
+// 2026-10-25, live: ticks and the poll threshold were both pollMs, and lastPoll is set when a
+// poll finishes (requests take time), so every other tick found the last poll just under pollMs
+// old and skipped: a 10-minute refresh, not 5. Every tick must read QIR's changes.
+test('every timer tick reads QIR changes, even when requests take time', async t => {
+  t.mock.timers.enable({apis:['setInterval']});
+  let clock=1_000_000, polls=0;
+  const s=createQirService({enabled:true,key:'key',now:()=>clock,minIntervalMs:0,pollMs:300000,ttlMs:3600000,fetchImpl:async url=>{
+    clock+=1500; // each request takes 1.5 s
+    if(url.includes('updated_since'))polls++;
+    return json(url.endsWith('/shows')?{shows:[]}:{data:[raw],next_cursor:null});
+  }});
+  await s.catalog(); s.start();
+  const settle=async()=>{for(let i=0;i<20;i++)await new Promise(r=>setImmediate(r));};
+  const before=polls;
+  // The timer fires on a fixed schedule; time spent in requests comes out of the interval.
+  const t0=clock;
+  try { for(let i=1;i<=4;i++){clock=t0+i*300000;t.mock.timers.tick(300000);await settle();} }
+  finally { s.stop(); }
+  assert.equal(polls-before,4,'one change read per tick');
+});

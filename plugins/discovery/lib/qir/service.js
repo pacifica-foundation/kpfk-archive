@@ -92,11 +92,12 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
     });
     queue=job.catch(()=>{}); return job;
   }
-  async function getCatalog() {
+  // tick: called by the start() timer, which is itself the pacing, so it always reads changes.
+  async function getCatalog({tick=false}={}) {
     if(!enabled || !key) throw problem('connection_not_configured',503);
     if(catalog && now()-catalog.fetchedAt<ttlMs) {
       // A failed background poll is already recorded in lastError/status; the catalog stays served.
-      if(now()-lastPoll>=pollMs && now()>=cooldown && !polling) pollChanges().catch(()=>{});
+      if((tick || now()-lastPoll>=pollMs) && now()>=cooldown && !polling) pollChanges().catch(()=>{});
       return {...catalog,stale:!!lastError};
     }
     // Past the TTL the last-good catalog is still served at once and the reload (~20 s:
@@ -218,7 +219,7 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
   let timer=null;
   function start(onFresh=()=>{}, isOn=()=>true) {
     if(timer || !enabled || !key) return;
-    timer=setInterval(()=>{if(!isOn())return;getCatalog().then(idle).then(()=>onFresh()).catch(()=>{});},pollMs);
+    timer=setInterval(()=>{if(!isOn())return;getCatalog({tick:true}).then(()=>polling).then(idle).then(()=>onFresh()).catch(()=>{});},pollMs);
     if(timer.unref) timer.unref();
   }
   function stop(){ if(timer){clearInterval(timer);timer=null;} }
