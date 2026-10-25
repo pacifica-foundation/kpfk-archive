@@ -14,6 +14,10 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 - `/api/plugins/qir/status` → `recent`: the last 20 QIR problems and recoveries with times. Read
   that first; no Coolify log digging. Full write-up: [docs/transcripts.md](docs/transcripts.md).
 - Tests in `plugins/discovery/test/qir.test.js` and `server.test.js`, all shown to fail on the old code.
+- **Live and checked 14:23 UTC** (`ee78acc`, ticks every 5 min confirmed). **Recheck `recent` next
+  session:** two short `fetch failed` blips on 2026-10-25 (13:44, 14:37–14:42 UTC) — our server
+  could not reach QIR for a few minutes; transcripts kept loading. Tell Ace only if they become
+  frequent or long.
 
 ## 2026-10-23 (evening) — open pages follow deploys (not yet pushed)
 
