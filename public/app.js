@@ -51,6 +51,9 @@
 
 
   var rows = [];
+  // Show directory (see the Show info sheet section). Declared here, not there: the start-up
+  // now-playing paint reads it (useTile), and a later `var` is still undefined at that moment.
+  var showInfo = {};
   var searchIndex = {shows:[], episodes:[]};
   var searchScope = 'all', searchLimit = 12, searchShow = '';
   var searchResultsEl = document.getElementById('searchResults');
@@ -3340,7 +3343,7 @@
   // description and links for the whole schedule) and /api/showinfo (the on-air
   // feed's richer record for shows that have rotated through it). Anything
   // neither source knows is left out of the sheet rather than rendered empty.
-  var showInfo = {};
+  // (Declared at the top with `rows`: start-up code reads it before this point.)
   var programs = null;          // wbai.org program directory, keyed by normalised title
   var programsPromise = null;
   var sheet = document.getElementById('showSheet');
