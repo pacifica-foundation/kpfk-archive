@@ -3,7 +3,9 @@
  * studio's preview. Figures come from /api/fund-drive (set in the studio, lib/fund-drive.js);
  * switched off, the capsule is hidden. Nothing here is about the listener.
  *
- *   FundDrive.build(el, { onDonate, donateHref, newTab })  → { paint(figures) }
+ *   FundDrive.build(el, { onDonate, donateHref, newTab, banner })  → { paint(figures) }
+ *   `banner` (optional): an <a> for the fund drive banner (Paul, 2026-10-27: the approved design's
+ *   red "FALL FUND DRIVE · Donate now" strip on top of Listen Live). Same switch as the capsule.
  *   FundDrive.mount(el, { ...build options, active, poll }) → { refresh(), stop() }
  */
 (function () {
@@ -31,6 +33,16 @@
       e.preventDefault(); opts.onDonate();
     });
     if (!opts.donateHref && !opts.onDonate) btn.hidden = true;
+    var banner = opts.banner || null;
+    if (banner) {
+      banner.href = opts.donateHref || '#';
+      if (opts.newTab) { banner.target = '_blank'; banner.rel = 'noopener'; }
+      if (opts.onDonate) banner.addEventListener('click', function (e) {
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault(); opts.onDonate();
+      });
+      banner.hidden = true;
+    }
     [top, bar, foot, btn].forEach(function (n) { root.appendChild(n); });
 
     var shown = null, raf = 0;
@@ -49,6 +61,10 @@
     function paint(f) {
       var on = !!(f && f.on && f.goal > 0);
       root.hidden = !on;
+      if (banner) {
+        banner.hidden = !on;
+        if (on) banner.textContent = (f.name || 'Fund drive') + ' · Donate now';
+      }
       if (!on) return;
       var goal = f.goal, pledged = f.pledged, done = pledged >= goal, p = Math.floor(pledged / goal * 100);
       root.classList.toggle('is-done', done);

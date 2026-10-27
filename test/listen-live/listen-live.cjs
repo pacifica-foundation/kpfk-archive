@@ -21,7 +21,9 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   let failed = 0;
   const check = (name, ok, detail) => { console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok || detail === undefined ? '' : '\n     ' + detail)); if (!ok) failed++; };
   const until = async (js, ms = 15000) => { const end = Date.now() + ms; while (Date.now() < end) { try { if (await p.eval(js)) return true; } catch { /* navigating */ } await sleep(200); } return false; };
-  const ev = js => p.eval(js).catch(e => 'ERR ' + e.message);
+  // A failed page eval is FALSE (and printed), never a truthy error string: an error text used to
+  // pass a check that crashed (2026-10-27, the studio banner check passed on code with no banner).
+  const ev = js => p.eval(js).catch(e => { console.log('     (page eval failed: ' + String(e.message).slice(0, 160) + ')'); return false; });
   let errors = [], infos = [];
   p.on(m => {
     if (m.method === 'Runtime.exceptionThrown') { const d = m.params.exceptionDetails; errors.push(((d.exception && d.exception.description) || d.text).split('\n')[0]); }

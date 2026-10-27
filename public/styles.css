@@ -4830,10 +4830,10 @@
   .lv-app[hidden]{ display:none; }
   .lv-app span{ flex:1; font-size:.9rem; }
   /* Fund drive (Phase 4, INT-967): the slots exist; nothing switches them on yet. */
-  .lv-banner{ display:flex; align-items:center; justify-content:center; min-height:48px; padding:10px 16px; background:var(--accent);
+  .lv-banner, .fd-banner{ display:flex; align-items:center; justify-content:center; min-height:48px; padding:10px 16px; background:var(--accent);
     color:var(--accent-ink); text-decoration:none; font-family:var(--font-display); font-weight:700; letter-spacing:.06em;
     text-transform:uppercase; font-size:.95rem; }
-  .lv-banner[hidden], .lv-embed[hidden]{ display:none; }
+  .lv-banner[hidden], .fd-banner[hidden], .lv-embed[hidden]{ display:none; }
   .lv-sched{ display:none; }
   /* Wide: show, player and contacts on the left; today's schedule on the right, pinned while the
      page scrolls. Only its list scrolls, so the heading and Full schedule stay in view. Contacts

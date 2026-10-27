@@ -15,7 +15,9 @@ const password = process.env.STUDIO_PW || 'pw';
   let failed = 0;
   const check = (name, ok, detail) => { console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok || detail === undefined ? '' : '\n     ' + detail)); if (!ok) failed++; };
   const until = async (js, ms = 15000) => { const end = Date.now() + ms; while (Date.now() < end) { try { if (await p.eval(js)) return true; } catch { /* navigating */ } await sleep(200); } return false; };
-  const ev = js => p.eval(js).catch(e => 'ERR ' + e.message);
+  // A failed page eval is FALSE (and printed), never a truthy error string: an error text used to
+  // pass a check that crashed (2026-10-27, the studio banner check passed on code with no banner).
+  const ev = js => p.eval(js).catch(e => { console.log('     (page eval failed: ' + String(e.message).slice(0, 160) + ')'); return false; });
   const errors = [];
   p.on(m => {
     if (m.method === 'Runtime.exceptionThrown') { const d = m.params.exceptionDetails; errors.push(((d.exception && d.exception.description) || d.text).split('\n')[0]); }
@@ -63,6 +65,9 @@ const password = process.env.STUDIO_PW || 'pw';
     await ev(`return document.getElementById('fdGoal').value + ' / ' + document.getElementById('fdPledged').value;`));
   check('… the preview is the capsule, following the typing', await until(`var c = document.getElementById('fdPreview'); return !c.hidden && /\\$42,350/.test(c.textContent) && /\\$75,000/.test(c.textContent) && /56%/.test(c.textContent) && /Fall Fund Drive/i.test(c.textContent);`, 4000),
     await capText('#fdPreview'));
+  check('… the preview shows the banner above the capsule, with the name', await ev(`var b = document.getElementById('fdPreviewBanner'), c = document.getElementById('fdPreview');
+    return !b.hidden && b.offsetHeight > 0 && /Fall Fund Drive · Donate now/.test(b.textContent) && b.getBoundingClientRect().bottom <= c.getBoundingClientRect().top + 1;`),
+    await ev(`return document.getElementById('fdPreviewBanner').textContent;`));
   check('… not live until Publish (marked Draft)', (await publicFigures()).on === false && !(await ev(`return document.getElementById('fdPublish').disabled;`))
     && (await ev(`return document.getElementById('fdPreviewTag').textContent;`)) === 'Draft');
   await p.click('#fdPublish');
@@ -97,6 +102,15 @@ const password = process.env.STUDIO_PW || 'pw';
   check('Listen Live shows the capsule under the player', await until(`var c = document.getElementById('lvFund'); return !c.hidden && /\\$42,350/.test(c.textContent) && /56%/.test(c.textContent);`, 12000), await capText('#lvFund'));
   check('… with the goal and the name', /\$75,000 goal/.test(await capText('#lvFund')) && /Fall Fund Drive/i.test(await capText('#lvFund')), await capText('#lvFund'));
   check('… right under the player', await ev(`var pl = document.querySelector('.lv-player').getBoundingClientRect(), c = document.getElementById('lvFund').getBoundingClientRect(); return c.top >= pl.bottom && c.top - pl.bottom < 40;`));
+  // The approved design's banner (Paul, 2026-10-27): top of the page, same switch, opens Donate over it.
+  check('… the fund drive banner is at the top of the page, with the name', await until(`var b = document.getElementById('lvBanner'); return !b.hidden && b.offsetHeight > 0 && /Fall Fund Drive · Donate now/.test(b.textContent)
+    && b.getBoundingClientRect().top <= document.querySelector('.lv-grid').getBoundingClientRect().top;`, 6000), await ev(`var b = document.getElementById('lvBanner'); return b.hidden + ' ' + b.textContent;`));
+  await p.click('#lvBanner');
+  check('… tapping the banner opens Donate over the page (still /live)', await until(`return document.getElementById('donateModal').classList.contains('show');`, 4000)
+    && (await ev(`return location.pathname;`)) === '/live');
+  await p.click('#donateClose');
+  await until(`return !document.getElementById('donateModal').classList.contains('show');`, 4000);
+  await until(`var d = document.querySelector('#lvFund .fd-btn'); d.scrollIntoView({block: 'center'}); var b = d.getBoundingClientRect(); var e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!e && d.contains(e);`, 4000);
   await p.click('#lvFund .fd-btn');
   check('… its Donate opens the donate window over the page (still /live)', await until(`return document.getElementById('donateModal').classList.contains('show');`, 4000)
     && (await ev(`return location.pathname;`)) === '/live' && await ev(`return !document.getElementById('livePage').hidden;`));
@@ -141,7 +155,7 @@ const password = process.env.STUDIO_PW || 'pw';
   await go('/live');
   await until(`return !!document.getElementById('lvTitle') && document.getElementById('lvTitle').textContent.trim().length > 1;`, 15000);
   await sleep(1500);
-  check('… Listen Live shows no capsule', await ev(`var c = document.getElementById('lvFund'); return c.hidden && c.offsetHeight === 0;`));
+  check('… Listen Live shows no capsule and no banner', await ev(`var c = document.getElementById('lvFund'), b = document.getElementById('lvBanner'); return c.hidden && c.offsetHeight === 0 && b.hidden && b.offsetHeight === 0;`));
   await go('/embed/fund-drive');
   await sleep(1500);
   check('… nor does the embed', await ev(`var c = document.getElementById('capsule'); return c.hidden && c.offsetHeight === 0;`));

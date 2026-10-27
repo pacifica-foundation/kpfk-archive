@@ -52,7 +52,10 @@ connection): `/`, `/live`, `/schedule`, a show and `/embed/fund-drive` at 390 an
   Figures in `DATA_DIR/fund-drive/` (in the server backup, not the studio's download).
 - **The Dockerfile copies named folders only:** `embed/` was added; `test/pacifica/dockerfile.test.js`
   fails if any folder the server reads is not copied.
-- Next (Phase 4): dates, the banner on Listen Live, the donate page check, Ace's own embed.
+- **Banner** (the approved design's red strip on top of /live, Paul 2026-10-27): same switch as the
+  capsule; text from the name ("FALL FUND DRIVE · Donate now"); opens Donate over the page; shown in
+  the studio preview. Not in the embed.
+- Next (Phase 4): dates, the donate page check, Ace's own embed.
 
 ### Tests added today
 

@@ -2701,7 +2701,8 @@
     lvFund = window.FundDrive.mount(document.getElementById('lvFund'), {
       active: function(){ return livePageOn; },
       onDonate: function(){ openDonate(); },
-      donateHref: STATION.links.donate || ''
+      donateHref: STATION.links.donate || '',
+      banner: document.getElementById('lvBanner')
     });
   }
   function enterLivePage(fromHistory){

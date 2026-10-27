@@ -73,6 +73,10 @@ A green suite that measures the wrong thing argues you're fine.
    properties through CSSOM; hand the browser only same-origin (`/api/artwork/…`)
    or `/assets/` images.
 
+6. **A check that crashed is a FAIL.** A browser helper that turns a page error into text makes
+   every check using it pass on a crash (2026-10-27: the studio banner check passed on code with no
+   banner). Helpers return `false` on error and print why.
+
 A test that has never failed has never been shown to work.
 
 ## 4. PROD IS NOT YOUR LAPTOP — read its state, don't infer it

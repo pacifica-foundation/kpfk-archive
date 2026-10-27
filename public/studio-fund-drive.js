@@ -9,8 +9,9 @@
   if (!section || !tabs || !window.FundDrive) return;
   var on = $('fdOn'), nameIn = $('fdName'), goalIn = $('fdGoal'), pledgedIn = $('fdPledged');
   var publish = $('fdPublish'), discard = $('fdDiscard'), undo = $('fdUndo'), status = $('fdStatus');
-  var preview = window.FundDrive.build($('fdPreview'), { donateHref: '#' });
-  $('fdPreview').querySelector('.fd-btn').addEventListener('click', function (e) { e.preventDefault(); });
+  // The preview shows the banner too (on top of Listen Live while the drive is on); its links go nowhere here.
+  var preview = window.FundDrive.build($('fdPreview'), { donateHref: '#', banner: $('fdPreviewBanner') });
+  [$('fdPreview').querySelector('.fd-btn'), $('fdPreviewBanner')].forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); }); });
   var published = null, csrf = null, busy = false, embedUrl = location.origin + '/embed/fund-drive', theme = 'light';
   // One colour choice for the preview, the snippet's ?theme= and Open the embed, so all three match.
   function paintTheme() {
