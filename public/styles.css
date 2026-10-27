@@ -4679,6 +4679,7 @@
   }
   .sheet-episode-topic{ font-size:.95rem; font-weight:650; line-height:1.3; color:var(--ink);
     display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+  .sheet-episode-also{ display:block; font-size:.82rem; color:var(--ink-dim); }
   .sheet-episode-notes{ font-size:.86rem; color:var(--ink-dim); display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:1; overflow:hidden; }
   .sheet .sv .sheet-episode-progress{ width:100%; margin-top:.35rem; }
   .sheet-show-more, .sheet-show-all{

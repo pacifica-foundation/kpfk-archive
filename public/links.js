@@ -47,6 +47,11 @@
     var list = byShow[sho];
     var latest = list.reduce(function(a, b){ return b.dt > a.dt ? b : a; });
     var row = link.episode ? list.filter(function(r){ return lastPart(r.id) === link.episode; })[0] : null;
+    // A re-run is listed once, at its first airing (`alsoAired`, 2026-10-27): a link to a later
+    // airing opens that programme, not "no longer available".
+    if(link.episode && !row) row = list.filter(function(r){
+      return (r.alsoAired || []).some(function(a){ return lastPart(a.id) === link.episode; });
+    })[0] || null;
     return {sho: sho, row: row || latest, rotated: !!link.episode && !row};
   }
   var SCHEDULE_PATH = '/schedule';

@@ -22,6 +22,7 @@ const { createQirService } = require('./lib/qir/service');
 const { createSettings } = require('./lib/settings');
 const { pendingEpisodes, splitByAirTime, splitByMusicWindow, withSongLists } = require('./lib/qir/pending');
 const { applyCorrections, joinCorrectedParts } = require('./lib/qir/corrections');
+const { createRepeats } = require('./lib/qir/repeats');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const HOST_PUBLIC_DIR = path.join(__dirname, '../../public');
@@ -46,6 +47,22 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
   // returns false), no page script, no QIR requests; the site is as it is without Discovery.
   const enabled = () => settings.get().enabled;
   const qirOn = () => enabled() && qirSupported && settings.get().plugins.qir.enabled;
+  // Re-runs (lib/qir/repeats.js): the host's archive filter asks repeatsFor() which airings to
+  // hide; a background reader fingerprints one transcript every few seconds until all are read,
+  // then only new episodes. Off with QIR: nothing is hidden.
+  const repeats = createRepeats({ qir, dir: dataDir ? path.join(dataDir, 'discovery') : null, now });
+  const repeatsFor = (rows, revision) => qirOn() ? repeats.apply(rows, revision) : new Map();
+  let repeatTimer = null;
+  function readRepeats() {
+    if (repeatTimer) return;
+    const next = ms => { repeatTimer = setTimeout(() => { repeatTimer = null; readRepeats(); }, ms); if (repeatTimer.unref) repeatTimer.unref(); };
+    if (!qirOn() || !qir.status().configured) { next(60000); return; }
+    repeatTimer = true;   // a read is in flight
+    // Caught: QIR unavailable (already recorded by the QIR service) or a file write failure.
+    // Logged; the next try is a minute later. Nothing is hidden on a guess meanwhile.
+    repeats.step().then(did => { repeatTimer = null; next(did ? 4000 : 60000); },
+      e => { repeatTimer = null; console.warn('[qir] re-run check paused: ' + e.message); next(60000); });
+  }
   function qirStatus() {
     if (qirOn()) return qir.status();
     return { provider: 'qir', station: station.id, configured: false, state: qirSupported ? 'switched_off' : 'disabled', error: null, lastSuccess: null, episodes: null, skipped: null, chaptersSupported: false };
@@ -306,7 +323,8 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
       console.log(`Studio: Discovery ${settings.get().enabled ? 'on' : 'off'}, QIR ${settings.get().plugins.qir.enabled ? 'on' : 'off'}`);
     },
     /** For /healthz: QIR state and the pending/behind numbers. */
-    status: () => ({ enabled: enabled(), qir: qirStatus().state, qirPending: lastPending }),
+    status: () => ({ enabled: enabled(), qir: qirStatus().state, qirPending: lastPending, reruns: repeats.status() }),
+    repeatsFor,
     // Loads the QIR catalog ahead of the first visitor (~17 s cold). Failures are already
     // recorded in qir.status(); logged so a bad key or provider change is visible at startup.
     // Also builds the notes, so the first share preview after a restart names the episode.
@@ -314,7 +332,7 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
       // From here the catalog and notes are refreshed every 5 min whether or not anyone visits,
       // started even when this first load fails (QIR down at boot). Caught: a failed notes
       // build after a refresh; the next tick or request retries it.
-      ? (qir.start(() => archiveNotes().catch(e => console.warn('[qir] notes rebuild failed: ' + e.message)), qirOn),
+      ? (qir.start(() => archiveNotes().catch(e => console.warn('[qir] notes rebuild failed: ' + e.message)), qirOn), readRepeats(),
         qir.catalog().then(c => { console.log('QIR catalog ready: ' + c.episodes.length + ' episodes'); return archiveNotes(); }))
         .catch(e => console.warn('QIR warm-up failed: ' + e.message))
       : Promise.resolve(),

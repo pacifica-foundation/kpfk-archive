@@ -4795,6 +4795,18 @@
   // Phone: one column. Desktop: show left, episodes / episode right (DESIGN-SYSTEM Rule 2).
   var SHEET_PAGE = 20;          // episodes listed at first; "Show 20 more" adds the next ones
   var sheetShown = SHEET_PAGE;
+  // Re-runs (2026-10-27): the server lists a programme once, at its first airing, with the later
+  // airings in `alsoAired` (QIR transcripts matched). "Also aired Oct 4"; same day: the time.
+  function alsoAiredText(r){
+    var a = r && r.alsoAired;
+    if(!a || !a.length) return '';
+    var day = stationDay(new Date(r.dt * 1000));
+    var parts = a.map(function(x){
+      var d = new Date(x.dt * 1000);
+      return stationDay(d) === day ? schedTimeLabel(stationMinutes(x.dt)) : stationDate(d);
+    });
+    return 'Also aired ' + (parts.length > 2 ? parts.slice(0, 2).join(', ') + ' and ' + (parts.length - 2) + ' more' : parts.join(' and '));
+  }
   function episodeRowHtml(e, photo){
     var dp = splitDateText(e.dateText || '');
     var lb = epLabel(e);
@@ -4818,6 +4830,7 @@
           '</span>'+
           (topic ? '<span class="sheet-episode-topic">'+esc(topic)+'</span>' : '')+
           (notes ? '<span class="sheet-episode-notes">'+esc(notes)+'</span>' : '')+
+          (e.alsoAired ? '<span class="sheet-episode-also">'+esc(alsoAiredText(e))+'</span>' : '')+
           '<span class="listen-progress sheet-episode-progress"'+(s.kind === 'part' && !playing && !loading ? '' : ' hidden')+' aria-hidden="true"></span>'+
         '</button>'+
       '</div>';
@@ -4927,6 +4940,7 @@
         (topic && dparts.date ? '<span>'+esc(dparts.date)+'</span>' : '')+
         (dparts.time ? '<span>'+esc(dparts.time)+'</span>' : '')+
         (r.length ? '<span class="mono">'+esc(r.length)+'</span>' : '')+
+        (r.alsoAired ? '<span class="sheet-ep-also">'+esc(alsoAiredText(r))+'</span>' : '')+
         retentionBadge(r)+
       '</div>'+
       listen+

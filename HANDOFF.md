@@ -1,10 +1,36 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-10-27 (INT-974 fixes: episode counts, re-runs, name tiles — committed, not deployed; first section). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
+
+## 2026-10-27 — INT-974 (small fixes from Ace's review): counts, re-runs, stand-in art
+
+Committed, **not yet pushed or deployed** (check `git log origin/main..main`). Offline suite green.
+- **Episode counts (Nader 9 vs 8):** the quiet background update redrew Just aired only; an open
+  show sheet or Now Playing kept the old list (the Live popup repaints every 15 s, so it moved
+  on and the two disagreed). Both refresh paths now call `repaintFromRows()` (`public/app.js`),
+  which also fires `archive:rows` for Now Playing. Browser test `test/homepage/new-episode.cjs`
+  (8091): 9/9; 3 fail on the old code.
+- **Name tiles:** 25 shows carry Confessor's stand-in `KPFK_med.jpg`. Station `placeholderArt`
+  names it; such shows (and ones with no picture) get `tile` → `/api/artwork/tile/<show key>`
+  (SVG, category colour via `?c=`). The web page swaps it in (`useTile`); `photo` is unchanged
+  for the Flutter app (no SVG). Real art in Confessor removes the tile. Test `name-tile.test.js`.
+- **Re-runs:** found from QIR transcripts (`plugins/discovery/lib/qir/repeats.js`): one transcript
+  read every 4 s in the background (backfill ~1.5 h after deploy, then new episodes only),
+  fingerprints saved in `DATA_DIR/discovery/repeats.json`. Same show, ≥60% shared 8-word runs,
+  lengths within 20%. Measured on 912 real pairs: re-runs 73–95%, different ≤28%, Law and
+  Disorder fund-drive overlap ~47%. Later airings hidden; the first shows "Also aired …"; links to
+  a hidden airing open the first. Paul's calls: collapse, and Democracy Now's same-day 4 pm
+  repeat counts. On the 147 sampled transcripts it hides 16, incl. Nader Oct 4 (→ Sep 27) and
+  **Oct 25 (→ Oct 18, different QIR headline)**. Tests: `repeats.test.js`, `reruns.test.js`.
+  **Not verified end to end locally** (no QIR key here). After deploy: `/healthz` →
+  `discovery.reruns` (fingerprinted climbs to ~episodes) and `archiveFilter.repeats`; studio
+  Feed anomalies lists each as "Re-run".
+- Not code: Senderos de Oaxaca's host field holds description text ("Alternating with La
+  Plomada; …") — Confessor fix (Paul). Empty hosts were already left out.
 
 ## 2026-10-25 — QIR list refreshes on its own; timed problem record in status
 

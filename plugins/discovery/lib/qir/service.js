@@ -213,6 +213,14 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
     })();
     transcriptPending.set(id,job);return job;
   }
+  // A transcript's plain text for background work (re-run fingerprints, lib/qir/repeats.js):
+  // not a listener's request, so it waits out the cooldown after a failure like the catalog
+  // refresh does, and it is not cached (it would push listeners' transcripts out).
+  async function transcriptText(id) {
+    if(!UUID.test(id)) throw problem('invalid_episode_id',400);
+    const raw=await request('/episodes/'+id+'/transcript');
+    return display(raw.transcript);
+  }
   // idle(): settles once no full reload is in flight (tests and warm-up wait on it).
   const idle=()=>(pending||Promise.resolve()).then(()=>{},()=>{});
   // Keeps the catalog current with no visitors (2026-10-25). getCatalog() refreshes only when
@@ -227,6 +235,6 @@ function createQirService({enabled = false, key = '', audioOrigins = ['https://a
     if(timer.unref) timer.unref();
   }
   function stop(){ if(timer){clearInterval(timer);timer=null;} }
-  return {status,catalog:getCatalog,transcript,idle,note,start,stop};
+  return {status,catalog:getCatalog,transcript,transcriptText,idle,note,start,stop};
 }
 module.exports={createQirService,episode,showName};

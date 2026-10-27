@@ -4224,6 +4224,8 @@ function studioApi(req, res, pathOnly) {
 const discovery = station && station.plugins.discovery ? require('./plugins/discovery').createDiscovery({
   station, dataDir: DATA_DIR, getArchive, peekCatalog: () => pacifica.peekCatalog(), securityHeaders,
 }) : null;
+// Re-runs are found by the plugin (QIR transcripts) and hidden by the archive filter.
+if (discovery && pacifica) pacifica.setRepeats(discovery.repeatsFor);
 
 async function handleRequest(req, res) {
   const url = req.url || '/';
