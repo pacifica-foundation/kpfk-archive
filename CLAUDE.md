@@ -166,6 +166,10 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
 - **KPFK browser suites** (`test/homepage/*.cjs`, `test/schedule-grid/run.sh`) run on a
   scratch server (port 8091, copy of `data/` without `stats/`), never on 8081 —
   `test/schedule-grid/run.sh` starts and removes its own.
+- **Before every push that touches `public/` or page-serving code: `test/page-load/run.sh`**
+  (own scratch server and muted Chrome; every main page at phone and desktop width, no
+  uncaught error). `npm test` never loads the page: on 2026-10-27 a start-up crash went live
+  with 239 offline tests green.
 - **Desktop Chrome is not Safari.** Current Chrome dropped `<button>`'s default
   `align-items:flex-start`; Safari (every iPhone browser) keeps it, so a column-flex button
   with "…" text broke only on iPhones. `test/homepage/layout-fit.cjs` reproduces that default

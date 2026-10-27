@@ -29,7 +29,11 @@ Committed, **not yet pushed or deployed** (check `git log origin/main..main`). O
   **Not verified end to end locally** (no QIR key here). After deploy: `/healthz` →
   `discovery.reruns` (fingerprinted climbs to ~episodes) and `archiveFilter.repeats`; studio
   Feed anomalies lists each as "Re-run".
-- Not code: Senderos de Oaxaca's host field holds description text ("Alternating with La
+- **Start-up crash after the first push (fixed, live 2026-10-27):** 3de07f8 made start-up code read
+  `showInfo` before its `var` ran; the page died. Fix c3a9465 (declared with `rows`). New check
+  **`test/page-load/run.sh`** (own server + muted Chrome; 10 page loads + a name tile): run before
+  every push touching `public/` (CLAUDE.md §6). Fails 11/11 on 3de07f8.
+- Senderos de Oaxaca's host field: fixed in Confessor by Paul (2026-10-27). Was: Senderos de Oaxaca's host field holds description text ("Alternating with La
   Plomada; …") — Confessor fix (Paul). Empty hosts were already left out.
 
 ## 2026-10-25 — QIR list refreshes on its own; timed problem record in status
