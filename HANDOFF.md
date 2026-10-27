@@ -356,7 +356,8 @@ other descriptions in the audit.
 ## Remind Paul first (say these at the start of every session)
 
 1. **Next session first (2026-10-28):** the fund drive capsule is **ON** on the live site ($20,000
-   of $75,000, no name) — ask Paul whether it stays. The wrap-up email to Ace (done items,
+   of $75,000, no name; the banner shows too) — ask Paul whether it stays. **Ace email ON HOLD (Paul,
+   2026-10-27 night): he has a few changes first and wants the site to run a while.** The wrap-up email to Ace (done items,
    Something's Happening, Listen Live and capsule mockups, the embed snippet, kpfk.org/listen →
    `/live`) — notes in `.local-notes/ace-wrapup-2026-10-27-notes.md`. Still from Ace: studio email
    and WhatsApp number. **Last deploy checked live 2026-10-27 night:** `4b59b-mvr7rfyw…` (8bed808).
