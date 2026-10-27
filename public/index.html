@@ -322,8 +322,10 @@
      the home page (body.live-page); header, menu, popups and player bar are shared. It never
      plays audio itself: Play is the live player's startLive()/stopLive() (app.js), so the page,
      the popup and the player bar can never disagree. Filled by paintLivePage().
-     Its show, episode and schedule links are plain links to the podcast site's pages, in this window
-     (Paul, 2026-10-27). While the stream plays, #lvLeave asks first: the page change stops the audio. -->
+     Only live things happen here (Paul, 2026-10-27). A show, an episode or the schedule switches to
+     the podcast front in place and opens there; the stream carries on in the player bar, and one Back
+     or Close returns here. Donate (and Privacy) open over this page. Links keep real hrefs for
+     open-in-new-tab. -->
   <section class="lv" id="livePage" aria-labelledby="lvTitle" hidden>
     <a class="lv-banner lv-fd" id="lvBanner" href="#" hidden>Fund drive · Donate now</a>
     <div class="lv-grid">
@@ -356,16 +358,16 @@
         <p class="lv-song" id="lvSong" hidden><em>♪ Now playing</em><span id="lvSongText"></span></p>
         <div class="lv-fd lv-embed" id="lvEmbed" hidden></div>
         <div class="lv-actions">
-          <a class="lv-chip" id="lvShow" href="/" hidden>Show page</a>
-          <a class="lv-chip" id="lvEpisodes" href="/" hidden>Past episodes <small id="lvCount"></small></a>
+          <a class="lv-chip" id="lvShow" href="/" data-lv-open="show" hidden>Show page</a>
+          <a class="lv-chip" id="lvEpisodes" href="/" data-lv-open="show" hidden>Past episodes <small id="lvCount"></small></a>
           <button class="lv-chip lv-donate" id="lvDonate" type="button">Donate</button>
         </div>
         <section class="lv-section lv-upnext" id="lvUpNextWrap" aria-labelledby="lvUpNextHead" hidden>
-          <h2 class="lv-h2"><span id="lvUpNextHead">Up next</span><a class="lv-link" href="/schedule?from=live">Full schedule →</a></h2>
+          <h2 class="lv-h2"><span id="lvUpNextHead">Up next</span><a class="lv-link" href="/schedule" data-lv-open="schedule">Full schedule →</a></h2>
           <div id="lvUpNext"></div>
         </section>
         <section class="lv-section lv-latest" id="lvLatestWrap" aria-labelledby="lvLatestHead" hidden>
-          <h2 class="lv-h2"><span id="lvLatestHead">Latest from this show</span><a class="lv-link" id="lvAllEpisodes" href="/">All episodes →</a></h2>
+          <h2 class="lv-h2"><span id="lvLatestHead">Latest from this show</span><a class="lv-link" id="lvAllEpisodes" href="/" data-lv-open="show">All episodes →</a></h2>
           <div id="lvLatest"></div>
         </section>
         <div class="lv-app" id="lvApp" hidden>
@@ -374,7 +376,7 @@
         </div>
       </div>
       <aside class="lv-sched" id="lvSchedWrap" aria-labelledby="lvSchedHead">
-        <h2 class="lv-h2"><span id="lvSchedHead">Today</span><a class="lv-link" href="/schedule?from=live">Full schedule →</a></h2>
+        <h2 class="lv-h2"><span id="lvSchedHead">Today</span><a class="lv-link" href="/schedule" data-lv-open="schedule">Full schedule →</a></h2>
         <div id="lvToday"><p class="lv-quiet">Loading today’s schedule…</p></div>
       </aside>
       <section class="lv-section lv-foot" id="lvContact" aria-label="Contact the station" hidden>
@@ -557,27 +559,6 @@
       </button>
     </div>
     <button class="live-choice-cancel" id="liveChoiceCancel" type="button">Cancel</button>
-  </div>
-
-  <!-- Leaving Listen Live while the stream plays (Paul, 2026-10-27). A link on /live opens the podcast
-     site's page in this window, which stops the audio, so the listener is told and chooses. Same look
-     as the chooser above; a question, not a place (no history entry). Filled by app.js. -->
-  <div class="live-choice-scrim" id="lvLeaveScrim"></div>
-  <div class="live-choice lv-leave" id="lvLeave" role="alertdialog" aria-modal="true"
-    aria-labelledby="lvLeaveTitle" aria-describedby="lvLeaveAsk" aria-hidden="true">
-    <p class="live-choice-eyebrow"><span class="live-choice-dot" aria-hidden="true"></span>Listening live</p>
-    <h2 class="live-choice-title" id="lvLeaveTitle">Leave the live player?</h2>
-    <p class="live-choice-ask" id="lvLeaveAsk"><span id="lvLeaveWhere"></span> opens in this window, and the live stream will stop.</p>
-    <div class="live-choice-actions">
-      <button class="live-choice-btn live-choice-live" id="lvLeaveStay" type="button">
-        <span class="live-choice-btn-dot" aria-hidden="true"></span>
-        <span class="live-choice-btn-label">Keep listening</span>
-      </button>
-      <button class="live-choice-btn live-choice-archive" id="lvLeaveGo" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        Go to page
-      </button>
-    </div>
   </div>
 
   <!-- Live stream player. A full-feature "now playing" screen for the live stream,
