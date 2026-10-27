@@ -2723,12 +2723,23 @@
   }
 
   function lvTime(sec){ return schedTimeLabel(stationMinutes(sec)); }
+  // /live is the stand-alone player: its links open the podcast site's own pages in a new tab,
+  // so the stream keeps playing here (Paul, 2026-10-27). A show with no archive page is plain text.
+  function lvLink(href, cls, inner){
+    return href ? '<a class="' + cls + '" href="' + esc(href) + '" target="_blank" rel="noopener">' + inner + '</a>'
+      : '<div class="' + cls + '">' + inner + '</div>';
+  }
+  // Takes the FULL show key (slot.showKey, row.sho: "kpfk.kpfk.gv_tue"), never the short upstreamAltId.
+  function lvShowHref(altid){
+    var r = altid ? latestArchiveRowForShow(altid) : null;
+    return r ? window.ShowLinks.showPath(r.sho) : '';
+  }
   function lvRowHtml(s, cls, extra){
-    return '<button type="button" class="lv-row' + (cls ? ' ' + cls : '') + '" data-lv-show="' + esc(s.upstreamAltId || '') + '">' +
+    return lvLink(lvShowHref(s.showKey), 'lv-row' + (cls ? ' ' + cls : ''),
       (s.photo ? '<img src="' + esc(s.photo) + '" alt="">' : '') +
       '<span class="t">' + esc(lvTime(s.startTime)) + '</span>' +
       '<span class="n"><b>' + esc(s.name || '') + '</b>' + (s.host ? '<span>' + esc(s.host) + '</span>' : '') + '</span>' +
-      (extra || '') + '</button>';
+      (extra || ''));
   }
   // Today's published slots (Confessor, never Aiir), from the schedule's own loader.
   function lvToday(){
@@ -2755,8 +2766,10 @@
     lv.UpNext.innerHTML = next.map(function(s){ return lvRowHtml(s); }).join('');
     lv.UpNextWrap.hidden = !next.length;
     var here = lv.Today.querySelector('.lv-row.now');
-    var box = lv.Today.parentNode;
-    if(here && box.scrollHeight > box.clientHeight) box.scrollTop = Math.max(0, here.offsetTop - box.offsetTop - 80);
+    // Only the list scrolls (the heading with Full schedule stays in view); #lvToday is positioned,
+    // so the row's offsetTop is measured from the top of the list.
+    var box = lv.Today;
+    if(here && box.scrollHeight > box.clientHeight) box.scrollTop = Math.max(0, here.offsetTop - 80);
   }
   // Everything that follows the show on air: called with the Live popup's paint (every
   // now-playing poll, so the page rolls over by itself at the top of the hour) and on refresh.
@@ -2780,12 +2793,12 @@
     lv.Show.hidden = !row;
     lv.Episodes.hidden = !eps.length;
     lv.Count.textContent = eps.length;
-    lv.Show.dataset.id = lv.Episodes.dataset.id = lv.AllEpisodes.dataset.id = row ? row.id : '';
+    lv.Show.href = lv.Episodes.href = lv.AllEpisodes.href = row ? window.ShowLinks.showPath(row.sho) : '/';
     lv.LatestWrap.hidden = !eps.length;
     lv.Latest.innerHTML = eps.slice(0, 4).map(function(e){
       var title = (window.ArchiveSearch && window.ArchiveSearch.episodeTitle(e)) || e.dateText;
-      return '<button type="button" class="lv-row" data-lv-episode="' + esc(e.id) + '"><span class="n"><b>' + esc(title) + '</b><span>' +
-        esc([splitDateText(e.dateText || '').date, e.length].filter(Boolean).join(' · ')) + '</span></span></button>';
+      return lvLink(window.ShowLinks.episodePath(e), 'lv-row', '<span class="n"><b>' + esc(title) + '</b><span>' +
+        esc([splitDateText(e.dateText || '').date, e.length].filter(Boolean).join(' · ')) + '</span></span>');
     }).join('');
     lv.Donate.hidden = !(typeof DONATE_URL === 'string' && DONATE_URL);
     // Contacts and signals from the station file (stations/<id>.json `contact`); a blank one is not shown.
@@ -2845,17 +2858,6 @@
     window.open(location.origin + window.ShowLinks.LIVE_PATH, '_blank', 'noopener');
   });
   lv.Donate.addEventListener('click', function(){ openDonate(); });
-  [lv.Show, lv.Episodes, lv.AllEpisodes].forEach(function(b){
-    b.addEventListener('click', function(){ if(b.dataset.id) openSheetById(b.dataset.id, b, false, 'show'); });
-  });
-  livePageEl.addEventListener('click', function(e){
-    var t = e.target.closest('[data-lv-schedule], [data-lv-show], [data-lv-episode]');
-    if(!t) return;
-    if(t.hasAttribute('data-lv-schedule')){ openSchedule(); return; }
-    if(t.hasAttribute('data-lv-episode')){ openSheetById(t.dataset.lvEpisode, t, false, 'episode'); return; }
-    var r = latestArchiveRowForShow(t.dataset.lvShow);
-    if(r) openSheetById(r.id, t, false, 'show');
-  });
   // The station logo leaves the page for the home page (Back returns here).
   document.querySelectorAll('.appbar .brand').forEach(function(a){
     a.addEventListener('click', function(e){ if(!livePageOn) return; e.preventDefault(); leaveLivePage(); });

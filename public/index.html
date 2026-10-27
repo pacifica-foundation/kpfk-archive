@@ -321,7 +321,9 @@
   <!-- Listen Live page (/live, INT-966; Ace's review, mockup approved 2026-10-27). Shown instead of
      the home page (body.live-page); header, menu, popups and player bar are shared. It never
      plays audio itself: Play is the live player's startLive()/stopLive() (app.js), so the page,
-     the popup and the player bar can never disagree. Filled by paintLivePage(). -->
+     the popup and the player bar can never disagree. Filled by paintLivePage().
+     Its show, episode and schedule links are plain links to the podcast site's pages, opened in a
+     new tab (Paul, 2026-10-27: /live is the stand-alone player; the stream keeps playing here). -->
   <section class="lv" id="livePage" aria-labelledby="lvTitle" hidden>
     <a class="lv-banner lv-fd" id="lvBanner" href="#" hidden>Fund drive · Donate now</a>
     <div class="lv-grid">
@@ -354,16 +356,16 @@
         <p class="lv-song" id="lvSong" hidden><em>♪ Now playing</em><span id="lvSongText"></span></p>
         <div class="lv-fd lv-embed" id="lvEmbed" hidden></div>
         <div class="lv-actions">
-          <button class="lv-chip" id="lvShow" type="button" hidden>Show page</button>
-          <button class="lv-chip" id="lvEpisodes" type="button" hidden>Past episodes <small id="lvCount"></small></button>
+          <a class="lv-chip" id="lvShow" href="/" target="_blank" rel="noopener" hidden>Show page</a>
+          <a class="lv-chip" id="lvEpisodes" href="/" target="_blank" rel="noopener" hidden>Past episodes <small id="lvCount"></small></a>
           <button class="lv-chip lv-donate" id="lvDonate" type="button">Donate</button>
         </div>
         <section class="lv-section lv-upnext" id="lvUpNextWrap" aria-labelledby="lvUpNextHead" hidden>
-          <h2 class="lv-h2"><span id="lvUpNextHead">Up next</span><button class="lv-link" type="button" data-lv-schedule>Full schedule →</button></h2>
+          <h2 class="lv-h2"><span id="lvUpNextHead">Up next</span><a class="lv-link" href="/schedule" target="_blank" rel="noopener">Full schedule →</a></h2>
           <div id="lvUpNext"></div>
         </section>
         <section class="lv-section lv-latest" id="lvLatestWrap" aria-labelledby="lvLatestHead" hidden>
-          <h2 class="lv-h2"><span id="lvLatestHead">Latest from this show</span><button class="lv-link" type="button" id="lvAllEpisodes">All episodes →</button></h2>
+          <h2 class="lv-h2"><span id="lvLatestHead">Latest from this show</span><a class="lv-link" id="lvAllEpisodes" href="/" target="_blank" rel="noopener">All episodes →</a></h2>
           <div id="lvLatest"></div>
         </section>
         <div class="lv-app" id="lvApp" hidden>
@@ -372,7 +374,7 @@
         </div>
       </div>
       <aside class="lv-sched" id="lvSchedWrap" aria-labelledby="lvSchedHead">
-        <h2 class="lv-h2"><span id="lvSchedHead">Today</span><button class="lv-link" type="button" data-lv-schedule>Full schedule →</button></h2>
+        <h2 class="lv-h2"><span id="lvSchedHead">Today</span><a class="lv-link" href="/schedule" target="_blank" rel="noopener">Full schedule →</a></h2>
         <div id="lvToday"><p class="lv-quiet">Loading today’s schedule…</p></div>
       </aside>
       <section class="lv-section lv-foot" id="lvContact" aria-label="Contact the station" hidden>

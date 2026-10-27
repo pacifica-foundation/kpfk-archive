@@ -4790,12 +4790,16 @@
   .lv-h2{ margin:0 0 8px; font-family:var(--font-display); font-size:.82rem; letter-spacing:.1em; text-transform:uppercase;
     color:var(--ink-dim); display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
   .lv-link{ border:0; background:none; padding:6px 0; font:inherit; font-family:var(--font-body); letter-spacing:0; text-transform:none;
-    font-size:.88rem; font-weight:600; color:var(--ink); cursor:pointer; min-height:32px; }
+    font-size:.88rem; font-weight:600; color:var(--ink); cursor:pointer; min-height:32px; text-decoration:none;
+    display:inline-flex; align-items:center; white-space:nowrap; }
+  @media (hover:hover){ .lv-link:hover{ text-decoration:underline; } }
   .lv-section{ border-top:1px solid var(--lv-line); padding-top:14px; }
   .lv-section[hidden]{ display:none; }
   .lv-row{ display:flex; align-items:center; gap:12px; width:calc(100% + 12px); min-height:52px; padding:4px 6px; margin:0 -6px;
-    border:0; border-radius:10px; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; box-sizing:border-box; }
-  .lv-row:hover{ background:var(--surface-hover); }
+    border:0; border-radius:10px; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; box-sizing:border-box;
+    text-decoration:none; }
+  div.lv-row{ cursor:default; }
+  a.lv-row:hover{ background:var(--surface-hover); }
   .lv-row img{ width:44px; height:44px; border-radius:8px; object-fit:cover; flex:none; background:var(--surface-2); }
   .lv-row .t{ font-size:.82rem; font-weight:700; color:var(--ink-dim); width:72px; flex:none; font-variant-numeric:tabular-nums; }
   .lv-row .n{ display:flex; flex-direction:column; min-width:0; flex:1; }
@@ -4822,15 +4826,20 @@
     text-transform:uppercase; font-size:.95rem; }
   .lv-banner[hidden], .lv-embed[hidden]{ display:none; }
   .lv-sched{ display:none; }
-  /* Wide: show and player on the left, today's schedule on the right, contacts across the foot. */
+  /* Wide: show, player and contacts on the left; today's schedule on the right, pinned while the
+     page scrolls. Only its list scrolls, so the heading and Full schedule stay in view. Contacts
+     stay in the left column: the pinned schedule slides down over anything in the right one. */
   @media (min-width:900px){
     .lv-grid{ grid-template-columns:minmax(0,1.35fr) minmax(320px,1fr); align-items:start; padding-top:28px; }
     .lv-hero{ flex-direction:row; align-items:flex-start; gap:22px; }
     .lv-art{ width:260px; flex:none; }
     .lv-title{ font-size:2.1rem; }
-    .lv-sched{ display:block; position:sticky; top:84px; max-height:calc(100vh - var(--player-h, 90px) - 120px); overflow:auto;
-      padding:14px 14px 6px; border-radius:16px; background:var(--surface-1); border:1px solid var(--lv-line); }
+    .lv-sched{ display:flex; flex-direction:column; position:sticky; top:84px; grid-row:1 / span 2; grid-column:2;
+      max-height:calc(100vh - var(--player-h, 90px) - 120px); overflow:hidden;
+      padding:14px 14px 6px; border-radius:16px; background:var(--surface-1); border:1px solid var(--lv-line); box-sizing:border-box; }
+    .lv-sched .lv-h2{ flex:none; }
+    #lvToday{ position:relative; flex:1 1 auto; min-height:0; overflow:auto; }
     .lv-upnext{ display:none !important; }
-    .lv-foot{ grid-column:1 / -1; }
+    .lv-foot{ grid-column:1; }
   }
   @media (max-width:899px){ .lv-latest{ display:none !important; } }

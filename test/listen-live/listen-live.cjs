@@ -91,21 +91,27 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   check('… and closes', await until(`return !document.body.classList.contains('menu-open');`, 3000));
   check('the header Listen Live chip does not open the popup over the page', await (async () => { await p.click('#onAirBtn'); await sleep(600); return !(await ev(`return document.getElementById('livePlayer').classList.contains('show');`)); })());
 
-  // ---- 4: a show page over the playing stream, Back returns to /live
+  // ---- 4: /live is the stand-alone player (Paul, 2026-10-27): its show, episode and schedule links
+  // are plain links to the podcast site's own pages, in a new tab; this page keeps playing.
   check('the show on air has Show page, Past episodes and its latest episodes', await until(`var b = document.getElementById('lvShow'); return !!b && !b.hidden && !document.getElementById('lvEpisodes').hidden && document.querySelectorAll('#lvLatest .lv-row').length > 0;`, 10000),
     await ev(`return document.getElementById('lvTitle').textContent;`));
-  {
-    await p.click('#lvShow');
-    check('Show page opens the show over the page', await until(`return document.getElementById('showSheet').classList.contains('show') && /^\\/show\\//.test(location.pathname);`, 6000), await ev(`return location.pathname;`));
-    check('… and the stream keeps playing', (await ev(pressed)) === 'true');
-    await p.eval(`history.back(); return 1;`);
-    check('Back closes it onto the Listen Live page, at /live', await until(`return !document.getElementById('showSheet').classList.contains('show') && location.pathname === '/live';`, 6000) && await ev(pageShown), await ev(`return location.pathname;`));
-  }
-  // The schedule from the page, and Back to it
-  await p.click('#lvSchedWrap [data-lv-schedule]');
-  check('Full schedule opens over the page', await until(`return document.getElementById('schedModal').classList.contains('show');`, 6000));
-  await p.eval(`history.back(); return 1;`);
-  check('… Back returns to /live', await until(`return !document.getElementById('schedModal').classList.contains('show') && location.pathname === '/live';`, 6000), await ev(`return location.pathname;`));
+  await until(`return document.querySelectorAll('#lvToday .lv-row').length > 3;`, 15000);   // today's schedule has loaded
+  const links = JSON.parse(await p.eval(`
+    var pick = function(sel){ return [...document.querySelectorAll(sel)].map(function(a){ return { tag: a.tagName, path: a.getAttribute('href'), target: a.target }; }); };
+    return JSON.stringify({ show: pick('#lvShow, #lvEpisodes, #lvAllEpisodes'), eps: pick('#lvLatest .lv-row'), today: pick('#lvToday a.lv-row'),
+      full: pick('#livePage .lv-link:not(#lvAllEpisodes)') });`));
+  const all = [...links.show, ...links.eps, ...links.today, ...links.full];
+  check('every show, episode and schedule link is a real link opening a new tab',
+    all.length > 6 && all.every(l => l.tag === 'A' && l.target === '_blank'), JSON.stringify(all.filter(l => l.tag !== 'A' || l.target !== '_blank').slice(0, 3)));
+  check('… Show page and Past episodes go to the show\'s page', links.show.every(l => /^\/show\/[^/]+$/.test(l.path)), JSON.stringify(links.show));
+  check('… latest episodes go to their episode pages', links.eps.every(l => /^\/show\/[^/]+\/[^/]+$/.test(l.path)), JSON.stringify(links.eps));
+  check('… today\'s schedule rows go to show pages', links.today.length > 2 && links.today.every(l => /^\/show\//.test(l.path)), JSON.stringify(links.today.slice(0, 3)));
+  check('… Full schedule goes to the schedule page', links.full.length >= 1 && links.full.every(l => l.path === '/schedule'), JSON.stringify(links.full));
+  await p.click('#lvShow');
+  await sleep(1200);
+  check('tapping Show page leaves this page on /live, no popup over it', (await ev(`return location.pathname;`)) === '/live' && await ev(pageShown)
+    && !(await ev(`return document.getElementById('showSheet').classList.contains('show');`)), await ev(`return location.pathname;`));
+  check('… and the stream keeps playing', (await ev(pressed)) === 'true');
 
   // ---- 5: logo home, Back to /live, stream untouched
   await p.click('.appbar .brand');
@@ -144,7 +150,17 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
         var barNow = document.getElementById('playerBar');
         var barTop = barNow.hidden ? innerHeight : barNow.getBoundingClientRect().top;
         return JSON.stringify({ sideways: document.documentElement.scrollWidth - innerWidth, vol: vis('lvVol'), full: vis('lvFull'), app: vis('lvApp'),
-          sched: vis('lvSchedWrap') && getComputedStyle(document.getElementById('lvSchedWrap')).display !== 'none', covered: lastBottom > barTop + 1, lastBottom: lastBottom, barTop: barTop });`));
+          sched: vis('lvSchedWrap') && getComputedStyle(document.getElementById('lvSchedWrap')).display !== 'none', covered: lastBottom > barTop + 1, lastBottom: lastBottom, barTop: barTop,
+          // Wide only: the schedule's Full schedule link is on screen and not covered, scrolled to the
+          // bottom of the page (the schedule card is pinned); no contact card reaches under the card.
+          // Scrolled to the end of today, as when the card follows the show on air late in the day
+          // (Paul's 2026-10-27 screenshot): both the card and its list are scrolled as far as they go.
+          fullSched: (function(){ var l = document.querySelector('#lvSchedWrap .lv-link'); if(!l || !l.offsetWidth) return null;
+            [document.getElementById('lvSchedWrap'), document.getElementById('lvToday')].forEach(function(e){ e.scrollTop = e.scrollHeight; });
+            var r = l.getBoundingClientRect(); var hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            return { onScreen: r.top >= 0 && r.bottom <= innerHeight, reachable: !!hit && (hit === l || l.contains(hit)), listScrolls: document.getElementById('lvToday').scrollHeight > document.getElementById('lvToday').clientHeight }; })(),
+          under: (function(){ var a = document.getElementById('lvSchedWrap'); if(!a.offsetWidth) return []; var left = a.getBoundingClientRect().left;
+            return [...document.querySelectorAll('#lvContacts .lv-contact, #lvSignals')].filter(function(c){ return c.offsetWidth && c.getBoundingClientRect().right > left; }).map(function(c){ return c.textContent.trim().slice(0, 24); }); })() });`));
       const tag = `${label} ${width} ${theme}`;
       check(`${tag}: no sideways scroll`, L.sideways <= 0, 'overflow ' + L.sideways + 'px');
       check(`${tag}: volume ${mobile ? 'hidden (side buttons)' : 'shown'}`, L.vol === !mobile, JSON.stringify(L));
@@ -152,6 +168,11 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
       check(`${tag}: app prompt ${mobile ? 'shown' : 'hidden'}`, L.app === !!mobile, JSON.stringify(L));
       check(`${tag}: today's schedule column ${width >= 900 ? 'shown' : 'not shown (Up next instead)'}`, L.sched === (width >= 900), JSON.stringify(L));
       check(`${tag}: the player bar never covers the end of the page`, !L.covered, JSON.stringify(L));
+      if (width >= 900) {
+        check(`${tag}: "Full schedule" stays on screen beside the pinned schedule (its list scrolls${L.fullSched && L.fullSched.listScrolls ? '' : ' — NOT long enough to prove it'})`,
+          !!L.fullSched && L.fullSched.onScreen && L.fullSched.reachable && L.fullSched.listScrolls, JSON.stringify(L.fullSched));
+        check(`${tag}: no contact card or signal line reaches under the schedule`, !L.under.length, JSON.stringify(L.under));
+      }
     }
   }
   await p.send('Fetch.disable');

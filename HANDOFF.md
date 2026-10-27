@@ -8,6 +8,13 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 
 ## 2026-10-27 (evening) — Listen Live page built locally, NOT pushed (Paul reviews first)
 
+**Paul's first review (same evening), fixed:** /live is the stand-alone player, so its show, episode
+and schedule links are now plain links to the podcast site's pages in a NEW TAB (the stream keeps
+playing); header and menu unchanged. Desktop: only the schedule list scrolls (heading + Full schedule
+stay in view); contacts and signals stay in the left column (the pinned schedule slid over them).
+Schedule rows never linked before: they passed the short `upstreamAltId` where the archive matches the
+full `showKey`. test/listen-live checks all three; shown failing on the old code.
+
 - **`/live` is now the Listen Live page** (INT-966; Ace: "own URL, separate from explore"). Inside
   the app: the site's header and hamburger menu, the floating player bar in live mode; show and
   schedule popups open over it and Back returns to `/live`; the logo goes home, Back returns. The
