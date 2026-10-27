@@ -6,7 +6,18 @@ WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here o
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
-## 2026-10-27 (night) — Listen Live pushed (a8a0946, NOT yet redeployed); fund drive capsule built locally
+## 2026-10-27 (night) — Listen Live + fund drive capsule LIVE (de57311), checked on the live site
+
+- **Deployed and verified:** version `4b459-mvr6iyw0…`, instanceId `73039ae5…` unchanged,
+  freshVolume false, archiveFilter basis schedule. Live checks (curl + headless Chrome with /api/ev
+  and the stream BLOCKED, so nothing counted): /, /live, /schedule, a show, /embed/fund-drive at 390
+  and 1280 px, no errors; /live is the page; Schedule from /live opens on the front, one Back
+  returns; /api/fund-drive off; embed frame-ancestors self + kpfk.org + www.kpfk.org; the listener
+  site still SAMEORIGIN. Tracker: update posted on the Listen Live item.
+- Fund drive is OFF on the live site until staff switch it on in the studio (Discovery & settings).
+
+### Earlier the same night
+
 
 - **Pushed** to origin main: the Listen Live page and its review fixes (7 commits up to a8a0946).
   Live before redeploy: version `47695-mvqyvukg…`, instanceId `73039ae5…` (unchanged). After Paul's
