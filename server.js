@@ -86,6 +86,11 @@ if (stationEdits) {
   if (stationEdits.bootError()) console.warn(`[station] saved Station & appearance edits are not valid with this profile and were NOT applied: ${stationEdits.bootError()}`);
 }
 
+// Fund drive, Phase 4a (lib/fund-drive.js): the donation capsule's figures, set in the studio and
+// saved on the data volume. Shown on Listen Live and at /embed/fund-drive.
+const fundDrive = require('./lib/fund-drive').createFundDrive({ dataDir: DATA_DIR, writeJsonAtomic });
+if (fundDrive.bootError()) console.warn(`[fund drive] the saved figures are not valid and were NOT shown: ${fundDrive.bootError()}`);
+
 // Files that existed at boot and could not be parsed, and where their bytes were
 // moved so they are still recoverable. Declared up here rather than on
 // storageDiag because the irreplaceable store loads long before that object
@@ -2084,6 +2089,35 @@ function securityHeaders() {
       "base-uri 'self'",
     ].join('; '),
   };
+}
+
+// Sites allowed to show /embed/fund-drive in an iframe: this app and the station's own website
+// (with and without www). Nobody else: the capsule carries the station's name and donate link.
+function embedAncestors() {
+  const out = ["'self'"];
+  try {
+    const host = new URL(station.links.website).hostname.replace(/^www\./, '');
+    out.push(`https://${host}`, `https://www.${host}`);
+  } catch (e) { /* no website: only this app may frame it */ }
+  return out.join(' ');
+}
+const EMBED_DIR = path.join(__dirname, 'embed');
+function sendEmbed(req, res, file) {
+  fs.readFile(path.join(EMBED_DIR, file), 'utf8', (err, html) => {
+    if (err) {
+      console.error(`[embed] cannot read ${file}:`, err.message);
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      return res.end('embed unavailable');
+    }
+    const body = Buffer.from(stampAssets(stationView.render(html, station)), 'utf8');
+    const headers = securityHeaders();
+    // Framed by the station's own sites: frame-ancestors says who; X-Frame-Options would forbid it.
+    delete headers['X-Frame-Options'];
+    headers['Content-Security-Policy'] = headers['Content-Security-Policy'].replace("frame-ancestors 'self'", 'frame-ancestors ' + embedAncestors());
+    res.writeHead(200, { 'Content-Type': MIME['.html'], 'Content-Length': body.length, 'Cache-Control': 'no-store',
+      'X-App-Version': appVersion(), ...headers });
+    res.end(body);
+  });
 }
 
 /**
@@ -4121,6 +4155,32 @@ async function studioStationPost(req, res, pathOnly) {
   return sendStudioJson(res, { error: 'not found' }, 404);
 }
 
+// ---- Fund drive (Phase 4a): lib/fund-drive.js does the work. Same guard as every studio change.
+function fundDriveState() {
+  return { ok: true, current: fundDrive.public(), history: fundDrive.history(), bootError: fundDrive.bootError(),
+    embedUrl: `${station.siteUrl || ''}/embed/fund-drive`, donate: station.links.donate || '' };
+}
+let fundDriveLastPost = 0;
+async function studioFundDrivePost(req, res, pathOnly) {
+  if (!studioAuthed(req)) return sendStudioJson(res, { error: 'unauthorized' }, 401);
+  if (!secretEquals(req.headers['x-studio-csrf'] || '', studioCsrf(req))) return sendStudioJson(res, { error: 'bad token' }, 403);
+  // One change a second is plenty for a person; more is a stuck button or a script.
+  if (Date.now() - fundDriveLastPost < 1000) return sendStudioJson(res, { ok: false, errors: ['Too fast: wait a second and try again.'] }, 429);
+  fundDriveLastPost = Date.now();
+  if (pathOnly === '/api/studio/fund-drive/undo') {
+    const r = fundDrive.undo();
+    if (r.ok) console.log('[studio] fund drive: last change undone');
+    return sendStudioJson(res, r.ok ? fundDriveState() : r, r.ok ? 200 : 409);
+  }
+  if (pathOnly !== '/api/studio/fund-drive/apply') return sendStudioJson(res, { error: 'not found' }, 404);
+  let input;
+  try { input = JSON.parse(await readBody(req, 2048)); } catch (e) { return sendStudioJson(res, { ok: false, errors: ['The figures are not valid JSON.'] }, 400); }
+  const r = fundDrive.apply(input);
+  if (!r.ok) return sendStudioJson(res, r, 422);
+  if (!r.unchanged) { const v = fundDrive.public(); console.log(`[studio] fund drive: ${v.on ? 'on' : 'off'}, $${v.pledged} of $${v.goal}`); }
+  return sendStudioJson(res, fundDriveState());
+}
+
 function studioApi(req, res, pathOnly) {
   if (!studioAuthed(req)) return sendStudioJson(res, { error: 'unauthorized' }, 401);
   if (pathOnly === '/api/studio/discovery') {
@@ -4129,6 +4189,7 @@ function studioApi(req, res, pathOnly) {
   if (pathOnly === '/api/studio/station') {
     return stationEdits ? sendStudioJson(res, stationEditState()) : sendStudioJson(res, { available: false });
   }
+  if (pathOnly === '/api/studio/fund-drive') return sendStudioJson(res, fundDriveState());
   if (pathOnly === '/api/studio/usage') {
     return sendStudioJson(res, usageReport(usageWindowFromUrl(req.url)));
   }
@@ -4265,6 +4326,10 @@ async function handleRequest(req, res) {
       try { return await studioStationPost(req, res, pathOnly); }
       catch (e) { console.error('[studio] station edit failed:', e.message); return sendStudioJson(res, { ok: false, errors: [e.message] }, 400); }
     }
+    if (STUDIO_ENABLED && pathOnly.startsWith('/api/studio/fund-drive/')) {
+      try { return await studioFundDrivePost(req, res, pathOnly); }
+      catch (e) { console.error('[studio] fund drive change failed:', e.message); return sendStudioJson(res, { ok: false, errors: [e.message] }, 400); }
+    }
     if (STUDIO_ENABLED && pathOnly === '/api/studio/discovery') {
       try { return await studioDiscoveryPost(req, res); }
       catch (e) { return sendStudioJson(res, { error: 'bad request' }, 400); }
@@ -4292,6 +4357,7 @@ async function handleRequest(req, res) {
   // the listener app (notFound() falls back to index.html for any path without
   // an extension). When the studio is disabled these ifs are skipped entirely
   // and that fallback is exactly what we want to happen.
+  if (pathOnly === '/embed/fund-drive') return sendEmbed(req, res, 'fund-drive.html');
   if (STUDIO_ENABLED && pathOnly === '/studio/report') return sendReport(req, res);
   if (STUDIO_ENABLED && (pathOnly === '/studio' || pathOnly === '/studio/')) {
     return sendStudioHtml(req, res, studioAuthed(req) ? 'studio.html' : 'login.html');
@@ -4373,6 +4439,8 @@ async function handleRequest(req, res) {
       const data = await getNowPlaying();
       return sendJson(res, data, 200, 10);
     }
+    // The donation capsule's figures (Phase 4a). Never cached: a pledge total should climb on screen.
+    if (url === '/api/fund-drive') return sendJson(res, fundDrive.public());
     // Single-show lookup, resolved on demand from archive2's per-show endpoint.
     // The bulk /api/showinfo below stays the front end's first paint; this fills
     // the gaps for shows the on-air harvest has never met.

@@ -6,6 +6,22 @@ WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here o
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
+## 2026-10-27 (night) — Listen Live pushed (a8a0946, NOT yet redeployed); fund drive capsule built locally
+
+- **Pushed** to origin main: the Listen Live page and its review fixes (7 commits up to a8a0946).
+  Live before redeploy: version `47695-mvqyvukg…`, instanceId `73039ae5…` (unchanged). After Paul's
+  Coolify redeploy: check `/healthz` version changed, same instanceId, and `/live`.
+- **Fund drive Phase 4a built locally (not pushed):** the studio's Fund drive card (Discovery &
+  settings tab: on/off, name, goal, pledged; draft + live preview → Publish; Undo), the donation
+  capsule under the player on /live (refreshes every minute; Donate opens over the page), and
+  `/embed/fund-drive` for kpfk.org (frame-ancestors: this app, kpfk.org, www.kpfk.org; Donate in a
+  new tab; `?theme=light|dark`). Figures on the data volume in `fund-drive/`: in the server backup
+  (tools/backup-data.sh copies all of /app/data), not in the studio's own download. Paul's mockup review: figures only, no quick pledge buttons.
+  The Dockerfile copies the new `embed/` folder; test/pacifica/dockerfile.test.js fails if any
+  folder the server reads is not copied.
+- APP-FAMILY.md gained `/api/fund-drive`; copied to kpfk-podcast and kpfk-discovery-plugin
+  (uncommitted there, with this morning's copy).
+
 ## 2026-10-27 (evening) — Listen Live page built locally, NOT pushed (Paul reviews first)
 
 **Paul's review (same evening), fixed:** /live does LIVE THINGS ONLY. A show, an episode or the

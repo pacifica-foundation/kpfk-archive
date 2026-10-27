@@ -21,6 +21,10 @@ COPY plugins ./plugins
 # the password gate. Only an authenticated route ever reads these.
 COPY admin ./admin
 
+# Embeddable pages other sites show in an iframe (Phase 4a: /embed/fund-drive). Rendered by a
+# route with its own frame-ancestors, so kept out of public/ like admin/.
+COPY embed ./embed
+
 # (No seed/: the KPFK app reads show descriptions from the Pacifica JSON catalog,
 # so there is no warm-start file to ship. WBAI's image copied one.)
 

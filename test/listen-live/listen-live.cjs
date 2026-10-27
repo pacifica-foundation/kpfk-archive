@@ -5,7 +5,9 @@
 //  2. One tap at most to audio: arrival tries to play; a browser that refuses (Safari's rule,
 //     reproduced here) leaves the big Play button and NO error alert; one tap starts the stream.
 //  3. It rolls over by itself when the show changes (now-playing poll), no reload.
-//  4. A show page opens over it and the stream keeps playing; Back returns to /live.
+//  4. Live things only (Paul, 2026-10-27): a show, an episode or the schedule switches to the
+//     podcast front in place and opens there; the stream keeps playing; one Back or Close returns
+//     to /live. Donate opens over the page. The big Play button shows a spinner while connecting.
 //  5. The logo goes home (on the site); Back returns to /live; the stream is untouched.
 //  6. Volume on desktop only; "Full page" only in a small desktop window; the app prompt on phones.
 //  7. No sideways scroll at 390/420/768/1280, light and dark; the player bar never covers the end.

@@ -160,6 +160,7 @@ The smallest useful fund drive piece, before the full Fund drive screen:
 - **Studio:** a Fund drive card with the goal, the amount pledged so far, an optional name ("Fall
   Fund Drive") and an on/off switch. Saved on the data volume (no deploy), with Undo and history
   like Station & appearance. Staff update the pledged amount during the drive as often as they like.
+  Just the figures for now (Paul, mockup review: no quick "+$100" pledge buttons); built to grow.
 - **The capsule:** a pill-shaped progress bar, in the site's style: amount pledged, the goal, the
   percent, and a Donate button. On **Listen Live** under the player while switched on. It refreshes
   by itself (about every minute), so the number climbs on screen during the drive.
@@ -172,6 +173,12 @@ The smallest useful fund drive piece, before the full Fund drive screen:
 - **Not in 4a:** dates, the banner, the donate page check, Ace's own embed, thank-you gifts. Those
   are Phase 4 below.
 - Mockup first (Paul's plan-then-mockup rule), then build.
+- **Status (2026-10-27 night): built locally.** lib/fund-drive.js (store, history, undo),
+  `/api/fund-drive`, studio routes (`/api/studio/fund-drive`, `/apply`, `/undo`; signed in, CSRF,
+  one change a second), `/embed/fund-drive` (embed/, own frame-ancestors; Dockerfile copies embed/),
+  public/fund-drive.js (the one capsule drawing), the studio card (public/studio-fund-drive.js),
+  the capsule under the player on /live. Tests: test/pacifica/fund-drive.test.js,
+  test/pacifica/dockerfile.test.js, test/fund-drive/run.sh, the embed in test/page-load.
 
 ### Phase 4 — Fund drive mode (INT-967)
 

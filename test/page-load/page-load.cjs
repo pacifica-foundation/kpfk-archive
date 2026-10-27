@@ -28,6 +28,16 @@ const PAGES = ['/', '/live', '/schedule', '/show/nader', '/show/cinemascore'];
       check(`${width}px ${path}: loads, no uncaught errors`, ready && !errors.length, errors.slice(0, 3).join('\n     ') || 'page script did not finish start-up');
     }
   }
+  // The fund drive embed (Phase 4a): its own small page, framed by the station's website.
+  for (const width of [320, 1280]) {
+    errors = [];
+    await p.send('Emulation.setDeviceMetricsOverride', { width, height: 400, deviceScaleFactor: 2, mobile: width < 800 });
+    await p.send('Page.navigate', { url: base + '/embed/fund-drive?theme=light' });
+    const ready = await until(`return document.readyState === 'complete' && !!window.FundDrive && !!document.getElementById('capsule');`, 15000);
+    await sleep(1200);
+    check(`${width}px /embed/fund-drive: loads, no uncaught errors`, ready && !errors.length, errors.slice(0, 3).join('\n     ') || 'the capsule script did not load');
+  }
+  await p.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 2, mobile: false });
   // Search: every show result shows why it matched — the word, highlighted, on the card
   // (2026-10-27: "nader" listed shows whose cards never mentioned Nader).
   for (const q of ['nader', 'food', 'gaza']) {

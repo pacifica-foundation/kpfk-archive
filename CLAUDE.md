@@ -177,6 +177,9 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
 - **Listen Live page (`/live`): `test/listen-live/run.sh`** (own server + muted Chrome, real taps:
   arrival, refused autoplay → one tap, rollover, show sheet over a playing stream, menu, logo/Back,
   four widths light and dark). Run it before any push touching the live player or that page.
+- **Fund drive (Phase 4a): `test/fund-drive/run.sh`** (own server on 8093 with a test studio password,
+  muted Chrome on 9234, real taps: the studio card → Publish → the capsule on /live and in the embed →
+  off). Run it before any push touching the capsule, its studio card or /embed/fund-drive.
 - **Before every push that touches `public/` or page-serving code: `test/page-load/run.sh`**
   (own scratch server and muted Chrome; every main page at phone and desktop width, no
   uncaught error). `npm test` never loads the page: on 2026-10-27 a start-up crash went live

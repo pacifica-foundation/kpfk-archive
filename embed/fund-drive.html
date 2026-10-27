@@ -1,0 +1,19 @@
+<!doctype html>
+<!-- Donation capsule for other sites to frame (fund drive, Phase 4a). Served by server.js
+     sendEmbed() with frame-ancestors limited to this app and the station's own website. Its Donate
+     opens the station's donate page in a new tab: it sits on someone else's page. -->
+<html lang="en" class="fd-embed">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{station.name}} fund drive</title>
+<meta name="robots" content="noindex">
+<script src="/station.js"></script>
+<link rel="stylesheet" href="/styles.css">
+<script src="/fund-drive.js" defer></script>
+<script src="/fund-drive-embed.js" defer></script>
+</head>
+<body>
+<div id="capsule"></div>
+</body>
+</html>

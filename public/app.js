@@ -2691,6 +2691,18 @@
   // The small popup window kpfk.org opens: a desktop browser window under 640px wide.
   var lvNarrow = window.matchMedia ? window.matchMedia('(max-width: 640px)') : { matches: false };
 
+  // The donation capsule (fund drive, Phase 4a; public/fund-drive.js): under the player, refreshed
+  // while this page is on screen. Its Donate opens the donate window over the page (the stream plays on).
+  var lvFund = null;
+  function lvFundStart(){
+    if(lvFund){ lvFund.refresh(); return; }
+    if(!window.FundDrive){ console.warn('[live page] fund-drive.js did not load; no donation capsule'); return; }
+    lvFund = window.FundDrive.mount(document.getElementById('lvFund'), {
+      active: function(){ return livePageOn; },
+      onDonate: function(){ openDonate(); },
+      donateHref: STATION.links.donate || ''
+    });
+  }
   function enterLivePage(fromHistory){
     if(!livePageOn){
       livePageOn = true;
@@ -2703,6 +2715,7 @@
     if(!fromHistory && canHistory){ try { history.replaceState({livePage:1}, '', window.ShowLinks.LIVE_PATH + location.search); } catch(e){} }
     paintLivePage();
     paintLivePageState();
+    lvFundStart();
     if(!publishedDays && !publishedLoading) loadPublishedSchedule();
   }
   function leaveLivePage(fromHistory){

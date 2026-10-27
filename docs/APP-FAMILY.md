@@ -53,6 +53,7 @@ Plan: `kpfk-podcast/docs/APP-PLAN.md`.
 | `/api/plugins/qir/transcript/<qir>` | WebVTT + plain text for one episode (`qir` from notes); 404 = no transcript (the app says "none yet"; 5xx/offline = "try again"). The app parses `vtt` with a port of `qir-transcript.js` and keeps the body with a download | ~120 KB, no-store |
 | `/api/plugins/qir/recent?since=…` | Episodes aired since a station-clock time (what the web polls every 2 min) | few KB |
 | `/api/cue/<id>` | Cue-file song list (WebVTT) for an episode's `vtiUrl` | small |
+| `/api/fund-drive` | The donation capsule's figures (since 2026-10-27, Phase 4a): `{on, name, goal, pledged, updatedAt}`, whole dollars, set in the studio. Off = show nothing. An app may draw its own capsule from it; the web shows it on Listen Live and at `/embed/fund-drive` | tiny, no-store |
 
 Not for apps: `/api/plugins/qir/catalog` (~1.1 MB gzip, no-store, QIR's own shape). The
 Talk-only filter runs in the app **before** joining notes; nothing from QIR adds an episode.

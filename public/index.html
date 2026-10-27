@@ -355,6 +355,8 @@
           <button class="lv-full" id="lvFull" type="button" hidden>Full page
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
         </div>
+        <!-- Donation capsule (fund drive, Phase 4a): figures set in the studio; hidden while off. -->
+        <div class="lv-fund" id="lvFund" hidden></div>
         <p class="lv-song" id="lvSong" hidden><em>♪ Now playing</em><span id="lvSongText"></span></p>
         <div class="lv-fd lv-embed" id="lvEmbed" hidden></div>
         <div class="lv-actions">
@@ -839,6 +841,7 @@
   <script src="/archive-search.js" defer></script>
   <script src="/links.js" defer></script>
   <script src="/just-aired.js" defer></script>
+  <script src="/fund-drive.js" defer></script>
   <script src="/app.js" defer></script>
   <!-- Now Playing on phones. After app.js: it uses window.ArchiveApp.player. -->
   <script src="/now-playing.js" defer></script>

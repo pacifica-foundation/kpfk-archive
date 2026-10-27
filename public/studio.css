@@ -1373,3 +1373,19 @@ th[aria-sort="ascending"] .th-sort::after { content: "\25B2"; }    /* ▲ */
 @media (max-width: 480px) {
   .studio-btn--export .btn-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
+
+/* Fund drive (Phase 4a): figures, a live preview with the real capsule, Publish. */
+.fd-fields { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: .9rem; margin: 1rem 0 1.25rem; }
+@media (max-width: 640px) { .fd-fields { grid-template-columns: 1fr 1fr; } .fd-field-name { grid-column: 1 / -1; } }
+.fd-preview-label { margin: 0 0 .5rem; }
+.fd-preview { max-width: 640px; padding: 1rem; border-radius: 16px; background: var(--surface-0, var(--surface-2)); border: 1px dashed var(--outline-strong); }
+.fd-preview-off { margin: 0; font-size: .9rem; color: var(--ink-dim); }
+.fd-preview-off[hidden] { display: none; }
+.fd-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .75rem; margin-top: 1rem; }
+.fd-actions .export-status { margin: 0 auto 0 0; }
+.fd-embed { margin-top: 1.25rem; border-top: 1px solid var(--outline-strong); padding-top: 1rem; }
+.fd-embed summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+.fd-snippet { margin: .75rem 0; padding: .85rem 1rem; border-radius: 10px; background: var(--surface-2); color: var(--ink);
+  font-size: .82rem; white-space: pre-wrap; word-break: break-all; }
+.fd-embed-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.fd-embed-actions a { text-decoration: none; }
