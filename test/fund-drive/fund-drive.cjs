@@ -48,6 +48,13 @@ const password = process.env.STUDIO_PW || 'pw';
   check('the studio has a Fund drive card', await until(`var s = document.getElementById('fundSection'); return !!s && !s.hidden && s.offsetHeight > 100;`, 10000));
   check('… never set up: off, Publish disabled', (await ev(`return document.getElementById('fdOn').getAttribute('aria-checked');`)) === 'false'
     && await ev(`return document.getElementById('fdPublish').disabled;`));
+  // Paul, 2026-10-27: the preview must show something before anything is typed.
+  check('… the preview already shows a capsule, marked Example', await until(`var c = document.getElementById('fdPreview'); return !c.hidden && c.offsetHeight > 40 && /\\$/.test(c.textContent) && document.getElementById('fdPreviewTag').textContent === 'Example';`, 4000),
+    await ev(`return document.getElementById('fdPreviewTag').textContent + ' | ' + document.getElementById('fdPreview').textContent.slice(0, 80);`));
+  check('… the embed snippet is shown, not folded away', await ev(`var e = document.getElementById('fdSnippet'); return e.offsetHeight > 20 && !e.closest('details');`));
+  const lay = JSON.parse(await p.eval(`var f = document.querySelector('.fd-form').getBoundingClientRect(), v = document.querySelector('.fd-side').getBoundingClientRect();
+    return JSON.stringify({ formW: Math.round(f.width), sideBySide: f.right <= v.left + 1 && Math.abs(f.top - v.top) < 60 });`));
+  check('… desktop: a compact form beside the preview', lay.sideBySide && lay.formW <= 420, JSON.stringify(lay));
   await p.click('#fdOn');
   await type('#fdName', 'Fall Fund Drive');
   await type('#fdGoal', '75000');
@@ -56,12 +63,21 @@ const password = process.env.STUDIO_PW || 'pw';
     await ev(`return document.getElementById('fdGoal').value + ' / ' + document.getElementById('fdPledged').value;`));
   check('… the preview is the capsule, following the typing', await until(`var c = document.getElementById('fdPreview'); return !c.hidden && /\\$42,350/.test(c.textContent) && /\\$75,000/.test(c.textContent) && /56%/.test(c.textContent) && /Fall Fund Drive/i.test(c.textContent);`, 4000),
     await capText('#fdPreview'));
-  check('… not live until Publish', (await publicFigures()).on === false && !(await ev(`return document.getElementById('fdPublish').disabled;`)));
+  check('… not live until Publish (marked Draft)', (await publicFigures()).on === false && !(await ev(`return document.getElementById('fdPublish').disabled;`))
+    && (await ev(`return document.getElementById('fdPreviewTag').textContent;`)) === 'Draft');
   await p.click('#fdPublish');
   check('Publish: listeners\' figures change at once', await until(`return /Published/.test(document.getElementById('fdStatus').textContent);`, 6000)
     && JSON.stringify((({ on, name, goal, pledged }) => ({ on, name, goal, pledged }))(await publicFigures())) === JSON.stringify({ on: true, name: 'Fall Fund Drive', goal: 75000, pledged: 42350 }),
     JSON.stringify(await publicFigures()) + ' ' + await ev(`return document.getElementById('fdStatus').textContent;`));
   check('… the embed snippet is ready to copy', /<iframe src="[^"]*\/embed\/fund-drive\?theme=light"/.test(await ev(`return document.getElementById('fdSnippet').textContent;`)));
+  check('… the preview is marked Live', (await ev(`return document.getElementById('fdPreviewTag').textContent;`)) === 'Live');
+  // Phone width: stacked, preview first, nothing sideways.
+  await size(390, true);
+  await sleep(500);
+  const ph = JSON.parse(await p.eval(`var f = document.querySelector('.fd-form').getBoundingClientRect(), v = document.querySelector('.fd-side').getBoundingClientRect();
+    return JSON.stringify({ previewFirst: v.bottom <= f.top + 1, sideways: document.documentElement.scrollWidth - innerWidth });`));
+  check('studio on a phone: preview above the form, no sideways scroll', ph.previewFirst && ph.sideways <= 0, JSON.stringify(ph));
+  await size(1280, false);
 
   // ---- 2: Listen Live
   await go('/live');

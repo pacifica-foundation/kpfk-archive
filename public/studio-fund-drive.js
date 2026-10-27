@@ -27,16 +27,26 @@
       goal: digits(goalIn.value), pledged: digits(pledgedIn.value) };
   }
   function same(a, b) { return a.on === b.on && a.name === b.name && a.goal === b.goal && a.pledged === b.pledged; }
+  // The preview always shows a capsule (Paul, 2026-10-27: an empty preview until you type was
+  // confusing): example figures until a goal is typed, then the draft. The tag says which.
+  var EXAMPLE = { on: true, name: 'Fall Fund Drive', goal: 75000, pledged: 42350 };
   function paintDraft() {
     var d = draft();
-    var forPreview = { on: true, name: d.name, goal: d.goal || 0, pledged: d.pledged || 0 };
-    preview.paint(forPreview);
-    $('fdPreviewOff').hidden = d.on && !!d.goal;
-    $('fdPreviewOff').textContent = !d.goal ? 'Set a goal to see the capsule.' : 'Off: the capsule is not shown. This is how it will look when on.';
-    var changed = published && !same(d, published);
+    var changed = !!published && !same(d, published);
+    var tag, note;
+    if (!d.goal) {
+      preview.paint(EXAMPLE);
+      tag = 'Example'; note = 'Example figures. Type a goal and the amount pledged to see yours.';
+    } else {
+      preview.paint({ on: true, name: d.name, goal: d.goal, pledged: d.pledged || 0 });
+      if (changed) { tag = 'Draft'; note = d.on ? 'Not published yet: Publish to show it on Listen Live.' : 'Switched off: Publish to take it down.'; }
+      else if (d.on) { tag = 'Live'; note = 'Showing on Listen Live now.'; }
+      else { tag = 'Off'; note = 'Not shown: switch it on and Publish to show it.'; }
+    }
+    $('fdPreviewTag').textContent = tag;
+    $('fdPreviewNote').textContent = note;
     publish.disabled = busy || !changed;
     discard.hidden = !changed;
-    if (changed) say(status, 'Not published yet.');
   }
   function fill(state) {
     var c = state.current;

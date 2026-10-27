@@ -125,39 +125,52 @@
       </div>
       <button class="studio-btn studio-btn--quiet" id="fdUndo" type="button" hidden>Undo last publish</button>
     </div>
-    <div class="disc-setting">
-      <div>
-        <h3 class="disc-label" id="fdOnLabel">Show the capsule</h3>
-        <p class="disc-desc">On: it shows on Listen Live and in the embed. Off: nothing shows anywhere.</p>
+    <!-- Two columns (Paul, 2026-10-27: the stacked full-width version was awkward): a compact form
+         on the left; on the right the preview, always shown (example figures until real ones are
+         typed), and the embed snippet, not folded away. Stacked on phones, preview first. -->
+    <div class="fd-layout">
+      <div class="fd-form">
+        <div class="fd-switch-row">
+          <div>
+            <h3 class="disc-label" id="fdOnLabel">Show the capsule</h3>
+            <p class="disc-desc">On Listen Live and in the embed.</p>
+          </div>
+          <button class="disc-switch" id="fdOn" type="button" role="switch" aria-checked="false" aria-labelledby="fdOnLabel"><span aria-hidden="true"></span></button>
+        </div>
+        <label class="studio-field"><span class="studio-field-label">Name (optional)</span>
+          <input class="studio-input" id="fdName" maxlength="40" autocomplete="off" placeholder="Fall Fund Drive"></label>
+        <div class="fd-amounts">
+          <label class="studio-field"><span class="studio-field-label">Goal ($)</span>
+            <input class="studio-input" id="fdGoal" inputmode="numeric" autocomplete="off" placeholder="75,000"></label>
+          <label class="studio-field"><span class="studio-field-label">Pledged so far ($)</span>
+            <input class="studio-input" id="fdPledged" inputmode="numeric" autocomplete="off" placeholder="0"></label>
+        </div>
+        <div class="fd-actions">
+          <button class="studio-btn export-go" id="fdPublish" type="button" disabled>Publish</button>
+          <button class="studio-btn studio-btn--quiet" id="fdDiscard" type="button" hidden>Discard changes</button>
+        </div>
+        <p class="export-status" id="fdStatus" role="status" aria-live="polite"></p>
       </div>
-      <button class="disc-switch" id="fdOn" type="button" role="switch" aria-checked="false" aria-labelledby="fdOnLabel"><span aria-hidden="true"></span></button>
-    </div>
-    <div class="fd-fields">
-      <label class="studio-field fd-field-name"><span class="studio-field-label">Name (optional)</span>
-        <input class="studio-input" id="fdName" maxlength="40" autocomplete="off" placeholder="Fall Fund Drive"></label>
-      <label class="studio-field"><span class="studio-field-label">Goal ($)</span>
-        <input class="studio-input" id="fdGoal" inputmode="numeric" autocomplete="off" placeholder="75,000"></label>
-      <label class="studio-field"><span class="studio-field-label">Pledged so far ($)</span>
-        <input class="studio-input" id="fdPledged" inputmode="numeric" autocomplete="off" placeholder="0"></label>
-    </div>
-    <p class="studio-field-label fd-preview-label">Preview — what listeners will see</p>
-    <div class="fd-preview"><div id="fdPreview"></div><p class="fd-preview-off" id="fdPreviewOff">Off: the capsule is not shown.</p></div>
-    <div class="fd-actions">
-      <p class="export-status" id="fdStatus" role="status" aria-live="polite"></p>
-      <button class="studio-btn studio-btn--quiet" id="fdDiscard" type="button" hidden>Discard changes</button>
-      <button class="studio-btn export-go" id="fdPublish" type="button" disabled>Publish</button>
-    </div>
-    <details class="fd-embed">
-      <summary>Show it on another site (embed)</summary>
-      <p class="studio-note">Paste this into a page on the station&rsquo;s own website. Only this app and the station&rsquo;s
-        website may show it; its Donate opens the donate page in a new tab.</p>
-      <pre class="fd-snippet" id="fdSnippet"></pre>
-      <div class="fd-embed-actions">
-        <button class="studio-btn studio-btn--quiet" id="fdCopy" type="button">Copy</button>
-        <a class="studio-btn studio-btn--quiet" id="fdOpenEmbed" href="/embed/fund-drive" target="_blank" rel="noopener">Open the embed</a>
-        <span class="export-status" id="fdCopyStatus" role="status" aria-live="polite"></span>
+      <div class="fd-side">
+        <div class="fd-preview-head">
+          <p class="studio-field-label">Preview</p>
+          <span class="fd-tag" id="fdPreviewTag">Example</span>
+        </div>
+        <div class="fd-preview"><div id="fdPreview"></div></div>
+        <p class="fd-preview-note" id="fdPreviewNote"></p>
+        <div class="fd-embed">
+          <p class="studio-field-label">Embed on the station&rsquo;s website</p>
+          <p class="fd-embed-note">Paste into a page on the station&rsquo;s own site. Only this app and the station&rsquo;s website
+            may show it; its Donate opens the donate page in a new tab.</p>
+          <pre class="fd-snippet" id="fdSnippet"></pre>
+          <div class="fd-embed-actions">
+            <button class="studio-btn studio-btn--quiet" id="fdCopy" type="button">Copy</button>
+            <a class="studio-btn studio-btn--quiet" id="fdOpenEmbed" href="/embed/fund-drive" target="_blank" rel="noopener">Open the embed</a>
+            <span class="export-status" id="fdCopyStatus" role="status" aria-live="polite"></span>
+          </div>
+        </div>
       </div>
-    </details>
+    </div>
   </section>
   <!-- Station & appearance (station template, step 5b, 2026-09-29; redesigned the same day, Paul:
        "stacked forms are jarring and busy"). A summary that reads like the site, one focused edit
