@@ -767,7 +767,12 @@
           return '<article class="search-show">'+searchArt(s.latest)+'<div class="search-copy">'+
             '<span class="search-reason">Matches '+esc(hit.reason.toLowerCase())+'</span>'+
             '<button class="search-title" data-search-show="'+esc(s.latest.id)+'">'+window.ArchiveSearch.highlight(s.name, state.query)+'</button>'+
-            '<p class="search-excerpt">'+window.ArchiveSearch.expandable(s.desc || s.host, state.query, 180)+'</p>'+
+            // Found through its episodes: show the best matching headline, never a description
+            // that may not contain the words (Paul, 2026-10-27: "where is nader?").
+            (hit.example
+              ? '<p class="search-excerpt">'+window.ArchiveSearch.expandable(window.ArchiveSearch.episodeTitle(hit.example) || window.ArchiveSearch.episodeBlurb(hit.example), state.query, 140)+
+                  ' <span class="search-excerpt-when">· '+esc(stationDate(new Date(hit.example.dt*1000)))+(hit.matches > 1 ? ' · and '+(hit.matches-1)+' more' : '')+'</span></p>'
+              : '<p class="search-excerpt">'+window.ArchiveSearch.expandable(s.desc || s.host, state.query, 180)+'</p>')+
             '<p class="search-meta">'+esc(dots([s.count+' available episodes', 'Latest '+stationDate(new Date(s.latest.dt*1000))]))+'</p></div>'+
             '<button class="search-action" data-search-show="'+esc(s.latest.id)+'">View show →</button></article>';
         }).join('')+'</div>'+ (matches.shows.length > (searchScope==='all'?6:searchLimit) ? '<button class="search-action search-more" data-search-more="shows">Show more shows</button>' : '')+'</section>';

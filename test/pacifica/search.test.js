@@ -83,3 +83,22 @@ test('episode groups: the show with many good matches leads one with a single me
  assert.equal(g[0].sho,'maiz'); assert.deepEqual(g[0].hits.map(h=>h.row.id),['m1','m2','m3']);
  assert.ok(g.findIndex(x=>x.sho==='hart')>0);
 });
+
+// Class: a result shows why it matched (Paul, 2026-10-27: searching "nader" listed Global Village,
+// whose notes name a musician "Salar Nader", and Something's Happening hours whose cards showed a
+// description without the word). A name only in notes never makes a show result; a show found
+// through its episodes carries the headline that matched, for the card to show.
+test('a name only in episode notes does not make a show result; a show result carries its matching headline',()=>{
+ const r=[
+  {id:'g1',sho:'gv',title:'Global Village',host:'',cat:'music',dt:10,published:[{topic:'Music from around the world'}],episodeDesc:'Benefit concert with Salar Nader and friends.'},
+  {id:'g2',sho:'gv',title:'Global Village',host:'',cat:'music',dt:20,published:[{topic:'Fusion celebration'}],episodeDesc:'Line-up: Rudy Sarzo, Salar Nader.'},
+  {id:'s1',sho:'sh',title:"Something's Happening A hour 2",host:'',cat:'news',dt:30,published:[{topic:'Ralph Nader on smart voting'}],episodeDesc:''},
+  {id:'s2',sho:'sh',title:"Something's Happening A hour 2",host:'',cat:'news',dt:40,published:[{topic:'Foreign policy'}],episodeDesc:'Ralph Nader discusses Iran.'},
+ ];
+ const idx=search.build(r,{gv:{name:'Global Village',desc:'Eclectic global sounds'},sh:{name:"Something's Happening A hour 2",desc:'Tue - Behind the News'}},{});
+ const shows=search.find(idx,'nader','all').shows;
+ assert.ok(!shows.some(s=>s.show.id==='gv'),'notes-only mentions do not promote Global Village');
+ const sh=shows.find(s=>s.show.id==='sh');
+ assert.ok(sh,'two matching episodes, one by headline'); assert.equal(sh.example.id,'s1','the card shows the matching headline');
+ assert.match(search.episodeTitle(sh.example),/Nader/);
+});

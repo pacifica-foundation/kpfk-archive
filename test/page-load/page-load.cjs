@@ -28,6 +28,17 @@ const PAGES = ['/', '/live', '/schedule', '/show/nader', '/show/cinemascore'];
       check(`${width}px ${path}: loads, no uncaught errors`, ready && !errors.length, errors.slice(0, 3).join('\n     ') || 'page script did not finish start-up');
     }
   }
+  // Search: every show result shows why it matched — the word, highlighted, on the card
+  // (2026-10-27: "nader" listed shows whose cards never mentioned Nader).
+  for (const q of ['nader', 'food', 'gaza']) {
+    errors = [];
+    await p.send('Page.navigate', { url: base + '/?q=' + q });
+    const shown = await until(`return document.querySelectorAll('.search-show').length > 0 || !!document.querySelector('.search-empty');`, 20000);
+    const cards = await p.eval(`return JSON.stringify([...document.querySelectorAll('.search-show')].map(c => ({ name: (c.querySelector('.search-title') || {}).textContent, hit: [...c.querySelectorAll('mark.search-hit')].some(m => m.offsetWidth > 0) })));`);
+    const missing = JSON.parse(cards).filter(c => !c.hit).map(c => c.name);
+    check(`search "${q}": every show result shows the word (${JSON.parse(cards).length} shows), no errors`, shown && !missing.length && !errors.length,
+      (missing.length ? 'no visible hit on: ' + missing.join(', ') : '') + (errors.length ? ' ' + errors[0] : ''));
+  }
   await p.send('Page.navigate', { url: base + '/show/cinemascore' });
   await until(`return !!document.querySelector('#showSheet.show img[src*="/api/artwork/tile/"]');`, 15000);
   const tile = await p.eval(`var i = document.querySelector('#showSheet img[src*="/api/artwork/tile/"]'); return i ? (i.complete && i.naturalWidth > 0 ? 'drawn' : 'not drawn') : 'none';`);

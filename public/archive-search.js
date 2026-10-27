@@ -62,20 +62,26 @@
       return {row:e.row, score:b.score, reason:b.reason};
     }).filter(function(e){return e.score>0;}).sort(function(a,b){return b.score-a.score || b.row.dt-a.row.dt || a.row.id.localeCompare(b.row.id);});
     // A show is also a result through its episodes (Ace's review: "food" found 2 shows while
-    // episodes came from about a dozen): two or more matching episodes, ranked by the best one
-    // and how many. Kept below a show-name match (59 at most), so a show named for the words leads.
+    // episodes came from about a dozen): two or more matching episodes, at least one by its
+    // HEADLINE, ranked by the best one and how many, kept below a show-name match (59 at most).
+    // A name only in notes (a musician called Salar Nader in concert promos) is not what a show
+    // is about (Paul, 2026-10-27). `example` is the best headline match: the card shows it, so a
+    // result always shows why it matched.
     var byShow = new Map();
     episodes.forEach(function(e){
       if(e.reason === 'Show name' || e.reason === 'Host') return;   // the show's own fields speak for those
-      var t = byShow.get(e.row.sho) || {n:0, best:0}; t.n++; t.best = Math.max(t.best, e.score); byShow.set(e.row.sho, t);
+      var t = byShow.get(e.row.sho) || {n:0, best:0, example:null, exampleScore:0};
+      t.n++; t.best = Math.max(t.best, e.score);
+      if(e.reason === 'Episode topic' && e.score > t.exampleScore){ t.example = e.row; t.exampleScore = e.score; }
+      byShow.set(e.row.sho, t);
     });
     var shows = index.shows.filter(function(s){return category === 'all' || s.cat === category;}).map(function(s){
       var own = best([['Show name',score(s.fields.name,q)],['Host',score(s.fields.host,q)*.7],
         ['Show description',score(s.fields.description,q)*.4],['Category',score(s.fields.category,q)*.3]]);
       var t = byShow.get(s.id), matches = t ? t.n : 0;
-      var viaEpisodes = matches >= 2 ? Math.min(59, t.best * .5 + 10 * Math.log2(matches)) : 0;
+      var viaEpisodes = matches >= 2 && t.example ? Math.min(59, t.best * .5 + 10 * Math.log2(matches)) : 0;
       return viaEpisodes > own.score
-        ? {show:s, score:viaEpisodes, reason:matches + ' episodes', matches:matches}
+        ? {show:s, score:viaEpisodes, reason:matches + ' episodes', matches:matches, example:t.example}
         : {show:s, score:own.score, reason:own.reason, matches:matches};
     }).filter(function(s){return s.score>0;}).sort(function(a,b){return b.score-a.score || b.matches-a.matches || a.show.name.localeCompare(b.show.name);});
     return {shows:shows, episodes:episodes};
