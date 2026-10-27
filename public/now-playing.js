@@ -91,6 +91,15 @@
     ['play', 'pause', 'playing', 'waiting', 'ended', 'loadstart'].forEach(function (t) { a.addEventListener(t, paintState); });
     a.addEventListener('loadstart', function () { if (dlg.open) setTimeout(paint, 0); });
     document.addEventListener('archive:barmode', function (e) { if (e.detail && e.detail.mode !== 'archive' && dlg.open) close(); });
+    // A new episode list arrived while the sheet is open: "More from this show" is built from it.
+    // Keeps keyboard focus on the same episode button when it is still listed.
+    document.addEventListener('archive:rows', function () {
+      if (!dlg.open) return;
+      var f = document.activeElement, id = f && f.classList.contains('np-ep') ? f.dataset.id : '';
+      paint();
+      var again = id && els.list.querySelector('.np-ep[data-id="' + CSS.escape(id) + '"]');
+      if (again) again.focus();
+    });
     window.addEventListener('popstate', function () { if (dlg.open && pushed) { pushed = false; hide(); } });
   }
 

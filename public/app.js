@@ -3114,6 +3114,15 @@
     archiveSig = revision || (rows.length + ':' + latestDt);
     render();
     setClock();
+    repaintFromRows();
+    openDeepLink();
+  }
+
+  // Everything on screen that is built from `rows`, other than the listing itself. Both ways
+  // a new list arrives (ingest, quietUpdate) call this, so they can't disagree about what to
+  // redraw. 2026-10-27, Ace's review: quietUpdate redrew Just aired only, and an open Live
+  // popup kept its old "Past episodes" count (Nader 8) while the show page said 9.
+  function repaintFromRows(){
     schedInvalidate();   // the schedule is derived from these rows; keep it in step
     // Stable current/up-next routes depend on the playable rows, which arrive
     // after the first now-playing paint on a cold load.
@@ -3121,11 +3130,9 @@
     if(barMode === 'live') paintLiveBar();
     // The episode rail is derived from them too — an open sheet still holding
     // the pre-refresh list would offer episodes that have just rotated out.
-    if(sheet && sheet.classList.contains('show')){
-      var open = rowById(sheetRowId);
-      if(open) paintSheet(open, true);
-    }
-    openDeepLink();
+    repaintOpenSheet();
+    // Views outside this file (Now Playing's "More from this show") repaint themselves.
+    document.dispatchEvent(new CustomEvent('archive:rows'));
   }
 
   // A `?show=` link can only be honoured once the rows exist, and only if the
@@ -3269,6 +3276,7 @@
         enrichRows();
         rebuildSearchIndex();
         renderJustAired(true);
+        repaintFromRows();
       })
       // Caught: offline or the server restarting. Forget the signature so the next poll tries again.
       .catch(function(e){ quietSig = ''; console.warn('Just aired update failed:', e.message); });
