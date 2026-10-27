@@ -67,26 +67,28 @@ test('a show with its own picture gets no tile', async t => {
   }
 });
 
-test('/tile: the show name, escaped, in the category colour; unknown shows are refused', async t => {
+test('/tile: the show name, escaped, with no colour coding; unknown shows are refused', async t => {
   const s = service(t, x => x.altid === 'afrodicia' ? STAND_IN : '');
   const catalog = await s.catalog();
   const key = Object.keys(catalog.directory).find(k => k.endsWith('.afrodicia'));
-  const svg = s.tile(key, '4fb6ac').raw.toString();
-  assert.match(svg, /^<svg /); assert.match(svg, />Afro-Dicia</); assert.match(svg, /fill="#4fb6ac"/);
-  assert.match(svg, /KPFK 90\.7 FM/);
-  assert.doesNotMatch(s.tile(key, '"><script>').raw.toString(), /<script/, 'a bad colour is ignored');
+  const svg = s.tile(key).raw.toString();
+  assert.match(svg, /^<svg /); assert.match(svg, />Afro-Dicia</); assert.match(svg, /KPFK 90\.7 FM/);
+  // Shows are never colour-coded (Paul, 2026-10-27): only the placeholder's own greys and white.
+  const fills = new Set([...svg.matchAll(/(?:fill|stop-color)="(#[0-9a-f]{6})"/gi)].map(m => m[1].toLowerCase()));
+  assert.deepEqual([...fills].sort(), ['#17191c', '#303337', '#a4adb3', '#f3f4f5'], 'greys and white only');
+  assert.equal(s.tile(key, '4fb6ac').raw.toString(), svg, 'a colour passed in is ignored');
   assert.throws(() => s.tile('kpfk.kpfk.nosuchshow'), e => e.status === 404);
-  const hostile = nameTile('Tom & Jerry <b>"Live"</b>', '#000000', 'KPFK');
+  const hostile = nameTile('Tom & Jerry <b>"Live"</b>', 'KPFK');
   assert.doesNotMatch(hostile, /<b>|"Live"/); assert.match(hostile, /&amp;/); assert.match(hostile, /&lt;b&gt;&quot;Live&quot;&lt;\/b&gt;/);
 });
 
 test('the tile never breaks a word that fits at a smaller size, and keeps to four lines', () => {
   const lines = svg => [...svg.matchAll(/<text x="40" y="\d+">([^<]*)<\/text>/g)].map(m => m[1]);
-  assert.deepEqual(lines(nameTile('CinemaScore', '#000000', '')), ['CinemaScore']);
+  assert.deepEqual(lines(nameTile('CinemaScore', '')), ['CinemaScore']);
   const words = 'Senderos de Oaxaca: Así es Nuestra Cultura'.split(' ');
-  const got = lines(nameTile(words.join(' '), '#000000', ''));
+  const got = lines(nameTile(words.join(' '), ''));
   assert.ok(got.length <= 4); assert.deepEqual(got.join(' ').split(' '), words);
-  assert.ok(lines(nameTile('A '.repeat(60) + 'Supercalifragilisticexpialidocious', '#000000', '')).length <= 4);
+  assert.ok(lines(nameTile('A '.repeat(60) + 'Supercalifragilisticexpialidocious', '')).length <= 4);
 });
 
 test('placeholderArt is checked like every other station setting', () => {

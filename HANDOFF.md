@@ -16,7 +16,7 @@ Committed, **not yet pushed or deployed** (check `git log origin/main..main`). O
   (8091): 9/9; 3 fail on the old code.
 - **Name tiles:** 25 shows carry Confessor's stand-in `KPFK_med.jpg`. Station `placeholderArt`
   names it; such shows (and ones with no picture) get `tile` → `/api/artwork/tile/<show key>`
-  (SVG, category colour via `?c=`). The web page swaps it in (`useTile`); `photo` is unchanged
+  (SVG: show name and station; **no colour coding** — Paul, 2026-10-27, now in CLAUDE.md §5). The web page swaps it in (`useTile`); `photo` is unchanged
   for the Flutter app (no SVG). Real art in Confessor removes the tile. Test `name-tile.test.js`.
 - **Re-runs:** found from QIR transcripts (`plugins/discovery/lib/qir/repeats.js`): one transcript
   read every 4 s in the background (backfill ~1.5 h after deploy, then new episodes only),

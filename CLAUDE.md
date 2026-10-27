@@ -148,6 +148,8 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
 - **Usage counters** (`public/track.js`, `POST /api/ev`) carry **no identifier of
   any kind**, and search words are never sent. The README states this publicly —
   change the README in the same commit if collection ever changes.
+- **No colour coding** (Paul, 2026-10-27): shows, episodes and categories are never told apart by
+  colour (tiles, cards, badges, schedule). The `CATS` colours in `app.js` are WBAI leftovers, unused.
 - **Branding:** every image in `public/assets/` is KPFK's. `test/pacifica/branding.test.js`
   fails if any served file is byte-identical to a WBAI asset.
 

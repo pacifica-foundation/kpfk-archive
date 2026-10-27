@@ -4340,7 +4340,7 @@ async function handleRequest(req, res) {
       if (pathOnly.startsWith('/api/artwork/')) {
         const tileKey = /^\/api\/artwork\/tile\/([A-Za-z0-9_.-]{1,200})$/.exec(pathOnly);
         const result = tileKey
-          ? pacifica.tile(tileKey[1], new URL(req.url, 'http://localhost').searchParams.get('c'))
+          ? pacifica.tile(tileKey[1])
           : await pacifica.artwork(pathOnly.slice('/api/artwork/'.length));
         // ETag lets a browser revalidate a day-old image with a 304 instead of the bytes.
         if (req.headers['if-none-match'] === result.etag) {

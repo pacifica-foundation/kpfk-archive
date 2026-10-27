@@ -2825,8 +2825,8 @@
   var NOWPLAYING_SNAPSHOT = { current:{name:STATION.label, dj:'', start:'', end:'', photo:STATION.assets.icon}, next:{name:'',start:''} };
 
   function renderNowPlaying(cur, nxt, isLive){
-    useTile(cur, cur && (showInfo[cur.altid] || {}).cat);
-    useTile(nxt, nxt && (showInfo[nxt.altid] || {}).cat);
+    useTile(cur);
+    useTile(nxt);
     liveCurrent = cur;
     liveNext = nxt;
     liveIsLive = isLive;
@@ -2980,13 +2980,10 @@
   var plugins = [];
   // A show whose picture is the feed's stand-in (or none) carries `tile`, a name tile the server
   // draws (2026-10-27, Ace's review: 25 KPFK shows all showed the same station logo). The page
-  // shows the tile, in the show's category colour, as the show's photo. Applied where data
-  // arrives (episodes, show directory, on air, schedule), so every view that reads `photo` has it.
-  function useTile(o, cat){
-    if(o && o.tile){
-      var c = (CAT_BY_KEY[cat || o.cat] || {}).color || '';
-      o.photo = o.tile + (/^#[0-9a-f]{6}$/i.test(c) ? '?c=' + c.slice(1) : '');
-    }
+  // shows the tile as the show's photo. Applied where data arrives (episodes, show directory, on
+  // air, schedule), so every view that reads `photo` has it. No colour coding (Paul, 2026-10-27).
+  function useTile(o){
+    if(o && o.tile) o.photo = o.tile;
     return o;
   }
   function useTiles(){
