@@ -776,9 +776,8 @@
       hasResults = true;
       html += '<section class="search-section"><h2>Episodes <span>'+matches.episodes.length+'</span></h2>';
       if(searchScope === 'all'){
-        var groups = new Map();
-        matches.episodes.forEach(function(hit){var key=hit.row.sho;if(!groups.has(key)) groups.set(key,[]);groups.get(key).push(hit);});
-        Array.from(groups.values()).slice(0,searchLimit).forEach(function(group){
+        // Strongest show first (ArchiveSearch.groups: best episode plus how many match).
+        window.ArchiveSearch.groups(matches.episodes).map(function(g){ return g.hits; }).slice(0,searchLimit).forEach(function(group){
           html += '<div class="search-panel search-group"><h3>'+esc(group[0].row.title)+' <span>'+group.length+' matches</span></h3>'+
             group.slice(0,3).map(searchEpisodeHtml).join('')+
             (group.length>3 ? '<button class="search-action search-more" data-search-matches="'+esc(group[0].row.sho)+'">View matching episodes →</button>' : '')+'</div>';

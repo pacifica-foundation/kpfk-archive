@@ -52,3 +52,34 @@ test('expandable previews carry the full text only when the preview was cut',()=
  assert.match(html,/<span class="search-full" hidden>/);assert.match(html,/<button type="button" class="search-expand" aria-expanded="false">Show more<\/button>$/);
  assert.ok(html.split('search-hit').length===3,'the term is marked in both the preview and the full text');
 });
+
+// Class: results ranked by how well they match, not by date (2026-10-27, Ace's review: searching
+// "food", Thom Hartmann's passing "food stamps" sat level with Radio Maiz's food-justice
+// episodes, and "food" found 2 shows while episodes came from about a dozen). The passing
+// mentions here are the NEWEST rows, so date order alone would put them first.
+const ace=[
+ {id:'m1',sho:'maiz',title:'Radio Maiz',host:'',cat:'espanol',dt:100,published:[{topic:'Food justice and maize',notes:''}],episodeDesc:'Food sovereignty, food systems and community food gardens.'},
+ {id:'m2',sho:'maiz',title:'Radio Maiz',host:'',cat:'espanol',dt:90,published:[{topic:'Traditional food systems',notes:''}],episodeDesc:'How food travels from field to table.'},
+ {id:'m3',sho:'maiz',title:'Radio Maiz',host:'',cat:'espanol',dt:80,published:[{topic:'Corn and culture',notes:''}],episodeDesc:'Seeds and food heritage.'},
+ {id:'h1',sho:'hart',title:'Thom Hartmann Program',host:'Thom Hartmann',cat:'news',dt:300,published:[{topic:'Election news and the economy',notes:''}],episodeDesc:'Callers on taxes, wages and food stamps.'},
+ {id:'s1',sho:'sea',title:'Ocean Talk',host:'',cat:'news',dt:400,published:[{topic:'Seafood prices',notes:''}],episodeDesc:''},
+ {id:'f1',sho:'foodshow',title:'Food Matters',host:'',cat:'news',dt:50,published:[{topic:'Interview',notes:''}],episodeDesc:''},
+];
+const aceIndex=search.build(ace,{maiz:{name:'Radio Maiz',desc:'Indigenous voices'},hart:{name:'Thom Hartmann Program'},sea:{name:'Ocean Talk'},foodshow:{name:'Food Matters'}},{});
+test('an episode about the subject outranks a newer passing mention; a word inside another word ranks last',()=>{
+ const ids=search.find(aceIndex,'food','all').episodes.map(e=>e.row.id);
+ assert.ok(ids.indexOf('m1')<ids.indexOf('h1') && ids.indexOf('m2')<ids.indexOf('h1'),'food-justice episodes before "food stamps": '+ids);
+ assert.equal(ids.at(-1),'s1','"seafood" is the weakest match');
+});
+test('a show with several matching episodes is a show result; a show named for the words still leads',()=>{
+ const shows=search.find(aceIndex,'food','all').shows;
+ assert.equal(shows[0].show.id,'foodshow','show-name match first');
+ const maiz=shows.find(s=>s.show.id==='maiz');
+ assert.ok(maiz,'Radio Maiz is found through its episodes'); assert.equal(maiz.reason,'3 episodes'); assert.equal(maiz.matches,3);
+ assert.ok(!shows.some(s=>s.show.id==='hart'),'one passing mention does not make a show result');
+});
+test('episode groups: the show with many good matches leads one with a single mention',()=>{
+ const g=search.groups(search.find(aceIndex,'food','all').episodes);
+ assert.equal(g[0].sho,'maiz'); assert.deepEqual(g[0].hits.map(h=>h.row.id),['m1','m2','m3']);
+ assert.ok(g.findIndex(x=>x.sho==='hart')>0);
+});

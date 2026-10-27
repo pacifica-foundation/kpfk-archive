@@ -48,8 +48,9 @@ test('musicWindowDays and musicShows: validated, KPFK = 14 days + Special Music 
 
 test('episodeCorrections: mp3 file, real show key and a note are all required', () => {
   const p = validateProfile(raw());
-  assert.equal(p.episodeCorrections.length, 3);
-  assert.ok(p.episodeCorrections.every(c => c.show === 'alanwatts' && /\.mp3$/.test(c.file) && c.note));
+  // Three Alan Watts hours (2026-09-27) and three Radio Maiz half-hours (2026-10-27), each checked.
+  assert.equal(p.episodeCorrections.length, 6);
+  assert.ok(p.episodeCorrections.every(c => ['alanwatts', 'radiomaiz'].includes(c.show) && /\.mp3$/.test(c.file) && c.note));
   const good = { file: 'kpfk_260726_083000onconta.mp3', show: 'alanwatts', note: 'why' };
   for (const bad of ['x', [{ ...good, file: '../x.mp3' }], [{ ...good, file: 'x.wav' }], [{ ...good, show: '../x' }], [{ ...good, note: ' ' }]]) {
     assert.throws(() => validateProfile({ ...raw(), episodeCorrections: bad }), /episode correction|episodeCorrections/);

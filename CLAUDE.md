@@ -148,6 +148,12 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
 - **Usage counters** (`public/track.js`, `POST /api/ev`) carry **no identifier of
   any kind**, and search words are never sent. The README states this publicly —
   change the README in the same commit if collection ever changes.
+- **Template rule: no features for one station's non-standard programming** (Paul, 2026-10-27).
+  This app is a template for every Pacifica station. A show, its episodes and its schedule are
+  the standard concepts; when a station's data doesn't fit them (KPFK's "Something's Happening":
+  an overnight block of ~20 programmes filed as six hourly "shows"), the fix is at the source
+  (Confessor, the station), never an app feature such as grouping. Generic tools that any station
+  can fill in (e.g. `episodeCorrections` for a mis-filed recording) are fine.
 - **No colour coding** (Paul, 2026-10-27): shows, episodes and categories are never told apart by
   colour (tiles, cards, badges, schedule). The `CATS` colours in `app.js` are WBAI leftovers, unused.
 - **Branding:** every image in `public/assets/` is KPFK's. `test/pacifica/branding.test.js`

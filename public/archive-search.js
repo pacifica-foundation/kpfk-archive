@@ -8,13 +8,30 @@
     return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
   }
+  // How well one field matches (2026-10-27, Ace's review: "food stamps" on Thom Hartmann sat
+  // level with Radio Maiz's food-justice episodes, and the order between them was by date).
+  // Whole words beat word starts ("foods") beat the inside of a word ("seafood"), and a word
+  // that runs through a text beats one passing mention. Texts and query are normalize()d.
+  function count(text, part){ var n = 0, i = text.indexOf(part); while(i >= 0){ n++; i = text.indexOf(part, i + part.length); } return n; }
   function score(text, query){
     if(!text || !query) return 0;
     if(text === query) return 100;
-    if(text.startsWith(query)) return 80;
-    if(text.includes(query)) return 60;
+    var padded = ' ' + text + ' ', more = function(n){ return Math.min(15, (n - 1) * 5); };
+    if((' ' + text).startsWith(' ' + query + ' ')) return 80;
+    var whole = count(padded, ' ' + query + ' ');
+    if(whole) return 60 + more(whole);
+    var start = count(padded, ' ' + query);
+    if(start) return 45 + more(start);
     var words = text.split(' ');
-    return query.split(' ').every(function(q){ return words.some(function(w){ return w.startsWith(q); }); }) ? 30 : 0;
+    if(query.indexOf(' ') > 0 && query.split(' ').every(function(q){ return words.some(function(w){ return w.startsWith(q); }); })) return 30;
+    return text.includes(query) ? 20 : 0;
+  }
+  // The best field decides; every other field that matches adds a little, so an episode about
+  // the subject (headline and summary) outranks one that mentions it once.
+  function best(candidates){
+    candidates.sort(function(a,b){ return b[1]-a[1]; });
+    var extra = candidates.slice(1).reduce(function(sum, c){ return sum + c[1]; }, 0);
+    return {score: candidates[0][1] ? candidates[0][1] + extra * 0.2 : 0, reason: candidates[0][0]};
   }
   function build(rows, directory, labels){
     var shows = new Map();
@@ -39,19 +56,39 @@
   function find(index, query, category){
     var q = normalize(query);
     if(!q) return {shows:[], episodes:[]};
-    var shows = index.shows.filter(function(s){return category === 'all' || s.cat === category;}).map(function(s){
-      var candidates = [['Show name',score(s.fields.name,q)],['Host',score(s.fields.host,q)*.7],
-        ['Show description',score(s.fields.description,q)*.4],['Category',score(s.fields.category,q)*.3]];
-      candidates.sort(function(a,b){return b[1]-a[1];});
-      return {show:s, score:candidates[0][1], reason:candidates[0][0]};
-    }).filter(function(s){return s.score>0;}).sort(function(a,b){return b.score-a.score || a.show.name.localeCompare(b.show.name);});
     var episodes = index.episodes.filter(function(e){return category === 'all' || e.row.cat === category;}).map(function(e){
-      var candidates = [['Episode topic',score(e.fields.topic,q)],['Episode notes',score(e.fields.content,q)*.75],
-        ['Show name',score(e.fields.name,q)*.6],['Host',score(e.fields.host,q)*.4]];
-      candidates.sort(function(a,b){return b[1]-a[1];});
-      return {row:e.row, score:candidates[0][1], reason:candidates[0][0]};
+      var b = best([['Episode topic',score(e.fields.topic,q)],['Episode notes',score(e.fields.content,q)*.75],
+        ['Show name',score(e.fields.name,q)*.6],['Host',score(e.fields.host,q)*.4]]);
+      return {row:e.row, score:b.score, reason:b.reason};
     }).filter(function(e){return e.score>0;}).sort(function(a,b){return b.score-a.score || b.row.dt-a.row.dt || a.row.id.localeCompare(b.row.id);});
+    // A show is also a result through its episodes (Ace's review: "food" found 2 shows while
+    // episodes came from about a dozen): two or more matching episodes, ranked by the best one
+    // and how many. Kept below a show-name match (59 at most), so a show named for the words leads.
+    var byShow = new Map();
+    episodes.forEach(function(e){
+      if(e.reason === 'Show name' || e.reason === 'Host') return;   // the show's own fields speak for those
+      var t = byShow.get(e.row.sho) || {n:0, best:0}; t.n++; t.best = Math.max(t.best, e.score); byShow.set(e.row.sho, t);
+    });
+    var shows = index.shows.filter(function(s){return category === 'all' || s.cat === category;}).map(function(s){
+      var own = best([['Show name',score(s.fields.name,q)],['Host',score(s.fields.host,q)*.7],
+        ['Show description',score(s.fields.description,q)*.4],['Category',score(s.fields.category,q)*.3]]);
+      var t = byShow.get(s.id), matches = t ? t.n : 0;
+      var viaEpisodes = matches >= 2 ? Math.min(59, t.best * .5 + 10 * Math.log2(matches)) : 0;
+      return viaEpisodes > own.score
+        ? {show:s, score:viaEpisodes, reason:matches + ' episodes', matches:matches}
+        : {show:s, score:own.score, reason:own.reason, matches:matches};
+    }).filter(function(s){return s.score>0;}).sort(function(a,b){return b.score-a.score || b.matches-a.matches || a.show.name.localeCompare(b.show.name);});
     return {shows:shows, episodes:episodes};
+  }
+  // Episode results grouped by show, strongest group first: its best episode plus a little for
+  // each further match, so a show with many good matches (Ralph Nader Radio Hour for "nader",
+  // 8 episodes) leads one with a single mention. Episodes keep their order inside a group.
+  function groups(episodes){
+    var by = new Map();
+    episodes.forEach(function(e){ if(!by.has(e.row.sho)) by.set(e.row.sho, []); by.get(e.row.sho).push(e); });
+    return Array.from(by.values()).map(function(list){
+      return {sho:list[0].row.sho, hits:list, score:list[0].score + 10 * Math.log2(list.length)};
+    }).sort(function(a,b){ return b.score-a.score || b.hits.length-a.hits.length || b.hits[0].row.dt-a.hits[0].row.dt; });
   }
   // A published topic is used as the episode title only when it reads like one.
   // Some producers paste the whole episode description into it (Rising Up,
@@ -121,6 +158,6 @@
       '<span class="search-full" hidden>' + highlight(ex.full, query) + '</span> ' +
       '<button type="button" class="search-expand" aria-expanded="false">Show more</button>';
   }
-  return {build:build, find:find, normalize:normalize, episodeTitle:episodeTitle, episodeBlurb:episodeBlurb, TITLE_MAX:TITLE_MAX,
+  return {build:build, find:find, groups:groups, normalize:normalize, episodeTitle:episodeTitle, episodeBlurb:episodeBlurb, TITLE_MAX:TITLE_MAX,
     escapeHtml:escapeHtml, highlight:highlight, excerpt:excerpt, expandable:expandable};
 });

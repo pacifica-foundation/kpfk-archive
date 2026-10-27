@@ -30,9 +30,10 @@ test('a correction to a show QIR has no episodes of is skipped and reported, not
   assert.deepEqual(out[0],hedges);assert.match(warned[0],/nosuchshow/);
 });
 test('no corrections: the list is returned as is',()=>{const l=[watts];assert.equal(applyCorrections(l,[]),l);assert.equal(applyCorrections(l,undefined),l);});
-test('station profile: corrections are validated; KPFK carries the three checked Alan Watts hours',()=>{
+test('station profile: corrections are validated; KPFK carries its checked corrections (Alan Watts hours, Radio Maiz half-hours)',()=>{
   const raw=JSON.parse(require('fs').readFileSync(require('path').join(__dirname,'../../../stations/kpfk.json'),'utf8'));
-  assert.deepEqual(validateProfile(raw).episodeCorrections.map(c=>c.file+'>'+c.show),['kpfk_260726_083000onconta.mp3>alanwatts','kpfk_260802_083000onconta.mp3>alanwatts','kpfk_260927_083000onconta.mp3>alanwatts']);
+  assert.deepEqual(validateProfile(raw).episodeCorrections.map(c=>c.file+'>'+c.show),['kpfk_260726_083000onconta.mp3>alanwatts','kpfk_260802_083000onconta.mp3>alanwatts','kpfk_260927_083000onconta.mp3>alanwatts',
+    'kpfk_260831_200000infopac.mp3>radiomaiz','kpfk_260928_200000infopac.mp3>radiomaiz','kpfk_261012_200000infopac.mp3>radiomaiz']);
   for(const bad of ['x',[{file:'../x.mp3',show:'a',note:'n'}],[{file:'a.mp3',show:'../b',note:'n'}],[{file:'a.mp3',show:'b'}],[{file:'a.mp3',show:'b',note:' '}]])
     assert.throws(()=>validateProfile({...raw,episodeCorrections:bad}),/orrection/i);
 });

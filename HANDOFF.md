@@ -1,14 +1,33 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-27 (INT-974 fixes: episode counts, re-runs, name tiles — committed, not deployed; first section). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-10-27 (Ace's review: episode counts, re-runs, name tiles — **live and checked**; search ranking and Radio Maiz re-filing; Something's Happening handed to Ace; wrap-up email to Ace due end of day — first two sections). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
-## 2026-10-27 — INT-974 (small fixes from Ace's review): counts, re-runs, stand-in art
+## 2026-10-27 (afternoon) — search (INT-970), Something's Happening, Radio Maiz
 
-Committed, **not yet pushed or deployed** (check `git log origin/main..main`). Offline suite green.
+- **Search ranking** (`public/archive-search.js`): whole words beat word starts beat the inside
+  of a word ("seafood"); repeated and multi-field matches outrank one passing mention; a show is
+  also a result through 2+ matching episodes ("Matches 3 episodes"), kept below a show-name
+  match; episode groups ordered by best episode + count (`ArchiveSearch.groups`). Ace's "food":
+  2 → 13 shows. Tests in `search.test.js` (3 new, all fail on the old code).
+- **Radio Maiz re-filed:** on Aug 31, Sep 28, Oct 12 Radio Maiz ran 8–9 pm and the recorder filed
+  its first half-hour under Informativo Pacifica (`infopac`); checked by QIR transcript (17–30
+  "Radio Maíz" mentions each). Three `episodeCorrections` entries. Schedule fix is Ace's.
+- **Something's Happening: not grouped in the app** (Paul). It's an overnight block of ~20
+  programmes filed as six hourly shows. New Ace item "Confessor: list Something's Happening's
+  programmes as their own shows"; once Confessor has CRUD we can do the split in code. Note to
+  Ace drafted: `.local-notes/ace-email-2026-10-27-somethings-happening.html`.
+- **New rules (CLAUDE.md §5):** template rule — no features for one station's non-standard
+  programming; and no colour coding.
+- **Wrap-up email to Ace at end of day** (Paul): all done items; wording decided together.
+  Running notes: `.local-notes/ace-wrapup-2026-10-27-notes.md`.
+
+## 2026-10-27 — INT-974 (from Ace's review): counts, re-runs, stand-in art
+
+**Live and checked** (2026-10-27; redeployed after the start-up crash fix and the no-colour tiles).
 - **Episode counts (Nader 9 vs 8):** the quiet background update redrew Just aired only; an open
   show sheet or Now Playing kept the old list (the Live popup repaints every 15 s, so it moved
   on and the two disagreed). Both refresh paths now call `repaintFromRows()` (`public/app.js`),
