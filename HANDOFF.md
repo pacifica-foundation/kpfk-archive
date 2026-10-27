@@ -57,6 +57,12 @@ connection): `/`, `/live`, `/schedule`, a show and `/embed/fund-drive` at 390 an
   the studio preview. Not in the embed.
 - Next (Phase 4): dates, the donate page check, Ace's own embed.
 
+### Staff guide PDF (for Ace to share)
+
+`docs/overview/KPFK-Podcasts-Guide-2026-10.pdf` — 9 pages in the Stream Monitor guide's style (Paul's
+choice), fresh pictures from the live site (uncounted) and a scratch studio (example figures).
+Regenerate steps in `docs/overview/README.md`.
+
 ### Tests added today
 
 `test/listen-live/run.sh` (Chrome, real taps, Safari's autoplay rule; the stream held open to see the

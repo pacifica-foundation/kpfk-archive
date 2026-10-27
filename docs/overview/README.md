@@ -1,4 +1,32 @@
-# KPFK Archive website — overview PDF (for Pacifica leadership)
+# KPFK Archive website — overview PDFs
+
+## Staff guide (current, 2026-10-27): `KPFK-Podcasts-Guide-2026-10.pdf`
+
+**KPFK Podcasts — a guide for managers and staff** (9 pages, for Ace to share with Pacifica managers
+and staff). Same design system as the Pacifica Stream Monitor guide
+(`~/Desktop/contabo-setup/reports/src/monitor-guide/`: Oswald + Poppins, purple accent, numbered parts),
+chosen by Paul. Source `kpfk-podcasts-guide.html`, pictures in `guide-img/`.
+
+Pages: cover (live figures) · 1 For listeners (programs, player, **Listen Live**, listen along, search
+that shows why it matched, **re-runs listed once**, schedule and grid) · 2 For station staff (studio,
+Import / Export, report, **fund drive** card, banner, capsule and the kpfk.org embed) · 3 How it works
+(the feed → transcript → headline flow, the station's rules, privacy, one archive for web and app,
+template for other stations, where it stands, what's next).
+
+Regenerate (~10 min):
+1. Listener pictures from the live site, headless WebKit, `/api/ev` and the stream blocked (nothing
+   counted, no listener connection): `NODE_PATH=<playwright>/node_modules node docs/overview/capture-guide.cjs`.
+   It prints the search and re-run figures the captions quote — update the text if they changed.
+2. Studio and fund drive pictures from a scratch server (throwaway password, copy of `data/` without
+   `fund-drive/`; example figures, captioned so): see the header of `capture-guide-studio.cjs`.
+3. Shrink `raw/*.png` into `guide-img/` as JPEG 82 (phone 1000 px, tablet 1300, others 1700).
+4. Print: Chrome headless `--print-to-pdf` of `kpfk-podcasts-guide.html` (fonts from Google Fonts, so
+   online), then look at every page (`pdftoppm -r 60`): nothing running into the footer.
+
+Claims are kept to what was read on the live site on 2026-10-27: 106 programs, 1,093 episodes,
+"climate" → 7 programs and 59 episodes, 75 repeats folded.
+
+## Earlier: website overview for Pacifica leadership (2026-10-15)
 
 [KPFK-Archive-Website-Overview.pdf](KPFK-Archive-Website-Overview.pdf): a plain-language, illustrated
 overview of podcasts.kpfk.org for the Executive Director and staff (first made 2026-10-15). The
