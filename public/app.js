@@ -2723,16 +2723,21 @@
   }
 
   function lvTime(sec){ return schedTimeLabel(stationMinutes(sec)); }
-  // /live is the stand-alone player: its links open the podcast site's own pages in a new tab,
-  // so the stream keeps playing here (Paul, 2026-10-27). A show with no archive page is plain text.
+  // /live is the stand-alone player: its links open the podcast site's own pages in this window
+  // (Paul, 2026-10-27), asking first while the stream plays (lvLeave below). A show with no archive
+  // page is plain text.
   function lvLink(href, cls, inner){
-    return href ? '<a class="' + cls + '" href="' + esc(href) + '" target="_blank" rel="noopener">' + inner + '</a>'
+    return href ? '<a class="' + cls + '" href="' + esc(href) + '">' + inner + '</a>'
       : '<div class="' + cls + '">' + inner + '</div>';
   }
   // Takes the FULL show key (slot.showKey, row.sho: "kpfk.kpfk.gv_tue"), never the short upstreamAltId.
+  // Links from here carry ?from=live: the page they open then puts the show (or schedule) straight
+  // over /live in history, so one Back or Close returns here (Paul, 2026-10-27; openDeepLink). The
+  // marker is dropped from the address bar on arrival, so a copied link stays clean.
+  var LV_FROM = '?from=live';
   function lvShowHref(altid){
     var r = altid ? latestArchiveRowForShow(altid) : null;
-    return r ? window.ShowLinks.showPath(r.sho) : '';
+    return r ? window.ShowLinks.showPath(r.sho) + LV_FROM : '';
   }
   function lvRowHtml(s, cls, extra){
     return lvLink(lvShowHref(s.showKey), 'lv-row' + (cls ? ' ' + cls : ''),
@@ -2793,11 +2798,11 @@
     lv.Show.hidden = !row;
     lv.Episodes.hidden = !eps.length;
     lv.Count.textContent = eps.length;
-    lv.Show.href = lv.Episodes.href = lv.AllEpisodes.href = row ? window.ShowLinks.showPath(row.sho) : '/';
+    lv.Show.href = lv.Episodes.href = lv.AllEpisodes.href = row ? window.ShowLinks.showPath(row.sho) + LV_FROM : '/';
     lv.LatestWrap.hidden = !eps.length;
     lv.Latest.innerHTML = eps.slice(0, 4).map(function(e){
       var title = (window.ArchiveSearch && window.ArchiveSearch.episodeTitle(e)) || e.dateText;
-      return lvLink(window.ShowLinks.episodePath(e), 'lv-row', '<span class="n"><b>' + esc(title) + '</b><span>' +
+      return lvLink(window.ShowLinks.episodePath(e) + LV_FROM, 'lv-row', '<span class="n"><b>' + esc(title) + '</b><span>' +
         esc([splitDateText(e.dateText || '').date, e.length].filter(Boolean).join(' · ')) + '</span></span>');
     }).join('');
     lv.Donate.hidden = !(typeof DONATE_URL === 'string' && DONATE_URL);
@@ -2858,6 +2863,63 @@
     window.open(location.origin + window.ShowLinks.LIVE_PATH, '_blank', 'noopener');
   });
   lv.Donate.addEventListener('click', function(){ openDonate(); });
+  // Leaving for another page while the stream plays: a page change stops the audio, so ask first.
+  // Stopped (or never started): the link just opens. A modified click (new tab or window) keeps
+  // this page and its stream, so it is never asked about.
+  var lvLeave = document.getElementById('lvLeave');
+  var lvLeaveScrim = document.getElementById('lvLeaveScrim');
+  var lvLeaveStay = document.getElementById('lvLeaveStay');
+  var lvLeaveGo = document.getElementById('lvLeaveGo');
+  var lvLeaveHref = '', lvLeaveReturn = null;
+  function lvLeaveOpen(){ return lvLeave.classList.contains('show'); }
+  function lvLinkName(a){
+    var b = a.querySelector('.n b');
+    var name = (b ? b.textContent : a.textContent).replace(/[→\s]+$/, '').replace(/\s+/g, ' ').trim();
+    if(a.id === 'lvShow' || a.id === 'lvEpisodes' || a.id === 'lvAllEpisodes') name = (lv.Title.textContent || '').trim() || name;
+    return name;
+  }
+  function openLvLeave(a){
+    lvLeaveHref = a.getAttribute('href');
+    lvLeaveReturn = a;
+    document.getElementById('lvLeaveWhere').textContent = lvLinkName(a) || 'This page';
+    lvLeaveScrim.classList.add('show');
+    lvLeave.classList.add('show');
+    lvLeave.setAttribute('aria-hidden', 'false');
+    refreshOverlayState();
+    lvLeaveStay.focus();
+    document.addEventListener('keydown', onLvLeaveKey);
+  }
+  function closeLvLeave(){
+    if(!lvLeaveOpen()) return;
+    lvLeaveScrim.classList.remove('show');
+    lvLeave.classList.remove('show');
+    lvLeave.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', onLvLeaveKey);
+    refreshOverlayState();
+    if(lvLeaveReturn && lvLeaveReturn.focus) lvLeaveReturn.focus();
+    lvLeaveReturn = null;
+  }
+  function onLvLeaveKey(e){
+    if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); closeLvLeave(); return; }
+    if(e.key !== 'Tab') return;
+    cycleTab(e, lvLeave.querySelectorAll('button:not([disabled])'));
+  }
+  lvLeaveScrim.addEventListener('click', closeLvLeave);
+  lvLeaveStay.addEventListener('click', closeLvLeave);
+  lvLeaveGo.addEventListener('click', function(){
+    var href = lvLeaveHref;
+    closeLvLeave();
+    if(liveWanted) stopLive();
+    if(href) location.assign(href);
+  });
+  livePageEl.addEventListener('click', function(e){
+    var a = e.target.closest('a.lv-row[href], a.lv-chip[href], a.lv-link[href]');
+    if(!a || a === lv.AppLink || !livePageEl.contains(a)) return;
+    if(e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if(!liveWanted) return;
+    e.preventDefault();
+    openLvLeave(a);
+  });
   // The station logo leaves the page for the home page (Back returns here).
   document.querySelectorAll('.appbar .brand').forEach(function(a){
     a.addEventListener('click', function(e){ if(!livePageOn) return; e.preventDefault(); leaveLivePage(); });
@@ -3393,7 +3455,15 @@
       arriveLivePage();
       return;
     }
+    // Followed from the Listen Live page (?from=live): no home page beneath. The schedule or show
+    // takes this entry itself, so Back and Close step straight back to /live.
+    var fromLive = param('from') === 'live';
     var toGrid = window.ShowLinks.isGrid(location.pathname);
+    if(fromLive && !toGrid && window.ShowLinks.isSchedule(location.pathname)){
+      openSchedule(true);
+      if(canHistory){ try { history.replaceState({sched: 1}, '', urlFor(null, null, true)); } catch(e){} }
+      return;
+    }
     if(toGrid || window.ShowLinks.isSchedule(location.pathname)){
       if(canHistory){ try { history.replaceState(null, '', urlFor(null)); } catch(e){} }
       openSchedule();
@@ -3413,11 +3483,17 @@
           : 'That show has no episodes available right now. Everything currently available is listed below.';
         if(notice) notice.hidden = false;
       }
-      if(canHistory){ try { history.replaceState(null, '', urlFor(null)); } catch(e){} }
       // Rotated out: say so inside the popup too; the page's note sits behind its backdrop.
       if(found && found.rotated) sheetLinkNote = 'The episode in that link is no longer available. This is the latest one.';
       // A show link opens the Show view; an episode link (or a rotated one) the Episode view.
-      if(found) openSheetById(found.row.id, null, false, link.episode ? 'episode' : 'show');
+      var linkView = link.episode ? 'episode' : 'show';
+      if(found && fromLive){
+        openSheetById(found.row.id, null, true, linkView);
+        if(canHistory){ try { history.replaceState({sheetId:found.row.id, sheetView:linkView, sheetDepth:1}, '', urlFor(found.row.id, linkView)); } catch(e){} }
+        return;
+      }
+      if(canHistory){ try { history.replaceState(null, '', urlFor(null)); } catch(e){} }
+      if(found) openSheetById(found.row.id, null, false, linkView);
       return;
     }
     var id = param('show');

@@ -92,7 +92,8 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   check('the header Listen Live chip does not open the popup over the page', await (async () => { await p.click('#onAirBtn'); await sleep(600); return !(await ev(`return document.getElementById('livePlayer').classList.contains('show');`)); })());
 
   // ---- 4: /live is the stand-alone player (Paul, 2026-10-27): its show, episode and schedule links
-  // are plain links to the podcast site's own pages, in a new tab; this page keeps playing.
+  // are plain links to the podcast site's own pages, in this window. While the stream plays a link
+  // asks first (it stops the audio); stopped, it just opens.
   check('the show on air has Show page, Past episodes and its latest episodes', await until(`var b = document.getElementById('lvShow'); return !!b && !b.hidden && !document.getElementById('lvEpisodes').hidden && document.querySelectorAll('#lvLatest .lv-row').length > 0;`, 10000),
     await ev(`return document.getElementById('lvTitle').textContent;`));
   await until(`return document.querySelectorAll('#lvToday .lv-row').length > 3;`, 15000);   // today's schedule has loaded
@@ -101,17 +102,53 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
     return JSON.stringify({ show: pick('#lvShow, #lvEpisodes, #lvAllEpisodes'), eps: pick('#lvLatest .lv-row'), today: pick('#lvToday a.lv-row'),
       full: pick('#livePage .lv-link:not(#lvAllEpisodes)') });`));
   const all = [...links.show, ...links.eps, ...links.today, ...links.full];
-  check('every show, episode and schedule link is a real link opening a new tab',
-    all.length > 6 && all.every(l => l.tag === 'A' && l.target === '_blank'), JSON.stringify(all.filter(l => l.tag !== 'A' || l.target !== '_blank').slice(0, 3)));
-  check('… Show page and Past episodes go to the show\'s page', links.show.every(l => /^\/show\/[^/]+$/.test(l.path)), JSON.stringify(links.show));
-  check('… latest episodes go to their episode pages', links.eps.every(l => /^\/show\/[^/]+\/[^/]+$/.test(l.path)), JSON.stringify(links.eps));
-  check('… today\'s schedule rows go to show pages', links.today.length > 2 && links.today.every(l => /^\/show\//.test(l.path)), JSON.stringify(links.today.slice(0, 3)));
-  check('… Full schedule goes to the schedule page', links.full.length >= 1 && links.full.every(l => l.path === '/schedule'), JSON.stringify(links.full));
+  check('every show, episode and schedule link is a real link, in this window',
+    all.length > 6 && all.every(l => l.tag === 'A' && !l.target), JSON.stringify(all.filter(l => l.tag !== 'A' || l.target).slice(0, 3)));
+  check('… Show page and Past episodes go to the show\'s page', links.show.every(l => /^\/show\/[^/?]+\?from=live$/.test(l.path)), JSON.stringify(links.show));
+  check('… latest episodes go to their episode pages', links.eps.every(l => /^\/show\/[^/?]+\/[^/?]+\?from=live$/.test(l.path)), JSON.stringify(links.eps));
+  check('… today\'s schedule rows go to show pages', links.today.length > 2 && links.today.every(l => /^\/show\/[^/?]+\?from=live$/.test(l.path)), JSON.stringify(links.today.slice(0, 3)));
+  check('… Full schedule goes to the schedule page', links.full.length >= 1 && links.full.every(l => l.path === '/schedule?from=live'), JSON.stringify(links.full));
+  const leaveUp = `return document.getElementById('lvLeave').classList.contains('show');`;
+  const escape = async () => { for (const type of ['keyDown', 'keyUp']) await p.send('Input.dispatchKeyEvent', { type, key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 }); };
   await p.click('#lvShow');
-  await sleep(1200);
-  check('tapping Show page leaves this page on /live, no popup over it', (await ev(`return location.pathname;`)) === '/live' && await ev(pageShown)
-    && !(await ev(`return document.getElementById('showSheet').classList.contains('show');`)), await ev(`return location.pathname;`));
-  check('… and the stream keeps playing', (await ev(pressed)) === 'true');
+  check('playing: tapping Show page asks first (the stream would stop), and stays on /live', await until(leaveUp, 3000)
+    && (await ev(`return location.pathname;`)) === '/live' && (await ev(pressed)) === 'true', await ev(`return location.pathname;`));
+  const ask = await ev(`return document.getElementById('lvLeave').textContent.replace(/\\s+/g, ' ');`);
+  check('… it names the page and says the stream will stop', ask.includes((await ev(`return document.getElementById('lvTitle').textContent.trim();`))) && /stream will stop/.test(ask), ask);
+  check('… "Keep listening" has the focus', (await ev(`return document.activeElement && document.activeElement.id;`)) === 'lvLeaveStay');
+  await p.click('#lvLeaveStay');
+  check('"Keep listening" closes it: still /live, still playing', await until(`return !document.getElementById('lvLeave').classList.contains('show');`, 3000)
+    && (await ev(`return location.pathname;`)) === '/live' && (await ev(pressed)) === 'true');
+  await p.click('#lvShow');
+  await until(leaveUp, 3000);
+  await escape();
+  check('Escape closes it the same way', await until(`return !document.getElementById('lvLeave').classList.contains('show');`, 3000) && (await ev(pressed)) === 'true');
+  const showPath = await ev(`return document.getElementById('lvShow').getAttribute('href');`);
+  await p.click('#lvShow');
+  await until(leaveUp, 3000);
+  await p.click('#lvLeaveGo');
+  check('"Go to page" opens the show page in this window', await until(`return location.pathname === ${JSON.stringify(showPath.split('?')[0])};`, 10000), await ev(`return location.pathname;`));
+  await until(ready, 30000);
+  check('… on the site, with the show open', await until(`return document.getElementById('showSheet').classList.contains('show');`, 10000));
+  check('… and the address bar is clean (no ?from=live to copy)', await until(`return location.search === '';`, 5000), await ev(`return location.href;`));
+  await p.eval(`history.back(); return 1;`);
+  await until(ready, 30000);
+  check('one Back returns to /live (stopped)', await until(pageShown, 10000) && (await ev(`return location.pathname;`)) === '/live' && (await ev(pressed)) === 'false', await ev(`return location.pathname;`));
+  await until(`return document.querySelectorAll('#lvLatest a.lv-row').length > 0;`, 10000);
+  const epPath = await ev(`return document.querySelector('#lvLatest a.lv-row').getAttribute('href');`);
+  await p.click('#lvLatest a.lv-row');
+  check('stopped: an episode link just opens, no question', await until(`return location.pathname === ${JSON.stringify(epPath.split('?')[0])};`, 10000), await ev(`return location.pathname;`));
+  await until(ready, 30000);
+  await until(`return document.getElementById('showSheet').classList.contains('show');`, 10000);
+  await sleep(500);
+  await p.click('#sheetClose');
+  check('… and its Close button returns to /live', await until(`return location.pathname === '/live';`, 10000) && await until(ready, 30000) && await until(pageShown, 10000), await ev(`return location.pathname;`));
+  await p.click('#lvSchedWrap .lv-link');
+  check('Full schedule opens the schedule page', await until(`return location.pathname === '/schedule' && document.getElementById('schedModal').classList.contains('show');`, 10000), await ev(`return location.pathname;`));
+  await p.eval(`history.back(); return 1;`);
+  check('… one Back returns to /live', await until(`return location.pathname === '/live';`, 10000) && await until(ready, 30000) && await until(pageShown, 10000), await ev(`return location.pathname;`));
+  await p.click('#lvPlay');
+  await until(`return document.getElementById('lvPlay').getAttribute('aria-pressed') === 'true';`, 8000);
 
   // ---- 5: logo home, Back to /live, stream untouched
   await p.click('.appbar .brand');

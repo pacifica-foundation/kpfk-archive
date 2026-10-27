@@ -8,9 +8,14 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 
 ## 2026-10-27 (evening) — Listen Live page built locally, NOT pushed (Paul reviews first)
 
-**Paul's first review (same evening), fixed:** /live is the stand-alone player, so its show, episode
-and schedule links are now plain links to the podcast site's pages in a NEW TAB (the stream keeps
-playing); header and menu unchanged. Desktop: only the schedule list scrolls (heading + Full schedule
+**Paul's review (same evening), fixed:** /live is the stand-alone player, so its show, episode and
+schedule links are plain links to the podcast site's pages, IN THIS WINDOW (Paul: "keep in the same
+view"). While the stream plays, a styled dialog (#lvLeave, the chooser's look) asks first: "Leave the
+live player? <page> opens in this window, and the live stream will stop" — Keep listening (focused) /
+Go to page. Stopped: links just open; Cmd/Ctrl-click opens a tab without asking. Links carry
+`?from=live`: openDeepLink then opens the show/schedule with no home page beneath, so ONE Back or
+Close returns to /live (Paul's choice); the marker is dropped from the address bar. Header and menu
+unchanged. Desktop: only the schedule list scrolls (heading + Full schedule
 stay in view); contacts and signals stay in the left column (the pinned schedule slid over them).
 Schedule rows never linked before: they passed the short `upstreamAltId` where the archive matches the
 full `showKey`. test/listen-live checks all three; shown failing on the old code.
