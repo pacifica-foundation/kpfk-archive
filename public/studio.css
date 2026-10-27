@@ -1401,3 +1401,12 @@ th[aria-sort="ascending"] .th-sort::after { content: "\25B2"; }    /* ▲ */
   font-size: .8rem; white-space: pre-wrap; word-break: break-all; }
 .fd-embed-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
 .fd-embed-actions a { text-decoration: none; }
+.fd-preview { background: var(--surface-0); color: var(--ink); }
+.fd-theme { margin-left: auto; display: inline-flex; padding: 2px; border-radius: 999px; border: 1px solid var(--outline-strong); background: var(--surface-2); }
+.fd-theme button { font: inherit; font-size: .8rem; font-weight: 600; min-height: 2rem; padding: 0 .8rem; border: 0; border-radius: 999px; background: none; color: var(--ink-dim); cursor: pointer; }
+.fd-theme button[aria-pressed="true"] { background: var(--surface-1); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.18); }
+.fd-theme button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+/* Copy and Open: real buttons with an icon (an <a> needs the flex box to centre like a <button>). */
+.fd-icon-btn { display: inline-flex; align-items: center; gap: .5rem; font-weight: 600; text-decoration: none; background: var(--surface-1); line-height: 1; }
+.fd-icon-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.fd-icon-btn:hover { background: var(--surface-3); }

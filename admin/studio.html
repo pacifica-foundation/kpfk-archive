@@ -155,17 +155,26 @@
         <div class="fd-preview-head">
           <p class="studio-field-label">Preview</p>
           <span class="fd-tag" id="fdPreviewTag">Example</span>
+          <!-- Light or dark: the preview's colours AND the embed snippet's ?theme= (one choice). -->
+          <div class="fd-theme" role="group" aria-label="Colours for the preview and the embed">
+            <button type="button" data-fd-theme="light" aria-pressed="true">Light</button>
+            <button type="button" data-fd-theme="dark" aria-pressed="false">Dark</button>
+          </div>
         </div>
-        <div class="fd-preview"><div id="fdPreview"></div></div>
+        <div class="fd-preview" id="fdPreviewBox" data-theme-scope="light"><div id="fdPreview"></div></div>
         <p class="fd-preview-note" id="fdPreviewNote"></p>
         <div class="fd-embed">
           <p class="studio-field-label">Embed on the station&rsquo;s website</p>
-          <p class="fd-embed-note">Paste into a page on the station&rsquo;s own site. Only this app and the station&rsquo;s website
+          <p class="fd-embed-note">Paste into a page on the station&rsquo;s own site; it uses the colours chosen above. Only this app and the station&rsquo;s website
             may show it; its Donate opens the donate page in a new tab.</p>
           <pre class="fd-snippet" id="fdSnippet"></pre>
           <div class="fd-embed-actions">
-            <button class="studio-btn studio-btn--quiet" id="fdCopy" type="button">Copy</button>
-            <a class="studio-btn studio-btn--quiet" id="fdOpenEmbed" href="/embed/fund-drive" target="_blank" rel="noopener">Open the embed</a>
+            <button class="studio-btn fd-icon-btn" id="fdCopy" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+              <span>Copy snippet</span></button>
+            <a class="studio-btn fd-icon-btn" id="fdOpenEmbed" href="/embed/fund-drive?theme=light" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+              <span>Open the embed</span></a>
             <span class="export-status" id="fdCopyStatus" role="status" aria-live="polite"></span>
           </div>
         </div>

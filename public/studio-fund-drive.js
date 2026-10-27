@@ -11,7 +11,17 @@
   var publish = $('fdPublish'), discard = $('fdDiscard'), undo = $('fdUndo'), status = $('fdStatus');
   var preview = window.FundDrive.build($('fdPreview'), { donateHref: '#' });
   $('fdPreview').querySelector('.fd-btn').addEventListener('click', function (e) { e.preventDefault(); });
-  var published = null, csrf = null, busy = false;
+  var published = null, csrf = null, busy = false, embedUrl = location.origin + '/embed/fund-drive', theme = 'light';
+  // One colour choice for the preview, the snippet's ?theme= and Open the embed, so all three match.
+  function paintTheme() {
+    $('fdPreviewBox').setAttribute('data-theme-scope', theme);
+    document.querySelectorAll('[data-fd-theme]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.fdTheme === theme ? 'true' : 'false'); });
+    $('fdSnippet').textContent = '<iframe src="' + embedUrl + '?theme=' + theme + '" title="Fund drive" style="width:100%;height:170px;border:0" loading="lazy"></iframe>';
+    $('fdOpenEmbed').href = '/embed/fund-drive?theme=' + theme;
+  }
+  document.querySelectorAll('[data-fd-theme]').forEach(function (b) {
+    b.addEventListener('click', function () { theme = b.dataset.fdTheme; paintTheme(); });
+  });
 
   function say(node, text, kind) { node.textContent = text; node.className = 'export-status' + (kind ? ' is-' + kind : ''); }
   function digits(v) { var s = String(v).replace(/[^0-9]/g, ''); return s === '' ? null : parseInt(s, 10); }
@@ -57,9 +67,8 @@
     goalIn.value = money(published.goal);
     pledgedIn.value = money(published.pledged);
     undo.hidden = !(state.history && state.history.length);
-    var src = (state.embedUrl || (location.origin + '/embed/fund-drive')) + '?theme=light';
-    $('fdSnippet').textContent = '<iframe src="' + src + '" title="Fund drive" style="width:100%;height:170px;border:0" loading="lazy"></iframe>';
-    $('fdOpenEmbed').href = '/embed/fund-drive';
+    embedUrl = state.embedUrl || (location.origin + '/embed/fund-drive');
+    paintTheme();
     say(status, c.updatedAt ? (c.on ? 'On' : 'Off') + ' · last published ' + new Date(c.updatedAt).toLocaleString() : 'Not set up yet.');
     if (state.bootError) say(status, 'The saved figures could not be used (' + state.bootError + '). Publish new ones.', 'bad');
     paintDraft();

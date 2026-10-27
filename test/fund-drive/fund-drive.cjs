@@ -71,6 +71,19 @@ const password = process.env.STUDIO_PW || 'pw';
     JSON.stringify(await publicFigures()) + ' ' + await ev(`return document.getElementById('fdStatus').textContent;`));
   check('… the embed snippet is ready to copy', /<iframe src="[^"]*\/embed\/fund-drive\?theme=light"/.test(await ev(`return document.getElementById('fdSnippet').textContent;`)));
   check('… the preview is marked Live', (await ev(`return document.getElementById('fdPreviewTag').textContent;`)) === 'Live');
+  // Paul, 2026-10-27: the snippet said theme=light but the embed opened dark. One choice now sets
+  // the preview's colours, the snippet's ?theme= and Open the embed's address.
+  const capBg = `return getComputedStyle(document.querySelector('#fdPreview')).backgroundColor;`;
+  const th = async () => JSON.parse(await p.eval(`return JSON.stringify({ bg: getComputedStyle(document.getElementById('fdPreview')).backgroundColor,
+    snippet: /theme=(\\w+)/.exec(document.getElementById('fdSnippet').textContent)[1], open: document.getElementById('fdOpenEmbed').getAttribute('href') });`));
+  const light = await th();
+  check('… light by default: a white capsule, snippet and Open both theme=light', light.bg === 'rgb(255, 255, 255)' && light.snippet === 'light' && light.open === '/embed/fund-drive?theme=light', JSON.stringify(light));
+  await p.click('[data-fd-theme="dark"]');
+  const dark = await th();
+  check('… Dark: a dark capsule, snippet and Open both theme=dark', dark.bg === 'rgb(28, 22, 21)' && dark.snippet === 'dark' && dark.open === '/embed/fund-drive?theme=dark', JSON.stringify(dark));
+  await p.click('[data-fd-theme="light"]');
+  check('… Copy and Open are buttons, their labels centred', await ev(`return ['fdCopy', 'fdOpenEmbed'].every(function(id){ var b = document.getElementById(id), r = b.getBoundingClientRect(), t = b.querySelector('span').getBoundingClientRect();
+    return /flex/.test(getComputedStyle(b).display) && Math.abs((t.top + t.height / 2) - (r.top + r.height / 2)) <= 2 && !!b.querySelector('svg'); });`));
   // Phone width: stacked, preview first, nothing sideways.
   await size(390, true);
   await sleep(500);

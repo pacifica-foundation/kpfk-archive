@@ -170,7 +170,8 @@
       --sun: 1;
     }
   }
-  :root[data-theme="dark"]{
+  /* [data-theme-scope] gives one part of a page these colours (the studio's capsule preview). */
+  :root[data-theme="dark"], [data-theme-scope="dark"]{
     color-scheme: dark;
     --surface-0:#14100f; --surface-1:#1c1615; --surface-2:#241c1a; --surface-3:#2c2320;
     --surface-hover: rgba(243,236,228,0.05);
@@ -186,7 +187,8 @@
     --elev-2: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 4px rgba(0,0,0,0.45), 0 14px 30px -8px rgba(0,0,0,0.6);
     --sun: 0;
   }
-  :root[data-theme="light"]{
+  /* [data-theme-scope] gives one part of a page these colours (the studio's capsule preview). */
+  :root[data-theme="light"], [data-theme-scope="light"]{
     color-scheme: light;
     --surface-0:#f6f1ea; --surface-1:#ffffff; --surface-2:#efe6da; --surface-3:#e6dacb;
     --surface-hover: rgba(30,20,15,0.04);
