@@ -1,83 +1,72 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-27 (Listen Live page built locally, **not pushed — Paul reviews**; first section. Earlier: Ace's review: episode counts, re-runs, name tiles — **live and checked**; search ranking and Radio Maiz re-filing; Something's Happening handed to Ace; wrap-up email to Ace due end of day — first two sections). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-10-27 night (Listen Live page at `/live` and the fund drive donation capsule — **live and checked**, first section. Earlier the same day: Ace's review — episode counts, re-runs, name tiles, search, Radio Maiz — **live and checked**; Something's Happening handed to Ace). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
 
-## 2026-10-27 (night) — Listen Live + fund drive capsule LIVE (de57311), checked on the live site
+## 2026-10-27 (evening and night) — Listen Live and the fund drive capsule: live and checked
 
-- **Deployed and verified:** version `4b459-mvr6iyw0…`, instanceId `73039ae5…` unchanged,
-  freshVolume false, archiveFilter basis schedule. Live checks (curl + headless Chrome with /api/ev
-  and the stream BLOCKED, so nothing counted): /, /live, /schedule, a show, /embed/fund-drive at 390
-  and 1280 px, no errors; /live is the page; Schedule from /live opens on the front, one Back
-  returns; /api/fund-drive off; embed frame-ancestors self + kpfk.org + www.kpfk.org; the listener
-  site still SAMEORIGIN. Tracker: update posted on the Listen Live item.
-- Fund drive: Paul switched it ON in the live studio at 21:14 UTC ($20,000 of $75,000, no name), so
-  listeners see the capsule on /live and in the embed until it is switched off.
-- Later deploys the same night (all checked live, version `4b59b-mvr7rfyw…`, same instanceId): /live
-  live-only (ad7c871); the studio card in two columns with the preview always shown (05508d5); one
-  Light | Dark choice for preview, snippet and Open the embed, real Copy/Open buttons (8bed808).
-  The live check script (counter and stream blocked) reads the published figures, not "off".
-- **Then (Paul's live review): /live is live ONLY.** Live-only header (logo, Donate, light/dark,
-  menu; no Schedule or On Air button). A show, an episode or the schedule moves the listener to the
-  podcast front with that popup, and closing it leaves them ON THE FRONT (leaving /live now pushes
-  its own {home} entry; the browser's Back returns to /live). The same bottom player carries the
-  stream across. openLivePlayer() never opens the Live popup over /live (the player bar used to:
-  "two interfaces with the same functions"). Autoplay on arrival stays: Ace asked for it ("One
-  click to audio. Try to start playing on load.").
+**Live:** last deploy `4b59b-mvr7rfyw…` (8bed808), `instanceId` `73039ae5…` unchanged,
+`freshVolume:false`, archive filter basis `schedule`. Checked on the live site after each deploy with
+curl and a headless Chrome that BLOCKS `/api/ev` and the stream (nothing counted, no listener
+connection): `/`, `/live`, `/schedule`, a show and `/embed/fund-drive` at 390 and 1280 px, no errors.
 
-### Earlier the same night
+### Listen Live — `/live` (INT-966 step 2; Ace: "own URL, separate from explore")
 
+- **Live things only** (Paul's live review): Play (spinner while connecting), volume (desktop only),
+  the show on air, the song, today's schedule (desktop) or Up next (phones), the latest episodes,
+  call-in and office lines, signals, Donate, the app prompt on phones, the donation capsule.
+- **Live-only header:** logo (to the podcast front), Donate, light/dark, menu. No Schedule or On Air
+  button on `/live`.
+- **Everything else leaves `/live` for the podcast front:** a show, an episode, the schedule (page
+  links, menu) open the front with that popup; **closing it leaves the listener on the front**
+  (leaving pushes its own `{home}` entry); the browser's Back returns to `/live`. The same bottom
+  player carries the stream across. Donate and Privacy open over `/live`.
+- **No second live player:** `openLivePlayer()` scrolls to the page's Play button when `/live` is
+  showing (the player bar used to open the Live popup over it: "two interfaces"). The front's On Air
+  button still opens the Live popup.
+- **Autoplay on arrival stays** — Ace asked for it ("One click to audio. Try to start playing on
+  load."). A refusal (Safari) is logged and leaves one big Play button, no alert.
+- Station file `contact` block: KPFK call-in, office, signals; studio email and WhatsApp blank →
+  hidden until Ace sends them. **Studio fields for Contact/Wording not built** (Phase 1 second half).
+- Bugs found on the way: schedule rows passed the short `upstreamAltId` where rows match the full
+  `showKey` (never linked); the desktop schedule card's heading scrolled away; contacts slid under
+  the pinned schedule.
 
-- **Pushed** to origin main: the Listen Live page and its review fixes (7 commits up to a8a0946).
-  Live before redeploy: version `47695-mvqyvukg…`, instanceId `73039ae5…` (unchanged). After Paul's
-  Coolify redeploy: check `/healthz` version changed, same instanceId, and `/live`.
-- **Fund drive Phase 4a built locally (not pushed):** the studio's Fund drive card (Discovery &
-  settings tab: on/off, name, goal, pledged; draft + live preview → Publish; Undo), the donation
-  capsule under the player on /live (refreshes every minute; Donate opens over the page), and
-  `/embed/fund-drive` for kpfk.org (frame-ancestors: this app, kpfk.org, www.kpfk.org; Donate in a
-  new tab; `?theme=light|dark`). Figures on the data volume in `fund-drive/`: in the server backup
-  (tools/backup-data.sh copies all of /app/data), not in the studio's own download. Paul's mockup review: figures only, no quick pledge buttons.
-  The Dockerfile copies the new `embed/` folder; test/pacifica/dockerfile.test.js fails if any
-  folder the server reads is not copied.
-- APP-FAMILY.md gained `/api/fund-drive`; copied to kpfk-podcast and kpfk-discovery-plugin
-  (uncommitted there, with this morning's copy).
+### Fund drive, Phase 4a — the donation capsule
 
-## 2026-10-27 (evening) — Listen Live page built locally, NOT pushed (Paul reviews first)
+- **Studio** (Discovery & settings → Fund drive): on/off, name, goal, pledged. Two columns: compact
+  form; beside it the preview (always shown: Example / Draft / Live / Off) and the embed snippet with
+  Copy and Open. One **Light | Dark** choice sets the preview, the snippet's `?theme=` and Open.
+  Publish, Undo. No quick pledge buttons (Paul: figures only).
+- **Listeners:** the capsule under the player on `/live` (refreshes every minute; Donate opens over
+  the page); `/embed/fund-drive` for kpfk.org (frame-ancestors: this app, kpfk.org, www.kpfk.org;
+  Donate in a new tab).
+- **State now: ON** — Paul published $20,000 of $75,000, no name, at 21:14 UTC; listeners see it
+  until it is switched off.
+- Code: `lib/fund-drive.js`, `public/fund-drive.js` (the one drawing), `public/studio-fund-drive.js`,
+  `embed/fund-drive.html` + `public/fund-drive-embed.js`, server routes `/api/fund-drive`,
+  `/api/studio/fund-drive{,/apply,/undo}` (signed in, CSRF, one change a second), `/embed/fund-drive`.
+  Figures in `DATA_DIR/fund-drive/` (in the server backup, not the studio's download).
+- **The Dockerfile copies named folders only:** `embed/` was added; `test/pacifica/dockerfile.test.js`
+  fails if any folder the server reads is not copied.
+- Next (Phase 4): dates, the banner on Listen Live, the donate page check, Ace's own embed.
 
-**Paul's review (same evening), fixed:** /live does LIVE THINGS ONLY. A show, an episode or the
-schedule (page links, header Schedule, menu Schedule) switches to the podcast front IN PLACE and opens
-there: no page load, the stream plays on in the player bar, one Back or Close returns to /live
-(openSheetById/openSchedule call leaveLivePage(true) when livePageOn, so the popup's entry sits right
-over /live). Donate and Privacy open over /live. Links keep real hrefs for open-in-new-tab. The big
-Play button shows a spinner while connecting; the header On Air button is hidden on /live. (A
-page-load + "stream will stop" dialog version was built and dropped the same evening — Paul chose
-in place.) Desktop: only the schedule list scrolls (heading + Full schedule
-stay in view); contacts and signals stay in the left column (the pinned schedule slid over them).
-Schedule rows never linked before: they passed the short `upstreamAltId` where the archive matches the
-full `showKey`. test/listen-live checks all three; shown failing on the old code.
+### Tests added today
 
-- **`/live` is now the Listen Live page** (INT-966; Ace: "own URL, separate from explore"). Inside
-  the app: the site's header and hamburger menu, the floating player bar in live mode; show and
-  schedule popups open over it and Back returns to `/live`; the logo goes home, Back returns. The
-  header's On Air button still opens the Live popup on the rest of the site.
-- Mockup (Paul approved 2026-10-27): `.local-notes/listen-live-mockup/index.html` — volume is a
-  speaker button + short slider, desktop only (phones use their buttons; iPhones ignore page
-  volume); "Full page" button only in a small desktop window (kpfk.org's popup) instead of the
-  arrows icon. Share the mockup with Ace in the wrap-up email.
-- Arrival tries to play; a refusal (Safari) is logged and leaves one big Play button, no alert
-  (`livePageArrival` in `liveFailed`). The page plays nothing itself: `startLive`/`stopLive`, state
-  mirrored from `setLiveIcon`/`setLiveLoading`. Rolls over from the now-playing poll; today's
-  schedule from the published schedule loader.
-- Station file `contact` block (Phase 1, file half): KPFK call-in, office, signals; studio email and
-  text number blank → hidden until Ace sends them. **Studio fields for Contact/Wording not built.**
-- Tests: `test/listen-live/run.sh` (Chrome, 70+ checks, real taps, Safari's autoplay rule
-  reproduced; fails on the live code at the first check), WebKit pass from the scratchpad (all
-  functional checks pass; only console noise: local QIR 503 without a key, WebKit's own media
-  icons), `station-contact.test.js`, `live-link.cjs` updated (popup from On Air), page-load 14/14,
-  npm test green.
+`test/listen-live/run.sh` (Chrome, real taps, Safari's autoplay rule; the stream held open to see the
+spinner), `test/fund-drive/run.sh` (studio → Publish → capsule → embed → off; layout; Light/Dark),
+`test/pacifica/fund-drive.test.js`, `test/pacifica/dockerfile.test.js`, the embed in
+`test/page-load`. `npm test` 250/250. Each new check was run against the code before it and failed.
+
+### How we got here (superseded the same evening)
+
+Links on `/live` first opened popups over the page, then the podcast site in a new tab, then the same
+window with a "the stream will stop" dialog, then the front in place with one Back to `/live` — Paul
+settled on the live-only page above. Mockups (local): `.local-notes/listen-live-mockup/`,
+`.local-notes/fund-drive-mockup/` — share with Ace in the wrap-up email.
 
 ## 2026-10-27 (afternoon) — search (INT-970), Something's Happening, Radio Maiz
 
@@ -363,7 +352,12 @@ other descriptions in the audit.
 
 ## Remind Paul first (say these at the start of every session)
 
-1. **Next session first (2026-10-25):** read `curl -s https://podcast.kpfk.org/healthz` → `dns`
+1. **Next session first (2026-10-28):** the fund drive capsule is **ON** on the live site ($20,000
+   of $75,000, no name) — ask Paul whether it stays. The wrap-up email to Ace (done items,
+   Something's Happening, Listen Live and capsule mockups, the embed snippet, kpfk.org/listen →
+   `/live`) — notes in `.local-notes/ace-wrapup-2026-10-27-notes.md`. Still from Ace: studio email
+   and WhatsApp number. **Last deploy checked live 2026-10-27 night:** `4b59b-mvr7rfyw…` (8bed808).
+   **Earlier (2026-10-25):** read `curl -s https://podcast.kpfk.org/healthz` → `dns`
    (`servedStale` = DNS failures the cache covered, `failed` = ones it couldn't) and
    `/api/plugins/qir/status` → `recent`. Live at 17:23 UTC with `failed` 1 (confessor.kpfk.org, first
    lookup after boot). Open options: the one-line Coolify DNS setting (docs/DEPLOYMENT.md "DNS"; Paul
@@ -589,11 +583,11 @@ Just aired hides them (its W5).
 | --- | --- |
 | Live | **https://podcast.kpfk.org** — Coolify app "KPFK Podcasts" on the Pacifica/Contabo server, Dockerfile build, container port 8080. Deployed 2026-09-19; `kpfk-archive.supersoul.top` was stopped the same day |
 | Repo | https://github.com/pacifica-foundation/kpfk-archive · `main` · push to `origin` only (never `wbai-baseline`). **Moved from `Catskill909` on 2026-09-30**; the old URL redirects, Coolify's stored path and this Mac's `origin` were updated the same day. First deploy from the new location done 2026-10-01 (`32130a1`, storage id unchanged) |
-| Deploy | Manual Coolify redeploy after push. **Last: 2026-10-15, `abfb3cc`/`6280446`** (site audit fixes; later commits are docs), checked live by Claude the same day: new `version`, `instanceId` unchanged, `freshVolume:false`. |
+| Deploy | Manual Coolify redeploy after push. **Last: 2026-10-27 night, `8bed808`** (Listen Live live-only, fund drive card), checked live by Claude the same night: new `version` `4b59b-mvr7rfyw…`, `instanceId` unchanged, `freshVolume:false`. |
 | Storage | Named volume `f6vn03cy47znqlbemewq8dd0-kpfk-archive-data` at `/app/data` for the podcast.kpfk.org app: `instanceId` `73039ae5-6589-4ec2-9df5-354de84c0989`, `persistedSince` 2026-09-19, `freshVolume:false` after the 2026-09-24 redeploy. (`e4a9aac9…` below belongs to the retired supersoul.top deployment.) |
 | Studio | `/studio`, password in Coolify env `STUDIO_PASSWORD` (runtime only — **not** on the Mac and not in the repo; read it from Coolify, never from a file) |
 | Local | `npm start` → http://localhost:8081, `./data` |
-| Tests | `npm test` 199/199 on 2026-10-15 (inherited offline suites + Pacifica + Discovery plugin suites). Browser (scratch 8091): `test/homepage/layout-fit.cjs` 47, `listen-along-popups.cjs` 66. |
+| Tests | `npm test` 250/250 on 2026-10-27. Browser: `test/page-load/run.sh` (before every push touching `public/`), `test/listen-live/run.sh`, `test/fund-drive/run.sh` (own servers); homepage suites on scratch 8091. |
 
 **Artwork caching (2026-09-24).** `/api/artwork/<id>` used to fetch from Pacifica on every
 request (~0.45 s per image, the same on repeats). Images are now kept in memory

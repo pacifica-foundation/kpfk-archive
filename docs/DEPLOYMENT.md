@@ -99,7 +99,16 @@ curl -s https://<domain>/api/nowplaying         # current program
 ```
 
 and open the site on a phone: the schedule, one archive episode playing, and
-Listen Live playing.
+Listen Live playing. Since 2026-10-27 also:
+
+```sh
+curl -s https://<domain>/api/fund-drive                     # the capsule's figures (on/off)
+curl -sI https://<domain>/embed/fund-drive | grep -i frame  # frame-ancestors: self + the station's site; no X-Frame-Options
+```
+
+and open `/live` (the Listen Live page; a show or the schedule opens on the podcast front). A test
+browser pointed at the live site must block `/api/ev` and the stream, or its visits are counted in
+the station's listening figures.
 
 **None of the storage checks mean anything locally.** A laptop has no container
 boundary, so `./data` persists unconditionally. Only the deployed host proves

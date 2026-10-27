@@ -100,15 +100,26 @@ one tap at most to audio; Back and close never leave the site; rollover with a m
 Expand stops the small window; show links keep the stream playing; the player bar always visible;
 autoplay refused → one big button, the refusal logged (never swallowed).
 
-## 5a. Status (2026-10-27)
+## 5a. Status (2026-10-27 night)
 
-Built locally, not pushed (Paul reviews first). Phase 1's station-file half (`contact` block, KPFK's
-call-in, office and signals; email and text blank → hidden) and Phase 2 (the page) are done; the
-studio fields for Contact and Wording (Phase 1's second half) are not started. Mockup revised and
-approved 2026-10-27: volume as a speaker button + short slider, desktop only; "Full page" button
-(popup window only) instead of the arrows icon; the site's own header, hamburger menu and floating
-player bar (`.local-notes/listen-live-mockup/`). Tests: `test/listen-live/run.sh` (Chrome) and a
-WebKit pass from the session scratchpad.
+**Phase 2 and Phase 4a are live and checked** (last deploy `8bed808`). Phase 1's station-file half
+(`contact` block: KPFK call-in, office, signals; email and WhatsApp blank → hidden until Ace sends
+them) is live; its studio half (Contact and Wording fields) is not started.
+
+Paul's reviews changed the page after the mockup — these rules now win over the sections above:
+
+- **`/live` does live things only.** Live-only header: logo (to the front), Donate, light/dark, menu;
+  no Schedule or On Air button.
+- **Everything else leaves for the podcast front.** A show, an episode or the schedule opens the
+  front with that popup; closing it stays on the front; the browser's Back returns to `/live`; the
+  same bottom player carries the stream. (Tried and dropped the same evening: popups over the page;
+  a new tab; a "the stream will stop" dialog; one Back to `/live`.)
+- **One live player:** the Live popup never opens over `/live`. Donate opens over the page.
+- **Autoplay stays** (Ace's "one click to audio"); the big Play button shows a spinner while connecting.
+- Volume is a speaker button + short slider, desktop only; "Full page" only in a small desktop window.
+
+Tests: `test/listen-live/run.sh`, `test/fund-drive/run.sh`, `test/page-load/run.sh` (with the embed),
+offline `fund-drive.test.js` and `dockerfile.test.js`; a WebKit pass from the session scratchpad.
 
 ## 6. Build phases (Paul, 2026-10-23)
 
@@ -141,8 +152,8 @@ stay file-only on purpose.
 - One click to audio: play is tried on arrival; a refusal (Safari) leaves one large Play button, and
   the refusal is logged. The existing live audio code (built per play, never reused).
 - Rolls over at the top of the hour from the now-playing poll; today's schedule from Confessor;
-  "Now playing" song line; Show page / Past episodes / latest episodes open in place without stopping
-  the stream; contacts and signals from Phase 1; "Listen in the KPFK app" on phones; the player bar
+  "Now playing" song line; Show page / Past episodes / latest episodes open on the podcast front
+  without stopping the stream (see §5a: live things only); contacts and signals from Phase 1; "Listen in the KPFK app" on phones; the player bar
   always visible; stronger dark card borders on this page only.
 - The Live popup stays for the On Air button and the schedule's live row.
 - A fund drive banner/embed **slot** in the layout, empty until Phase 4.
@@ -173,7 +184,8 @@ The smallest useful fund drive piece, before the full Fund drive screen:
 - **Not in 4a:** dates, the banner, the donate page check, Ace's own embed, thank-you gifts. Those
   are Phase 4 below.
 - Mockup first (Paul's plan-then-mockup rule), then build.
-- **Status (2026-10-27 night): built locally.** lib/fund-drive.js (store, history, undo),
+- **Status (2026-10-27 night): live and checked** (studio card redone after Paul's review: two
+  columns, preview always shown, Light | Dark for preview and snippet). Built: lib/fund-drive.js (store, history, undo),
   `/api/fund-drive`, studio routes (`/api/studio/fund-drive`, `/apply`, `/undo`; signed in, CSRF,
   one change a second), `/embed/fund-drive` (embed/, own frame-ancestors; Dockerfile copies embed/),
   public/fund-drive.js (the one capsule drawing), the studio card (public/studio-fund-drive.js),

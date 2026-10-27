@@ -26,6 +26,13 @@ read the Pacifica JSON feeds through a per-station profile.
   uploads and programs no longer on the air are not shown.
 - **Built-in player** — any archived episode, or the live 90.7 FM stream, right in
   the app; resumes long shows where you stopped, without an account.
+- **Listen Live page** at `/live` — the station's live player on its own address, for the station's
+  website to link to: one tap to audio (it tries to play on arrival), the show on air, today's
+  schedule, the latest episodes, the station's phone lines and signals, and Donate. Anything else
+  opens on the podcast site with the stream still playing.
+- **Fund drive capsule** — during a drive, staff set the goal and the amount pledged in the studio,
+  and a progress capsule shows on Listen Live and as an embed for the station's own website
+  (`/embed/fund-drive`). Off between drives. Station figures only — nothing about listeners.
 - **Weekly schedule** — KPFK's published schedule as a today-first, seven-day tabbed
   view with show artwork, opening scrolled to what's on air now. On tablets and
   desktops a **Grid** view shows the whole week at once, each show as tall as its
@@ -66,6 +73,9 @@ read the Pacifica JSON feeds through a per-station profile.
 | `GET /api/archive` · `/api/archive/head` | Episodes of scheduled programs, from the Pacifica catalog · freshness probe |
 | `GET /api/schedule` · `?weekStart=<epoch>` | Published schedule index · one week of slots (with same-origin artwork) |
 | `GET /api/nowplaying` | Current and next program, track when identified |
+| `GET /live` | The Listen Live page (the same app, its live-only view) |
+| `GET /api/fund-drive` | The fund drive capsule's figures: `{on, name, goal, pledged, updatedAt}` (`no-store`) |
+| `GET /embed/fund-drive` · `?theme=light\|dark` | The capsule alone, for the station's own website to show in an iframe (frame-ancestors: this app and the station's website) |
 | `GET /api/showinfo` · `/api/showinfo/<key>` | Program directory records (description, host, links) |
 | `GET /api/artwork/<id>` | Same-origin proxy for catalog artwork (allow-listed; not an open proxy) |
 | `GET /api/station` · `/station.js` · `/manifest.webmanifest` | Public station profile and app manifest |
@@ -75,6 +85,7 @@ read the Pacifica JSON feeds through a per-station profile.
 | `GET /api/studio/export?dataset=profile&format=<json\|readme>` | Studio download (signed-in only): the station's public settings — exactly `/api/station` plus the category map |
 | `GET /studio/report?from=<YYYY-MM-DD>&to=<YYYY-MM-DD>` | Printable report (signed-in; otherwise redirects to `/studio`): listening, archive and program-data gaps for the dates, built from the same data as the downloads. Print → Save as PDF |
 | `GET /api/studio/backup` | Studio download (signed-in only): every usage month plus settings, checksummed — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) "Moving the app" |
+| `GET /api/studio/fund-drive` · `POST …/apply` · `…/undo` | Studio Fund drive card (signed-in, CSRF, one change a second): the figures, publish, undo |
 | `POST /api/studio/import/preview` · `/apply` · `/undo` | Studio restore (signed-in, CSRF). Preview writes nothing; apply requires the preview's token and saves this server's copies first; undo puts them back |
 | `GET /healthz` | Bundle version, feed state, `archiveFilter`, and storage identity (`storage.mounted`, `storage.instanceId`) |
 
@@ -84,7 +95,7 @@ validated, and saved as last-good snapshots, so a Pacifica outage or a restart
 during one keeps serving the archive and schedule.
 
 Everything persisted lives under **`DATA_DIR`** (`/app/data` in the container,
-`./data` locally): the studio's usage counters and the feed snapshots. Writes are
+`./data` locally): the studio's usage counters, the feed snapshots, the studio's station edits and the fund drive figures. Writes are
 atomic and flushed on `SIGTERM`.
 
 ## Run locally

@@ -96,6 +96,9 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
   path) — always a named volume. `npm run hooks:install` once per clone wires the
   storage-safety pre-commit guard; override a line with `storage-safety:allow`,
   never `--no-verify`.
+- **The image copies named folders only** (Dockerfile `COPY lib`, `public`, `admin`, `embed`, …). A new
+  folder the server reads must get its own `COPY` line, or it works locally and fails only live;
+  `test/pacifica/dockerfile.test.js` fails until it does (2026-10-27, `embed/`).
 - Backups: `CONTAINER=<name> tools/backup-data.sh /backups` on the VPS. See
   [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
@@ -138,6 +141,17 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
   one (`closePopups`); show → episode stays in one sheet; only the artwork zoom and
   schedule list → show stack; the grid card's **Show page** replaces grid and schedule
   (Paul, 2026-10-24); Back undoes one step. The player bar sits above every popup.
+- **Listen Live (`/live`) does live things only** (Paul, 2026-10-27). Live-only header (logo,
+  Donate, light/dark, menu — no Schedule or On Air). A show, an episode or the schedule leaves `/live`
+  for the podcast front with that popup; closing it stays on the front; the browser's Back returns
+  to `/live`; the same bottom player carries the stream. Never a second live player over `/live`
+  (`openLivePlayer` sends you to the page's Play button). Donate opens over it. Autoplay on arrival
+  is Ace's ask ("one click to audio"); a refusal leaves one big Play button. One window always:
+  new tabs on phones make navigation a puzzle (Paul). Plan: [docs/kpfk/listen-live-plan.md](docs/kpfk/listen-live-plan.md).
+- **Fund drive** (Phase 4a, 2026-10-27): the studio's Fund drive card sets on/off, name, goal and
+  pledged (`lib/fund-drive.js`, data volume `fund-drive/`); `public/fund-drive.js` is the one capsule
+  drawing (on `/live`, the studio preview, `/embed/fund-drive`). The embed's frame-ancestors are this
+  app and the station's website only; the listener site stays `SAMEORIGIN`.
 - **Listen along naming:** "Transcript" (QIR) and **"Playlist"** (cue-file song list, was
   "Songs"). Never rename "Transcript" (Paul).
   **Transcripts and headlines have broken five times** — read [docs/transcripts.md](docs/transcripts.md) before
@@ -175,8 +189,9 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
   scratch server (port 8091, copy of `data/` without `stats/`), never on 8081 —
   `test/schedule-grid/run.sh` starts and removes its own.
 - **Listen Live page (`/live`): `test/listen-live/run.sh`** (own server + muted Chrome, real taps:
-  arrival, refused autoplay → one tap, rollover, show sheet over a playing stream, menu, logo/Back,
-  four widths light and dark). Run it before any push touching the live player or that page.
+  arrival, refused autoplay → one tap, the connecting spinner, rollover, live-only header, links to
+  the front (closing stays there, Back returns, the stream plays on), no Live popup over the page,
+  menu, logo/Back, four widths light and dark). Run it before any push touching the live player or that page.
 - **Fund drive (Phase 4a): `test/fund-drive/run.sh`** (own server on 8093 with a test studio password,
   muted Chrome on 9234, real taps: the studio card → Publish → the capsule on /live and in the embed →
   off). Run it before any push touching the capsule, its studio card or /embed/fund-drive.
