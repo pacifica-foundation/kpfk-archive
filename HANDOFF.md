@@ -10,9 +10,12 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 
 - **Search ranking** (`public/archive-search.js`): whole words beat word starts beat the inside
   of a word ("seafood"); repeated and multi-field matches outrank one passing mention; a show is
-  also a result through 2+ matching episodes ("Matches 3 episodes"), kept below a show-name
-  match; episode groups ordered by best episode + count (`ArchiveSearch.groups`). Ace's "food":
-  2 → 13 shows. Tests in `search.test.js` (3 new, all fail on the old code).
+  also a result through 2+ matching episodes, at least one by headline ("Matches 3 episodes"),
+  kept below a show-name match, and its card shows that headline (fe5571a: a result always shows
+  why it matched; notes-only mentions such as "Salar Nader" never promote a show); episode groups
+  ordered by best episode + count (`ArchiveSearch.groups`). Ace's "food": 2 → 4 shows. Tests in
+  `search.test.js` (4 new, all fail on the old code); page-load check runs 3 searches. Live and
+  checked. Re-run reader finished live: 1,169 read, 75 re-runs hidden.
 - **Radio Maiz re-filed:** on Aug 31, Sep 28, Oct 12 Radio Maiz ran 8–9 pm and the recorder filed
   its first half-hour under Informativo Pacifica (`infopac`); checked by QIR transcript (17–30
   "Radio Maíz" mentions each). Three `episodeCorrections` entries. Schedule fix is Ace's.
