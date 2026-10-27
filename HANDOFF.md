@@ -14,7 +14,12 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
   and 1280 px, no errors; /live is the page; Schedule from /live opens on the front, one Back
   returns; /api/fund-drive off; embed frame-ancestors self + kpfk.org + www.kpfk.org; the listener
   site still SAMEORIGIN. Tracker: update posted on the Listen Live item.
-- Fund drive is OFF on the live site until staff switch it on in the studio (Discovery & settings).
+- Fund drive: Paul switched it ON in the live studio at 21:14 UTC ($20,000 of $75,000, no name), so
+  listeners see the capsule on /live and in the embed until it is switched off.
+- Later deploys the same night (all checked live, version `4b59b-mvr7rfyw…`, same instanceId): /live
+  live-only (ad7c871); the studio card in two columns with the preview always shown (05508d5); one
+  Light | Dark choice for preview, snippet and Open the embed, real Copy/Open buttons (8bed808).
+  The live check script (counter and stream blocked) reads the published figures, not "off".
 - **Then (Paul's live review): /live is live ONLY.** Live-only header (logo, Donate, light/dark,
   menu; no Schedule or On Air button). A show, an episode or the schedule moves the listener to the
   podcast front with that popup, and closing it leaves them ON THE FRONT (leaving /live now pushes
