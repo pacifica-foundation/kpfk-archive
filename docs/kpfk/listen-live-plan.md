@@ -161,6 +161,24 @@ stay file-only on purpose.
   layout before switching on. Same history, undo and backup as Station & appearance.
 - While on: the red banner on Listen Live and show pages, the embed under the player, the large
   Donate button. Ace builds KPFK's embed (goal progress, thank-you gift).
+- **Decided (Paul, 2026-10-27 evening):**
+  - Everyday Donate (always on): the donate link lives in this screen (one place), button wording,
+    and how it opens (in-app window or new tab).
+  - **Donate page check (Paul: "lets do this too"):** a payment page may refuse to be shown inside
+    another site (X-Frame-Options, or CSP frame-ancestors), and the in-app window is then blank. The
+    server fetches the link and reads those headers: on **Test**, and automatically whenever the
+    link is saved. Refused → Donate opens the page outside, and the studio says why in plain words;
+    allowed → the in-app window, and the link's origin joins the site's frame-src. Never guessed
+    from the address. Same check for the Privacy link.
+  - On/off **switch plus optional start and end dates** (turns itself off after the drive).
+  - Progress **built in now**: staff type the goal and the amount raised; the app draws the bar in
+    the site's style. **Ace's embed added later** as a second option, by web address only (never a
+    pasted snippet: the CSP blocks it, and loosening that is the risk).
+  - Banner on **Listen Live only** (not show pages, home page or the player bar).
+  - Donate (and Privacy) open over /live; the stream keeps playing.
+  - Preview at phone and desktop width before switching on; Review & publish, Undo, history as in
+    Station & appearance. Thank-you gifts and Donate-open counts: later, not in the first build.
+  - Next: a clickable mockup of the studio Fund drive screen, then build.
 
 ### Phase 5 — Schedule finish (INT-969, rest)
 
