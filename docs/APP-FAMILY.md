@@ -128,6 +128,7 @@ studio's **Feed anomalies** section.
 | Duplicate records with episodes | Explicit `hiddenShows` keys only, never by date | Discovery `stations/kpfk.json` | HANDOFF W1 |
 | No on-demand rights (KPFK: The Aware Show, 2026-10-01) | Explicit `withheldShows` keys: never served — no episode, card, search hit or QIR text. The app sees it gone from `/api/archive` and `qir/notes`; the live schedule still lists the slot | kpfk-archive `service.js`; Discovery `index.js` | `archiveFilter.withheld` |
 | Missing pictures in schedule/now playing | Catalog picture used | kpfk-archive `service.js` | — |
+| Show on the feed's stand-in picture (KPFK: Confessor's `KPFK_med.jpg`, 25 shows, 2026-10-27) or none | Station `placeholderArt` names the stand-in file(s). Such a row, directory entry, schedule slot or now-playing show also carries `tile` (`/api/artwork/tile/<show key>`, an SVG name tile; `?c=<hex>` colours its bar). The web page shows the tile; **`photo` is unchanged**, so the Flutter app (no SVG) keeps the logo until it opts in. Real art in Confessor removes `tile` by itself | kpfk-archive `service.js`, `public/app.js` `useTile` | — |
 | HTML entities/tags in text | Decoded (`public/text.js`, shared) | both web apps | unknown entity logged |
 | QIR behind | Archive episodes aired in last 48 h shown "Transcript pending"; **log warning at 6 h behind** | Discovery `lib/qir/pending.js`, `server.js` | `/healthz` `qirPending.behindHours` |
 | QIR down | Page shows the station archive, with a notice | Discovery `public/app.js` | — |

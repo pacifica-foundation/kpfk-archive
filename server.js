@@ -4336,7 +4336,10 @@ async function handleRequest(req, res) {
         return sendJson(res, await pacifica.schedule(value === null ? undefined : Number(value)), 200, 0);
       }
       if (pathOnly.startsWith('/api/artwork/')) {
-        const result = await pacifica.artwork(pathOnly.slice('/api/artwork/'.length));
+        const tileKey = /^\/api\/artwork\/tile\/([A-Za-z0-9_.-]{1,200})$/.exec(pathOnly);
+        const result = tileKey
+          ? pacifica.tile(tileKey[1], new URL(req.url, 'http://localhost').searchParams.get('c'))
+          : await pacifica.artwork(pathOnly.slice('/api/artwork/'.length));
         // ETag lets a browser revalidate a day-old image with a 304 instead of the bytes.
         if (req.headers['if-none-match'] === result.etag) {
           res.writeHead(304, { 'Cache-Control': 'public, max-age=86400', ETag: result.etag, ...securityHeaders() });

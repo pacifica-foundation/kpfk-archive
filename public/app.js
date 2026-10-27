@@ -2822,6 +2822,8 @@
   var NOWPLAYING_SNAPSHOT = { current:{name:STATION.label, dj:'', start:'', end:'', photo:STATION.assets.icon}, next:{name:'',start:''} };
 
   function renderNowPlaying(cur, nxt, isLive){
+    useTile(cur, cur && (showInfo[cur.altid] || {}).cat);
+    useTile(nxt, nxt && (showInfo[nxt.altid] || {}).cat);
     liveCurrent = cur;
     liveNext = nxt;
     liveIsLive = isLive;
@@ -2973,7 +2975,23 @@
   // rows, never remove or overwrite what the feed carries: enrich(rows) runs on every
   // new listing, and refresh() re-runs it when the plugin's own data arrives later.
   var plugins = [];
+  // A show whose picture is the feed's stand-in (or none) carries `tile`, a name tile the server
+  // draws (2026-10-27, Ace's review: 25 KPFK shows all showed the same station logo). The page
+  // shows the tile, in the show's category colour, as the show's photo. Applied where data
+  // arrives (episodes, show directory, on air, schedule), so every view that reads `photo` has it.
+  function useTile(o, cat){
+    if(o && o.tile){
+      var c = (CAT_BY_KEY[cat || o.cat] || {}).color || '';
+      o.photo = o.tile + (/^#[0-9a-f]{6}$/i.test(c) ? '?c=' + c.slice(1) : '');
+    }
+    return o;
+  }
+  function useTiles(){
+    for(var i=0; i<rows.length; i++) useTile(rows[i]);
+    for(var k in showInfo) if(Object.prototype.hasOwnProperty.call(showInfo, k)) useTile(showInfo[k]);
+  }
   function enrichRows(){
+    useTiles();
     plugins.forEach(function(p){
       // Caught: any error inside a plugin. The plugin is optional enrichment; the
       // station's archive must keep working without it, so log it and carry on.
@@ -3806,6 +3824,7 @@
       });
       if(!Object.keys(byDate).length && failed.length) throw failed[0];
       publishedDays = Object.keys(byDate).sort().map(function(k){ return byDate[k]; });
+      publishedDays.forEach(function(d){ (d.slots || []).forEach(function(slot){ useTile(slot); }); });
       publishedStale = stale;
       publishedLoading = false;
       paintPublishedSchedule();
@@ -4558,7 +4577,7 @@
   function fetchShowInfo(){
     fetch('/api/showinfo', {cache:'no-store'})
       .then(function(r){ return r.json(); })
-      .then(function(data){ if(data && data.shows) { showInfo = data.shows; rebuildSearchIndex(); if(state.query) render(); } })
+      .then(function(data){ if(data && data.shows) { showInfo = data.shows; useTiles(); rebuildSearchIndex(); if(state.query) render(); } })
       .catch(function(){ /* non-fatal: the sheet just has less to show */ });
   }
 
@@ -4588,7 +4607,7 @@
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d || !d.info) return;
-        showInfo[altid] = d.info;
+        showInfo[altid] = useTile(d.info);
         rebuildSearchIndex();
         // repaint only if this is still the sheet on screen
         var same = rowById(sheetRowId);

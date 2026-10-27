@@ -77,6 +77,7 @@
   },
   "hiddenShows": ["friedman", "biketalka"],
   "withheldShows": ["aware"],
+  "placeholderArt": ["KPFK_med.jpg"],
   "siteUrl": "https://podcasts.kpfk.org",
   "musicWindowDays": 14,
   "musicShows": ["specialmusicprogramm"],
