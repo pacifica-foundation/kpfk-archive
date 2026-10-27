@@ -153,6 +153,26 @@ stay file-only on purpose.
 - A footer on the home page from the same settings: station line, call-in and office numbers,
   signals, donate, socials, privacy, app links, optional public file link (new optional link).
 
+### Phase 4a — Donation capsule + embed (first, Paul 2026-10-27 evening)
+
+The smallest useful fund drive piece, before the full Fund drive screen:
+
+- **Studio:** a Fund drive card with the goal, the amount pledged so far, an optional name ("Fall
+  Fund Drive") and an on/off switch. Saved on the data volume (no deploy), with Undo and history
+  like Station & appearance. Staff update the pledged amount during the drive as often as they like.
+- **The capsule:** a pill-shaped progress bar, in the site's style: amount pledged, the goal, the
+  percent, and a Donate button. On **Listen Live** under the player while switched on. It refreshes
+  by itself (about every minute), so the number climbs on screen during the drive.
+- **The embed:** the same capsule as its own small page, `/embed/fund-drive`, for other sites
+  (kpfk.org, Aiir's player) to show in an iframe. The studio gives the snippet with a Copy button.
+  The station's own sites are allowed to frame it (frame-ancestors from the station profile); no
+  one else. Its Donate opens the station's donate page in a new tab (it lives on someone else's page).
+- **Data:** `GET /api/fund-drive` → `{on, name, goal, pledged, updatedAt}`; whole dollars, never
+  negative, pledged may pass the goal (the bar stays full and says so). Nothing about listeners.
+- **Not in 4a:** dates, the banner, the donate page check, Ace's own embed, thank-you gifts. Those
+  are Phase 4 below.
+- Mockup first (Paul's plan-then-mockup rule), then build.
+
 ### Phase 4 — Fund drive mode (INT-967)
 
 - A **Fund drive screen in the studio** (Paul, 2026-10-23: a full screen, not just Ace's "admin
