@@ -54,6 +54,8 @@
   // Show directory (see the Show info sheet section). Declared here, not there: the start-up
   // now-playing paint reads it (useTile), and a later `var` is still undefined at that moment.
   var showInfo = {};
+  // Is the Listen Live page (/live) showing? Read by urlFor() and start-up paints, so declared here.
+  var livePageOn = false;
   var searchIndex = {shows:[], episodes:[]};
   var searchScope = 'all', searchLimit = 12, searchShow = '';
   var searchResultsEl = document.getElementById('searchResults');
@@ -118,7 +120,7 @@
     // An open popup is addressed by its permanent link (public/links.js), so the address
     // bar is always something that can be copied into a post or a web page.
     var open = sheetId && rowById(sheetId);
-    var path = !open ? (layer === 'live' ? window.ShowLinks.LIVE_PATH : layer === 'grid' ? window.ShowLinks.GRID_PATH : layer ? window.ShowLinks.SCHEDULE_PATH : '/') : view === 'show' ? window.ShowLinks.showPath(open.sho) : window.ShowLinks.episodePath(open);
+    var path = !open ? (layer === 'live' ? window.ShowLinks.LIVE_PATH : layer === 'grid' ? window.ShowLinks.GRID_PATH : layer ? window.ShowLinks.SCHEDULE_PATH : livePageOn ? window.ShowLinks.LIVE_PATH : '/') : view === 'show' ? window.ShowLinks.showPath(open.sho) : window.ShowLinks.episodePath(open);
     return path + (q.length ? '?' + q.join('&') : '');
   }
   var canHistory = !!(window.history && history.replaceState);
@@ -144,6 +146,8 @@
     // runs during that popstate, so keep the destination's claim intact rather
     // than replacing it with a plain listing entry mid-transition.
     if(history.state && history.state.live){ st = st || {}; st.live = 1; }
+    // The Listen Live page's own entry keeps its flag (Back from the home page finds it).
+    if(history.state && history.state.livePage){ st = st || {}; st.livePage = 1; }
     var layer = !st ? false : st.live ? 'live' : st.sched ? (st.schedGrid ? 'grid' : true) : false;
     try { history.replaceState(st, '', urlFor(open, open ? sheetView : null, layer)); } catch(e){}
   }
@@ -1708,6 +1712,7 @@
     if(onAirLabel) onAirLabel.textContent = playing ? 'On Air' : 'Listen Live';
     paintLiveCloseBtn();
     syncLiveIdentity();
+    paintLivePageState();
   }
 
   // The docked bar shows the same connect state as the modal, so the flag has to
@@ -1715,6 +1720,7 @@
   function setLiveLoading(on){
     liveLoading = !!on;
     lpToggle.classList.toggle('loading', liveLoading);
+    paintLivePageState();
     if(barMode === 'live') refreshToggleIcon();
     else syncLiveIdentity();
   }
@@ -2037,6 +2043,17 @@
     // that never played is a plain failure and says so immediately.
     if(reason !== 'blocked' && liveWanted && navigator.onLine !== false
        && liveKeepTrying(wasPlaying)) return;
+    // Arriving at the Listen Live page tries to play by itself; a browser that refuses (Safari
+    // usually does, before any tap) is expected, not a failure: one big Play button, no alert.
+    // Logged, never swallowed (CLAUDE.md §3).
+    if(reason === 'blocked' && livePageArrival){
+      livePageArrival = false;
+      console.info('[live page] the browser refused to start the stream on arrival; waiting for a tap');
+      liveRecovering = false;
+      liveEngaged = false;          // the note reads "Tap play", not "Paused"
+      stopLive();
+      return;
+    }
     liveRecovering = false;
     liveStallSince = 0;
     liveErrored = true;         // set first: stopLive() leaves the error UI alone
@@ -2423,6 +2440,7 @@
 
   // ---- Paint the modal from the latest snapshot. Safe to call any time.
   function paintLivePlayer(){
+    paintLivePage();
     if(!liveCurrent) return;
     setLivePhoto(liveCurrent.photo || null);
     lpTitle.textContent = liveCurrent.name || (STATION.label);
@@ -2633,7 +2651,12 @@
     ));
   }
 
-  onAirBtn.addEventListener('click', openLivePlayer);
+  // On the Listen Live page the header's Listen Live chip is that page: it brings its Play
+  // button into view instead of opening the popup over it.
+  onAirBtn.addEventListener('click', function(){
+    if(livePageOn){ window.scrollTo(0, 0); lv.Play.focus(); return; }
+    openLivePlayer();
+  });
   // openSchedule takes an optional fromHistory param — binding it directly
   // would pass the click Event in that slot and wrongly skip the history push.
   scheduleBtn.addEventListener('click', function(){ openSchedule(); });
@@ -2642,6 +2665,202 @@
   lpToggle.addEventListener('click', toggleLive);
   lpArchive.addEventListener('click', function(){ openLiveShowArchive(liveCurrent && liveCurrent.altid); });
   lpUpNext.addEventListener('click', function(){ openLiveShowProfile(liveNext && liveNext.altid); });
+
+  // ---- Listen Live page (/live, INT-966; Ace's review; mockup approved by Paul 2026-10-27).
+  // A full page instead of the home page, inside the app: the header, menu, popups and player
+  // bar stay, and show links open their sheets over it without stopping the stream. It plays
+  // nothing itself — Play is startLive()/stopLive(), so it, the Live popup and the player bar
+  // always agree. Arriving tries to play; a refusal (Safari, usually) leaves one big Play button
+  // and is logged, not shown as an error. The Live popup stays for the On Air button.
+  // Painted only while shown (livePageOn): start-up code runs before later `var`s are set, and
+  // this page must never be the thing that reads one too early (2026-10-27 start-up crash).
+  var livePageEl = document.getElementById('livePage');
+  var livePageArrival = false, livePageTitle = '';
+  var lv = {};
+  ['Art','Title','Sub','Desc','Play','Status','Status2','Vol','Mute','Volume','Full','Song','SongText','Show','Episodes','Count',
+   'Donate','UpNextWrap','UpNext','LatestWrap','Latest','AllEpisodes','App','AppText','AppLink','SchedHead','Today',
+   'Contact','Contacts','Signals','Tag'].forEach(function(k){ lv[k] = document.getElementById('lv' + k); });
+  var LV_ICON = {
+    play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
+    stop:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+    speaker:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>',
+    muted:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 5m0-5-5 5"/></svg>'
+  };
+  // Desktop only: a mouse, and not an iPhone/iPad (canVolume). Touch devices use their buttons.
+  var lvFine = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)') : { matches: true };
+  // The small popup window kpfk.org opens: a desktop browser window under 640px wide.
+  var lvNarrow = window.matchMedia ? window.matchMedia('(max-width: 640px)') : { matches: false };
+
+  function enterLivePage(fromHistory){
+    if(!livePageOn){
+      livePageOn = true;
+      livePageTitle = document.title;
+      document.title = 'Listen Live — ' + STATION.label;
+      document.body.classList.add('live-page');
+      livePageEl.hidden = false;
+      window.scrollTo(0, 0);
+    }
+    if(!fromHistory && canHistory){ try { history.replaceState({livePage:1}, '', window.ShowLinks.LIVE_PATH + location.search); } catch(e){} }
+    paintLivePage();
+    paintLivePageState();
+    if(!publishedDays && !publishedLoading) loadPublishedSchedule();
+  }
+  function leaveLivePage(fromHistory){
+    if(!livePageOn) return;
+    livePageOn = false;
+    document.body.classList.remove('live-page');
+    livePageEl.hidden = true;
+    if(livePageTitle) document.title = livePageTitle;
+    if(!fromHistory && canHistory){ try { history.pushState({home:1}, '', urlFor(null)); } catch(e){} }
+    window.scrollTo(0, 0);
+  }
+  // Arrival (openDeepLink): show the page and try to start the stream at once.
+  function arriveLivePage(){
+    enterLivePage();
+    if(liveWanted) return;
+    livePageArrival = true;
+    startLive();
+  }
+
+  function lvTime(sec){ return schedTimeLabel(stationMinutes(sec)); }
+  function lvRowHtml(s, cls, extra){
+    return '<button type="button" class="lv-row' + (cls ? ' ' + cls : '') + '" data-lv-show="' + esc(s.upstreamAltId || '') + '">' +
+      (s.photo ? '<img src="' + esc(s.photo) + '" alt="">' : '') +
+      '<span class="t">' + esc(lvTime(s.startTime)) + '</span>' +
+      '<span class="n"><b>' + esc(s.name || '') + '</b>' + (s.host ? '<span>' + esc(s.host) + '</span>' : '') + '</span>' +
+      (extra || '') + '</button>';
+  }
+  // Today's published slots (Confessor, never Aiir), from the schedule's own loader.
+  function lvToday(){
+    if(!publishedDays) return null;
+    var today = stationDay(new Date());
+    var day = publishedDays.filter(function(d){ return d.date === today; })[0];
+    return day ? day.slots : [];
+  }
+  function paintLivePageSchedule(){
+    if(!livePageOn) return;
+    var slots = lvToday(), now = Date.now() / 1000;
+    if(slots === null){
+      lv.Today.innerHTML = publishedLoading ? '<p class="lv-quiet">Loading today’s schedule…</p>' : '<p class="lv-quiet">Today’s schedule is unavailable right now.</p>';
+      lv.UpNextWrap.hidden = true;
+      return;
+    }
+    lv.SchedHead.textContent = new Intl.DateTimeFormat('en-US', {timeZone:STATION.timezone, weekday:'long', month:'long', day:'numeric'}).format(new Date());
+    var cur = -1;
+    slots.forEach(function(s, i){ if(s.startTime <= now && now < s.endTime) cur = i; });
+    lv.Today.innerHTML = slots.length ? slots.map(function(s, i){
+      return lvRowHtml(s, i === cur ? 'now' : (s.endTime <= now ? 'past' : ''), i === cur ? '<span class="lv-onair">On air</span>' : '');
+    }).join('') : '<p class="lv-quiet">Nothing published for today.</p>';
+    var next = slots.filter(function(s){ return s.startTime >= now; }).slice(0, 2);
+    lv.UpNext.innerHTML = next.map(function(s){ return lvRowHtml(s); }).join('');
+    lv.UpNextWrap.hidden = !next.length;
+    var here = lv.Today.querySelector('.lv-row.now');
+    var box = lv.Today.parentNode;
+    if(here && box.scrollHeight > box.clientHeight) box.scrollTop = Math.max(0, here.offsetTop - box.offsetTop - 80);
+  }
+  // Everything that follows the show on air: called with the Live popup's paint (every
+  // now-playing poll, so the page rolls over by itself at the top of the hour) and on refresh.
+  function paintLivePage(){
+    if(!livePageOn) return;
+    var cur = liveCurrent || {};
+    lv.Tag.textContent = 'Live · ' + STATION.label;
+    lv.Art.src = cur.photo || STATION.assets.icon;
+    lv.Title.textContent = cur.name || STATION.label;
+    var times = cur.start && cur.end ? cur.start + ' – ' + cur.end : '';
+    lv.Sub.textContent = [cur.dj ? 'with ' + cur.dj : '', times].filter(Boolean).join(' · ');
+    lv.Sub.hidden = !lv.Sub.textContent;
+    var info = (cur.altid && showInfo[cur.altid]) || {};
+    lv.Desc.textContent = info.desc || info.shortdesc || '';
+    lv.Desc.hidden = !lv.Desc.textContent;
+    var song = (cur.song || '').trim(), artist = (cur.artist || '').trim();
+    lv.SongText.textContent = song && artist ? song + ' · ' + artist : (song || artist);
+    lv.Song.hidden = !(song || artist);
+    var row = cur.altid ? latestArchiveRowForShow(cur.altid) : null;
+    var eps = row ? episodesFor(row) : [];
+    lv.Show.hidden = !row;
+    lv.Episodes.hidden = !eps.length;
+    lv.Count.textContent = eps.length;
+    lv.Show.dataset.id = lv.Episodes.dataset.id = lv.AllEpisodes.dataset.id = row ? row.id : '';
+    lv.LatestWrap.hidden = !eps.length;
+    lv.Latest.innerHTML = eps.slice(0, 4).map(function(e){
+      var title = (window.ArchiveSearch && window.ArchiveSearch.episodeTitle(e)) || e.dateText;
+      return '<button type="button" class="lv-row" data-lv-episode="' + esc(e.id) + '"><span class="n"><b>' + esc(title) + '</b><span>' +
+        esc([splitDateText(e.dateText || '').date, e.length].filter(Boolean).join(' · ')) + '</span></span></button>';
+    }).join('');
+    lv.Donate.hidden = !(typeof DONATE_URL === 'string' && DONATE_URL);
+    // Contacts and signals from the station file (stations/<id>.json `contact`); a blank one is not shown.
+    var c = STATION.contact || {}, digits = function(v){ return String(v).replace(/[^0-9+]/g, ''); };
+    var items = [];
+    if(c.studioPhone) items.push(['tel:' + digits(c.studioPhone), 'Call the studio', c.studioPhone]);
+    if(c.officePhone) items.push(['tel:' + digits(c.officePhone), 'Office', c.officePhone]);
+    if(c.studioEmail) items.push(['mailto:' + c.studioEmail, 'Email the studio', c.studioEmail]);
+    if(c.textNumber) items.push(['sms:' + digits(c.textNumber), 'Text / WhatsApp', c.textNumber]);
+    lv.Contacts.innerHTML = items.map(function(x){ return '<a class="lv-contact" href="' + esc(x[0]) + '"><span>' + esc(x[1]) + '</span><b>' + esc(x[2]) + '</b></a>'; }).join('');
+    lv.Signals.textContent = (c.signals || []).join(' · ');
+    lv.Signals.hidden = !lv.Signals.textContent;
+    lv.Contact.hidden = !items.length && lv.Signals.hidden;
+    // Phones: the station's app, the store for this device.
+    var ios = /iP(hone|od|ad)/.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
+    var app = ios ? STATION.links.appleApp : STATION.links.androidApp;
+    lv.App.hidden = lvFine.matches || !app;
+    if(app){ lv.AppLink.href = app; lv.AppText.textContent = 'Listen in the ' + STATION.name + ' app'; }
+    paintLivePageSchedule();
+  }
+  // The play state, mirrored from the live player (setLiveIcon, setLiveLoading, liveFailed).
+  function paintLivePageState(){
+    if(!livePageOn) return;
+    var on = !!liveWanted;
+    lv.Play.innerHTML = on ? LV_ICON.stop : LV_ICON.play;
+    lv.Play.classList.toggle('loading', on && liveLoading);
+    lv.Play.setAttribute('aria-pressed', on ? 'true' : 'false');
+    lv.Play.setAttribute('aria-label', on ? 'Stop the live stream' : 'Play the live stream');
+    lv.Status.textContent = liveErrored ? 'Stream unavailable' : on ? (liveLoading ? 'Connecting…' : 'Live now') : 'Tap to listen live';
+    lv.Status2.textContent = liveErrored ? 'Tap play to try again' : STATION.label + (STATION.city ? ' · ' + STATION.city : '');
+    lv.Vol.hidden = !(canVolume && lvFine.matches);
+    var vol = typeof liveVolume === 'number' ? liveVolume : 1;
+    lv.Volume.value = String(vol);
+    lv.Mute.innerHTML = vol > 0 ? LV_ICON.speaker : LV_ICON.muted;
+    lv.Mute.setAttribute('aria-label', vol > 0 ? 'Mute' : 'Unmute');
+    lv.Mute.setAttribute('aria-pressed', vol > 0 ? 'false' : 'true');
+    lv.Full.hidden = !(lvFine.matches && lvNarrow.matches);
+  }
+  // One volume for the page and the Live popup (the same setting, the same stored value).
+  var lvUnmuteTo = 1;
+  function setLiveVolumeLevel(v){
+    v = Math.max(0, Math.min(1, v));
+    liveVolume = v;
+    if(liveAudio) liveAudio.volume = v;
+    lpVolume.value = String(v); paintVol();
+    try{ localStorage.setItem(LIVE_VOL_KEY, String(v)); }catch(e){ /* private mode: the level just isn't kept */ }
+    paintLivePageState();
+  }
+  lv.Volume.addEventListener('input', function(){ setLiveVolumeLevel(parseFloat(lv.Volume.value) || 0); });
+  lv.Mute.addEventListener('click', function(){
+    if(liveVolume > 0){ lvUnmuteTo = liveVolume; setLiveVolumeLevel(0); } else setLiveVolumeLevel(lvUnmuteTo || 1);
+  });
+  lv.Play.addEventListener('click', function(){ livePageArrival = false; toggleLive(); });
+  lv.Full.addEventListener('click', function(){
+    // The full tab takes over: stop here first so the two windows never play at once.
+    if(liveWanted) stopLive();
+    window.open(location.origin + window.ShowLinks.LIVE_PATH, '_blank', 'noopener');
+  });
+  lv.Donate.addEventListener('click', function(){ openDonate(); });
+  [lv.Show, lv.Episodes, lv.AllEpisodes].forEach(function(b){
+    b.addEventListener('click', function(){ if(b.dataset.id) openSheetById(b.dataset.id, b, false, 'show'); });
+  });
+  livePageEl.addEventListener('click', function(e){
+    var t = e.target.closest('[data-lv-schedule], [data-lv-show], [data-lv-episode]');
+    if(!t) return;
+    if(t.hasAttribute('data-lv-schedule')){ openSchedule(); return; }
+    if(t.hasAttribute('data-lv-episode')){ openSheetById(t.dataset.lvEpisode, t, false, 'episode'); return; }
+    var r = latestArchiveRowForShow(t.dataset.lvShow);
+    if(r) openSheetById(r.id, t, false, 'show');
+  });
+  // The station logo leaves the page for the home page (Back returns here).
+  document.querySelectorAll('.appbar .brand').forEach(function(a){
+    a.addEventListener('click', function(e){ if(!livePageOn) return; e.preventDefault(); leaveLivePage(); });
+  });
+  [lvFine, lvNarrow].forEach(function(m){ if(m.addEventListener) m.addEventListener('change', paintLivePageState); });
 
   // ---------------- Keyboard shortcuts ----------------
   // Space = play/pause, ←/→ = ±SKIP_SECONDS, matching the lock screen and the
@@ -3167,10 +3386,9 @@
     // /schedule and /grid: the home page beneath, the schedule on top (and the week grid on that),
     // as if opened from the header — so Back and close step down to the page, never off the site.
     // The grid is 1024px and up only; a narrower screen gets the schedule, at /schedule.
-    // /live: the Live popup over the home page (until the Listen Live page takes this address).
+    // /live: the Listen Live page (2026-10-27; was the Live popup over the home page).
     if(window.ShowLinks.isLive(location.pathname)){
-      if(canHistory){ try { history.replaceState(null, '', urlFor(null)); } catch(e){} }
-      openLivePlayer();
+      arriveLivePage();
       return;
     }
     var toGrid = window.ShowLinks.isGrid(location.pathname);
@@ -3833,6 +4051,7 @@
       publishedLoading = false;
       paintPublishedSchedule();
       if(gridIsOpen()) paintGrid(false);
+      paintLivePageSchedule();
     } catch(error){
       if(request !== publishedRequest) return;
       console.warn('[schedule] unavailable', error);
@@ -3840,6 +4059,7 @@
       schedBody.innerHTML = '<p class="sched-empty" role="status">Schedule unavailable. <button type="button" id="scheduleRetry">Retry</button></p>';
       document.getElementById('scheduleRetry').onclick = function(){ loadPublishedSchedule(); };
       if(gridIsOpen()) paintGrid(false);
+      paintLivePageSchedule();
     } finally { if(request === publishedRequest) publishedLoading = false; }
   }
   function paintPublishedSchedule(){
@@ -5320,6 +5540,10 @@
       searchEl.value=restoredQuery;syncSearchUi();renderCat();render();
     }
     var route = history.state || {};
+    // The Listen Live page is the base under its own entries ({livePage:1}); the logo's way
+    // home is {home:1}. Entries opened on top (a show, the schedule) leave it as it is.
+    if(route.livePage) enterLivePage(true);
+    else if(route.home) leaveLivePage(true);
     if(route.live){
       dismissSheet();
       dismissSchedule();

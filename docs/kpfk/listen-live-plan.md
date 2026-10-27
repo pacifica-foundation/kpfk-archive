@@ -100,6 +100,16 @@ one tap at most to audio; Back and close never leave the site; rollover with a m
 Expand stops the small window; show links keep the stream playing; the player bar always visible;
 autoplay refused → one big button, the refusal logged (never swallowed).
 
+## 5a. Status (2026-10-27)
+
+Built locally, not pushed (Paul reviews first). Phase 1's station-file half (`contact` block, KPFK's
+call-in, office and signals; email and text blank → hidden) and Phase 2 (the page) are done; the
+studio fields for Contact and Wording (Phase 1's second half) are not started. Mockup revised and
+approved 2026-10-27: volume as a speaker button + short slider, desktop only; "Full page" button
+(popup window only) instead of the arrows icon; the site's own header, hamburger menu and floating
+player bar (`.local-notes/listen-live-mockup/`). Tests: `test/listen-live/run.sh` (Chrome) and a
+WebKit pass from the session scratchpad.
+
 ## 6. Build phases (Paul, 2026-10-23)
 
 Each phase ends the same way: tests (offline, plus real-tap browser checks at phone and desktop,

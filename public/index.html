@@ -318,6 +318,70 @@
     </section>
   </main>
 
+  <!-- Listen Live page (/live, INT-966; Ace's review, mockup approved 2026-10-27). Shown instead of
+     the home page (body.live-page); header, menu, popups and player bar are shared. It never
+     plays audio itself: Play is the live player's startLive()/stopLive() (app.js), so the page,
+     the popup and the player bar can never disagree. Filled by paintLivePage(). -->
+  <section class="lv" id="livePage" aria-labelledby="lvTitle" hidden>
+    <a class="lv-banner lv-fd" id="lvBanner" href="#" hidden>Fund drive · Donate now</a>
+    <div class="lv-grid">
+      <div class="lv-col">
+        <span class="lv-tag"><i aria-hidden="true"></i><span id="lvTag">Live</span></span>
+        <div class="lv-hero">
+          <img class="lv-art" id="lvArt" alt="">
+          <div class="lv-id">
+            <h1 class="lv-title" id="lvTitle" tabindex="-1">Live</h1>
+            <p class="lv-sub" id="lvSub" hidden></p>
+            <p class="lv-desc" id="lvDesc" hidden></p>
+          </div>
+        </div>
+        <div class="lv-player">
+          <button class="lv-play" id="lvPlay" type="button" aria-label="Play the live stream" aria-pressed="false"></button>
+          <div class="lv-status"><b id="lvStatus">Tap to listen live</b><span id="lvStatus2"></span></div>
+          <!-- Volume: unmistakably volume (Paul, 2026-10-27: a bare slider read as a scrubber). A
+             speaker button (mute) and a short slider ending in a large speaker. Not on touch
+             devices: phones use their side buttons, and iPhones ignore a page's volume. -->
+          <div class="lv-vol" id="lvVol" role="group" aria-label="Volume" hidden>
+            <button type="button" id="lvMute" aria-label="Mute" aria-pressed="false"></button>
+            <input type="range" id="lvVolume" min="0" max="1" step="0.05" aria-label="Volume">
+            <span class="lv-vol-max" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></span>
+          </div>
+          <!-- Only in the small popup window kpfk.org opens (desktop, narrow): the same page in a
+             full tab; the stream stops here so the two never play at once. -->
+          <button class="lv-full" id="lvFull" type="button" hidden>Full page
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
+        </div>
+        <p class="lv-song" id="lvSong" hidden><em>♪ Now playing</em><span id="lvSongText"></span></p>
+        <div class="lv-fd lv-embed" id="lvEmbed" hidden></div>
+        <div class="lv-actions">
+          <button class="lv-chip" id="lvShow" type="button" hidden>Show page</button>
+          <button class="lv-chip" id="lvEpisodes" type="button" hidden>Past episodes <small id="lvCount"></small></button>
+          <button class="lv-chip lv-donate" id="lvDonate" type="button">Donate</button>
+        </div>
+        <section class="lv-section lv-upnext" id="lvUpNextWrap" aria-labelledby="lvUpNextHead" hidden>
+          <h2 class="lv-h2"><span id="lvUpNextHead">Up next</span><button class="lv-link" type="button" data-lv-schedule>Full schedule →</button></h2>
+          <div id="lvUpNext"></div>
+        </section>
+        <section class="lv-section lv-latest" id="lvLatestWrap" aria-labelledby="lvLatestHead" hidden>
+          <h2 class="lv-h2"><span id="lvLatestHead">Latest from this show</span><button class="lv-link" type="button" id="lvAllEpisodes">All episodes →</button></h2>
+          <div id="lvLatest"></div>
+        </section>
+        <div class="lv-app" id="lvApp" hidden>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>
+          <span id="lvAppText">Listen in the app</span><a class="lv-chip" id="lvAppLink" href="#" target="_blank" rel="noopener noreferrer">Get the app</a>
+        </div>
+      </div>
+      <aside class="lv-sched" id="lvSchedWrap" aria-labelledby="lvSchedHead">
+        <h2 class="lv-h2"><span id="lvSchedHead">Today</span><button class="lv-link" type="button" data-lv-schedule>Full schedule →</button></h2>
+        <div id="lvToday"><p class="lv-quiet">Loading today’s schedule…</p></div>
+      </aside>
+      <section class="lv-section lv-foot" id="lvContact" aria-label="Contact the station" hidden>
+        <div class="lv-contacts" id="lvContacts"></div>
+        <p class="lv-signals" id="lvSignals" hidden></p>
+      </section>
+    </div>
+  </section>
+
   <div class="menu-scrim" id="menuScrim"></div>
   <aside class="menu-panel" id="menuPanel" aria-label="Site menu" aria-hidden="true">
     <div class="menu-head">

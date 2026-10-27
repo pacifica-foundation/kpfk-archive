@@ -78,6 +78,11 @@
   "hiddenShows": ["friedman", "biketalka"],
   "withheldShows": ["aware"],
   "placeholderArt": ["KPFK_med.jpg"],
+  "contact": {
+    "studioPhone": "(818) 985-5735",
+    "officePhone": "(818) 985-2711",
+    "signals": ["90.7 FM Los Angeles", "98.7 Santa Barbara", "93.7 N. San Diego", "99.5 Ridgecrest/China Lake"]
+  },
   "siteUrl": "https://podcasts.kpfk.org",
   "musicWindowDays": 14,
   "musicShows": ["specialmusicprogramm"],

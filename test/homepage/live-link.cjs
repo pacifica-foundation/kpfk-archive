@@ -1,8 +1,7 @@
-// /live as a link of its own (2026-10-23, Ace's review). For now it opens the Live popup over the
-// home page; the Listen Live page (INT-966) will take this address over. Arriving at /live opens
-// the popup; close or Back land on the home page and stay on the site. Opening Live from the header
-// shows /live in the address bar; Past episodes opens the show at its /show/ address and Back returns
-// to /live. Nothing here presses play — the live audio element is never touched.
+// The Live popup from the header (2026-10-23, Ace's review). Arriving at /live opens the Listen
+// Live page since 2026-10-27 (test/listen-live/). Opening Live from the header's On Air button
+// shows /live in the address bar; Past episodes opens the show at its /show/ address and Back
+// returns to /live. Nothing here presses play — the live audio element is never touched.
 // Live browser check against a running app (default :8081 — use the 8091 scratch server),
 // Chrome remote debugging on CDP_PORT (default 9231, dedicated temporary profile, --mute-audio).
 const { connect, sleep } = require('../live-stream/cdp.js');
@@ -22,26 +21,11 @@ const base = process.env.APP_URL || 'http://localhost:8081';
   const sheetOpen = `return document.getElementById('showSheet').classList.contains('show');`;
   let s;
 
-  for (const [label, width] of [['phone', 390], ['desktop', 1280]]) {
-    await p.send('Emulation.setDeviceMetricsOverride', { width, height: width < 800 ? 844 : 900, deviceScaleFactor: width < 800 ? 2 : 1, mobile: width < 800 });
-    // 1. Arriving at /live.
-    await p.send('Page.navigate', { url: base + '/live' });
-    await until(loaded, 30000);
-    check(`${label}: /live opens the Live popup`, await until(liveOpen, 15000), JSON.stringify(await state()));
-    s = await state();
-    check(`${label}: … at /live`, s.path === '/live', s.path);
-    await p.eval(`history.back(); return 1;`);
-    check(`${label}: Back closes it`, await until(liveShut, 5000));
-    s = await state();
-    check(`${label}: … onto the home page, still on the site`, s.path === '/' && s.origin === base, JSON.stringify(s));
-    // 2. The close button.
-    await p.send('Page.navigate', { url: base + '/live/' });
-    await until(loaded, 30000); await until(liveOpen, 15000);
-    await p.clickInPlace('#lpClose');
-    check(`${label}: the close button closes it`, await until(liveShut, 5000));
-    check(`${label}: … and the address is the home page`, (await state()).path === '/');
-  }
-
+  // Arriving at /live now opens the Listen Live page, not this popup (2026-10-27): tested in
+  // test/listen-live/listen-live.cjs. The popup stays for the header's On Air button, below.
+  await p.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+  await p.send('Page.navigate', { url: base + '/' });
+  await until(loaded, 30000);
   // 3. From the header's On Air button, then Past episodes (desktop, still at 1280).
   await p.clickInPlace('#onAirBtn');
   check('the On Air button opens Live', await until(liveOpen, 8000));

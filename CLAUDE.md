@@ -174,6 +174,9 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
 - **KPFK browser suites** (`test/homepage/*.cjs`, `test/schedule-grid/run.sh`) run on a
   scratch server (port 8091, copy of `data/` without `stats/`), never on 8081 —
   `test/schedule-grid/run.sh` starts and removes its own.
+- **Listen Live page (`/live`): `test/listen-live/run.sh`** (own server + muted Chrome, real taps:
+  arrival, refused autoplay → one tap, rollover, show sheet over a playing stream, menu, logo/Back,
+  four widths light and dark). Run it before any push touching the live player or that page.
 - **Before every push that touches `public/` or page-serving code: `test/page-load/run.sh`**
   (own scratch server and muted Chrome; every main page at phone and desktop width, no
   uncaught error). `npm test` never loads the page: on 2026-10-27 a start-up crash went live

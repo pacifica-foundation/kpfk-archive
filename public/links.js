@@ -5,7 +5,7 @@
  *   /show/<code>             the show, on its latest episode
  *   /schedule                the schedule (2026-10-23, Ace's review: kpfk.org and social link to it)
  *   /grid                    the schedule's week grid (1024px and up; narrower screens get /schedule)
- *   /live                    the live stream (for now the Live popup; the Listen Live page will take it over)
+ *   /live                    the Listen Live page (2026-10-27; the header's On Air button still opens the Live popup)
  *   /show/<code>/<episode>   that episode; once it rotates out of the archive, the show on its
  *                            latest episode instead (with a note), so a posted link never dies
  *

@@ -1,10 +1,32 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-27 (Ace's review: episode counts, re-runs, name tiles — **live and checked**; search ranking and Radio Maiz re-filing; Something's Happening handed to Ace; wrap-up email to Ace due end of day — first two sections). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-10-27 (Listen Live page built locally, **not pushed — Paul reviews**; first section. Earlier: Ace's review: episode counts, re-runs, name tiles — **live and checked**; search ranking and Radio Maiz re-filing; Something's Happening handed to Ace; wrap-up email to Ace due end of day — first two sections). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
+
+## 2026-10-27 (evening) — Listen Live page built locally, NOT pushed (Paul reviews first)
+
+- **`/live` is now the Listen Live page** (INT-966; Ace: "own URL, separate from explore"). Inside
+  the app: the site's header and hamburger menu, the floating player bar in live mode; show and
+  schedule popups open over it and Back returns to `/live`; the logo goes home, Back returns. The
+  header's On Air button still opens the Live popup on the rest of the site.
+- Mockup (Paul approved 2026-10-27): `.local-notes/listen-live-mockup/index.html` — volume is a
+  speaker button + short slider, desktop only (phones use their buttons; iPhones ignore page
+  volume); "Full page" button only in a small desktop window (kpfk.org's popup) instead of the
+  arrows icon. Share the mockup with Ace in the wrap-up email.
+- Arrival tries to play; a refusal (Safari) is logged and leaves one big Play button, no alert
+  (`livePageArrival` in `liveFailed`). The page plays nothing itself: `startLive`/`stopLive`, state
+  mirrored from `setLiveIcon`/`setLiveLoading`. Rolls over from the now-playing poll; today's
+  schedule from the published schedule loader.
+- Station file `contact` block (Phase 1, file half): KPFK call-in, office, signals; studio email and
+  text number blank → hidden until Ace sends them. **Studio fields for Contact/Wording not built.**
+- Tests: `test/listen-live/run.sh` (Chrome, 70+ checks, real taps, Safari's autoplay rule
+  reproduced; fails on the live code at the first check), WebKit pass from the scratchpad (all
+  functional checks pass; only console noise: local QIR 503 without a key, WebKit's own media
+  icons), `station-contact.test.js`, `live-link.cjs` updated (popup from On Air), page-load 14/14,
+  npm test green.
 
 ## 2026-10-27 (afternoon) — search (INT-970), Something's Happening, Radio Maiz
 
