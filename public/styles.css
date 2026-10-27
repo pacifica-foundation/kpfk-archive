@@ -4767,8 +4767,9 @@
   .lv-play.loading .spinner{ display:block; width:28px; height:28px; border-radius:50%; box-sizing:border-box;
     border:3px solid color-mix(in srgb, currentColor 35%, transparent); border-top-color:currentColor; animation:spin .7s linear infinite; }
   @media (prefers-reduced-motion:reduce){ .lv-play.loading .spinner{ animation-duration:1.4s; } }
-  /* The header's On Air button only points at the player, which is this page. */
-  body.live-page #onAirBtn{ display:none; }
+  /* Live-only header (Paul, 2026-10-27): logo (to the podcast front), Donate, light/dark and the
+     menu. No On Air (this page is the player) and no Schedule (today's schedule is on the page). */
+  body.live-page #onAirBtn, body.live-page #scheduleBtn{ display:none; }
   .lv-status{ flex:1 1 140px; min-width:0; display:flex; flex-direction:column; gap:2px; }
   .lv-status b{ font-size:1rem; }
   .lv-status span{ font-size:.82rem; color:var(--ink-dim); }

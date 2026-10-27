@@ -322,10 +322,10 @@
      the home page (body.live-page); header, menu, popups and player bar are shared. It never
      plays audio itself: Play is the live player's startLive()/stopLive() (app.js), so the page,
      the popup and the player bar can never disagree. Filled by paintLivePage().
-     Only live things happen here (Paul, 2026-10-27). A show, an episode or the schedule switches to
-     the podcast front in place and opens there; the stream carries on in the player bar, and one Back
-     or Close returns here. Donate (and Privacy) open over this page. Links keep real hrefs for
-     open-in-new-tab. -->
+     Only live things happen here (Paul, 2026-10-27). A show, an episode or the schedule moves the
+     listener to the podcast front, with that popup open; closing it leaves them on the front (the
+     browser's Back returns here). The stream carries on in the player bar. Donate (and Privacy) open
+     over this page. Live-only header: no Schedule or On Air button. Links keep real hrefs. -->
   <section class="lv" id="livePage" aria-labelledby="lvTitle" hidden>
     <a class="lv-banner lv-fd" id="lvBanner" href="#" hidden>Fund drive · Donate now</a>
     <div class="lv-grid">

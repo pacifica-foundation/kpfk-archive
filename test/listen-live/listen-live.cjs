@@ -5,9 +5,10 @@
 //  2. One tap at most to audio: arrival tries to play; a browser that refuses (Safari's rule,
 //     reproduced here) leaves the big Play button and NO error alert; one tap starts the stream.
 //  3. It rolls over by itself when the show changes (now-playing poll), no reload.
-//  4. Live things only (Paul, 2026-10-27): a show, an episode or the schedule switches to the
-//     podcast front in place and opens there; the stream keeps playing; one Back or Close returns
-//     to /live. Donate opens over the page. The big Play button shows a spinner while connecting.
+//  4. Live things only (Paul, 2026-10-27): a live-only header; a show, an episode or the schedule
+//     moves the listener to the podcast front with that popup; closing it leaves them on the front
+//     (the browser's Back returns to /live); the stream keeps playing. No second live player over
+//     the page. Donate opens over the page. The big Play button shows a spinner while connecting.
 //  5. The logo goes home (on the site); Back returns to /live; the stream is untouched.
 //  6. Volume on desktop only; "Full page" only in a small desktop window; the app prompt on phones.
 //  7. No sideways scroll at 390/420/768/1280, light and dark; the player bar never covers the end.
@@ -125,31 +126,47 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   const onFront = `document.getElementById('livePage').hidden && getComputedStyle(document.getElementById('top')).display !== 'none'`;
   const sheetUp = `return document.getElementById('showSheet').classList.contains('show');`;
   const showPath = await ev(`return document.getElementById('lvShow').getAttribute('href');`);
+  const frontHome = `return location.pathname === '/' && (${onFront}) && !document.getElementById('showSheet').classList.contains('show') && !document.getElementById('schedModal').classList.contains('show');`;
+  const backToLive = `return location.pathname === '/live' && !document.getElementById('livePage').hidden;`;
+  // Live-only header (Paul, 2026-10-27): no Schedule or On Air button; Donate and the menu stay.
+  check('live-only header: no Schedule or On Air button; Donate and the menu are there', await ev(`var h = function(id){ var e = document.getElementById(id); return !!e && getComputedStyle(e).display !== 'none' && e.offsetWidth > 0; };
+    return !h('scheduleBtn') && !h('onAirBtn') && h('donateBtn') && h('menuBtn');`));
+  // The page is the live player: the player bar never opens a second one over it.
+  await p.click('#playerInfoBtn');
+  await sleep(500);
+  check('tapping the player bar on /live opens no Live popup over the page', !(await ev(`return document.getElementById('livePlayer').classList.contains('show');`))
+    && (await ev(`return location.pathname;`)) === '/live');
   await p.click('#lvShow');
-  check('Show page: the front opens in place with the show, at its address', await until(`return (${onFront}) && document.getElementById('showSheet').classList.contains('show') && location.pathname === ${JSON.stringify(showPath)};`, 6000),
+  check('Show page: the podcast front opens with the show, at its address', await until(`return (${onFront}) && document.getElementById('showSheet').classList.contains('show') && location.pathname === ${JSON.stringify(showPath)};`, 6000),
     await ev(`return location.pathname + ' live=' + !document.getElementById('livePage').hidden;`));
   check('… the stream keeps playing in the player bar', await ev(playing));
-  await p.eval(`history.back(); return 1;`);
-  check('… one Back returns to /live, show closed, still playing', await until(`return location.pathname === '/live' && !document.getElementById('showSheet').classList.contains('show');`, 6000)
-    && await ev(pageShown) && await ev(playing), await ev(`return location.pathname;`));
-  await p.click('#scheduleBtn');
-  check('header Schedule: the front opens in place with the schedule', await until(`return (${onFront}) && document.getElementById('schedModal').classList.contains('show') && location.pathname === '/schedule';`, 6000),
-    await ev(`return location.pathname + ' live=' + !document.getElementById('livePage').hidden;`));
-  await sleep(400);
-  await p.click('#schedClose');
-  check('… its Close returns to /live, still playing', await until(`return location.pathname === '/live' && !document.getElementById('schedModal').classList.contains('show');`, 6000)
-    && await ev(pageShown) && await ev(playing), await ev(`return location.pathname;`));
-  await p.click('#lvSchedWrap [data-lv-open="schedule"]');
-  check('the page\'s Full schedule does the same', await until(`return location.pathname === '/schedule' && document.getElementById('schedModal').classList.contains('show') && document.getElementById('livePage').hidden;`, 6000));
-  await p.eval(`history.back(); return 1;`);
-  await until(`return location.pathname === '/live';`, 6000);
-  const epPath = await ev(`return document.querySelector('#lvLatest a.lv-row').getAttribute('href');`);
-  await p.click('#lvLatest a.lv-row');
-  check('an episode: the front opens in place with the episode', await until(`return location.pathname === ${JSON.stringify(epPath)} && document.getElementById('showSheet').classList.contains('show') && document.getElementById('livePage').hidden;`, 6000), await ev(`return location.pathname;`));
   await sleep(400);
   await p.click('#sheetClose');
-  check('… its Close returns to /live, still playing', await until(`return location.pathname === '/live' && !document.getElementById('showSheet').classList.contains('show');`, 6000)
-    && await ev(pageShown) && await ev(playing), await ev(`return location.pathname;`));
+  check('… closing it leaves the listener ON THE FRONT, still playing', await until(frontHome, 6000) && await ev(playing), await ev(`return location.pathname + ' live=' + !document.getElementById('livePage').hidden;`));
+  await p.eval(`history.back(); return 1;`);
+  check('… the browser\'s Back from there returns to /live, still playing', await until(backToLive, 6000) && await ev(pageShown) && await ev(playing), await ev(`return location.pathname;`));
+  await p.click('#lvSchedWrap [data-lv-open="schedule"]');
+  check('Full schedule: the front opens with the schedule', await until(`return location.pathname === '/schedule' && document.getElementById('schedModal').classList.contains('show') && document.getElementById('livePage').hidden;`, 6000));
+  await sleep(400);
+  await p.click('#schedClose');
+  check('… closing it leaves the listener on the front', await until(frontHome, 6000) && await ev(playing), await ev(`return location.pathname;`));
+  await p.eval(`history.back(); return 1;`);
+  await until(backToLive, 6000);
+  const epPath = await ev(`return document.querySelector('#lvLatest a.lv-row').getAttribute('href');`);
+  await p.click('#lvLatest a.lv-row');
+  check('an episode: the front opens with the episode', await until(`return location.pathname === ${JSON.stringify(epPath)} && document.getElementById('showSheet').classList.contains('show') && document.getElementById('livePage').hidden;`, 6000), await ev(`return location.pathname;`));
+  await sleep(400);
+  await p.click('#sheetClose');
+  check('… closing it leaves the listener on the front, still playing', await until(frontHome, 6000) && await ev(playing), await ev(`return location.pathname;`));
+  // The sheet slides away first; tap On Air once nothing covers it (and say what does, if it stays covered).
+  const onAirFree = `var d = document.getElementById('onAirBtn'), b = d.getBoundingClientRect(), e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!e && d.contains(e);`;
+  const freed = await until(onAirFree, 4000);
+  check('… on the front the On Air button is shown and free to tap', freed, await ev(`var d = document.getElementById('onAirBtn'), b = d.getBoundingClientRect(), e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return e ? e.tagName + '.' + e.className + ' ' + e.outerHTML.slice(0, 120) : 'nothing';`));
+  if (freed) check('… the front\'s own On Air button opens the Live popup there', await (async () => { await p.click('#onAirBtn'); return until(`return document.getElementById('livePlayer').classList.contains('show');`, 4000); })());
+  await p.eval(`history.back(); return 1;`);
+  await until(`return !document.getElementById('livePlayer').classList.contains('show');`, 4000);
+  await p.eval(`history.back(); return 1;`);
+  check('… and Back returns to /live', await until(backToLive, 6000) && await ev(pageShown));
   // The sheet slides away; tap Donate once nothing covers it.
   await until(`var d = document.getElementById('lvDonate'); d.scrollIntoView({block: 'center'}); var b = d.getBoundingClientRect(); var e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!e && d.contains(e);`, 4000);
   await p.click('#lvDonate');

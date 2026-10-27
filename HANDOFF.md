@@ -15,6 +15,13 @@ Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
   returns; /api/fund-drive off; embed frame-ancestors self + kpfk.org + www.kpfk.org; the listener
   site still SAMEORIGIN. Tracker: update posted on the Listen Live item.
 - Fund drive is OFF on the live site until staff switch it on in the studio (Discovery & settings).
+- **Then (Paul's live review): /live is live ONLY.** Live-only header (logo, Donate, light/dark,
+  menu; no Schedule or On Air button). A show, an episode or the schedule moves the listener to the
+  podcast front with that popup, and closing it leaves them ON THE FRONT (leaving /live now pushes
+  its own {home} entry; the browser's Back returns to /live). The same bottom player carries the
+  stream across. openLivePlayer() never opens the Live popup over /live (the player bar used to:
+  "two interfaces with the same functions"). Autoplay on arrival stays: Ace asked for it ("One
+  click to audio. Try to start playing on load.").
 
 ### Earlier the same night
 

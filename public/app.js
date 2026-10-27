@@ -2503,6 +2503,10 @@
   // ---- Modal open / close, mirroring the info sheet's lifecycle.
   var livePlayerReturnFocus = null;
   function openLivePlayer(fromHistory){
+    // The Listen Live page IS the live player: never a second one over it (Paul, 2026-10-27:
+    // "two interfaces with the same functions"). Every way in (the player bar, a schedule row,
+    // history) lands on the page's own Play button instead.
+    if(livePageOn){ window.scrollTo(0, 0); lv.Play.focus(); return; }
     if(livePlayer.classList.contains('show')) return;
     if(typeof closeSheet === 'function' && sheet && sheet.classList.contains('show')){
       // Live -> show/archive owns a real two-entry trail. Tapping the bar's live
@@ -2653,10 +2657,7 @@
 
   // On the Listen Live page the header's Listen Live chip is that page: it brings its Play
   // button into view instead of opening the popup over it.
-  onAirBtn.addEventListener('click', function(){
-    if(livePageOn){ window.scrollTo(0, 0); lv.Play.focus(); return; }
-    openLivePlayer();
-  });
+  onAirBtn.addEventListener('click', function(){ openLivePlayer(); });
   // openSchedule takes an optional fromHistory param — binding it directly
   // would pass the click Event in that slot and wrongly skip the history push.
   scheduleBtn.addEventListener('click', function(){ openSchedule(); });
@@ -4440,8 +4441,8 @@
   // back here. That is why both key handlers below stand down while the sheet
   // is up — the sheet owns the keyboard when it owns the screen.
   function openSchedule(fromHistory){
-    // From the Listen Live page: the front takes its place first, as for a show (openSheetById).
-    if(livePageOn && !fromHistory) leaveLivePage(true);
+    // From the Listen Live page: to the podcast front first, as for a show (openSheetById).
+    if(livePageOn && !fromHistory) leaveLivePage();
     if(schedIsOpen()) return;
     schedReturnFocus = document.activeElement;
     schedDay = '';                 // re-resolve today on every open
@@ -5484,9 +5485,10 @@
   function openSheetById(id, trigger, fromHistory, view){
     var r = rowById(id);
     if(!r) return;
-    // From the Listen Live page: the front takes its place first (no entry of its own), so the
-    // stream plays on in the bar and one Back or Close returns to /live (Paul, 2026-10-27).
-    if(livePageOn && !fromHistory) leaveLivePage(true);
+    // From the Listen Live page: the listener moves to the podcast front, which gets its own
+    // history entry under this popup, so closing it leaves them ON THE FRONT; the browser's Back
+    // from there returns to /live. The stream plays on in the bar (Paul, 2026-10-27).
+    if(livePageOn && !fromHistory) leaveLivePage();
     // One history entry per *opening*: swapping to another show with the panel already up
     // replaces it, so Back returns to the listing rather than walking back through shows.
     var wasOpen = sheet.classList.contains('show');
