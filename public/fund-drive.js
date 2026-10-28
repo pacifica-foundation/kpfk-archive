@@ -4,6 +4,8 @@
  * switched off, the capsule is hidden. Nothing here is about the listener.
  *
  *   FundDrive.build(el, { onDonate, donateHref, newTab, banner })  → { paint(figures) }
+ *   Donate goes to the figures' donateUrl when the studio set one (a pledge page for the drive,
+ *   Paul 2026-10-28), else donateHref; onDonate(url) gets that address.
  *   `banner` (optional): an <a> for the fund drive banner (Paul, 2026-10-27: the approved design's
  *   red "FALL FUND DRIVE · Donate now" strip on top of Listen Live). Same switch as the capsule.
  *   FundDrive.mount(el, { ...build options, active, poll }) → { refresh(), stop() }
@@ -25,12 +27,12 @@
     bar.setAttribute('role', 'progressbar'); bar.setAttribute('aria-valuemin', '0'); bar.appendChild(fill);
     var foot = el('div', 'fd-foot'), amt = el('div', 'fd-amt', '$0'), of = el('div', 'fd-of');
     foot.appendChild(amt); foot.appendChild(of);
-    var btn = el('a', 'fd-btn', 'Donate now');
-    btn.href = opts.donateHref || '#';
+    var btn = el('a', 'fd-btn', 'Donate now'), href = opts.donateHref || '';
+    btn.href = href || '#';
     if (opts.newTab) { btn.target = '_blank'; btn.rel = 'noopener'; }
     if (opts.onDonate) btn.addEventListener('click', function (e) {
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      e.preventDefault(); opts.onDonate();
+      e.preventDefault(); opts.onDonate(href);
     });
     if (!opts.donateHref && !opts.onDonate) btn.hidden = true;
     var banner = opts.banner || null;
@@ -39,11 +41,15 @@
       if (opts.newTab) { banner.target = '_blank'; banner.rel = 'noopener'; }
       if (opts.onDonate) banner.addEventListener('click', function (e) {
         if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        e.preventDefault(); opts.onDonate();
+        e.preventDefault(); opts.onDonate(href);
       });
       banner.hidden = true;
     }
-    [top, bar, foot, btn].forEach(function (n) { root.appendChild(n); });
+    // The layout lives on an inner box so it can follow the slot's width (a container query on
+    // .fd-cap), not the screen's: the studio's Phone preview and a narrow column stack it too.
+    var inner = el('div', 'fd-in');
+    [top, bar, foot, btn].forEach(function (n) { inner.appendChild(n); });
+    root.appendChild(inner);
 
     var shown = null, raf = 0;
     function countTo(to) {
@@ -61,7 +67,11 @@
     function paint(f) {
       var on = !!(f && f.on && f.goal > 0);
       root.hidden = !on;
+      href = (f && f.donateUrl) || opts.donateHref || '';
+      btn.href = href || '#';
+      btn.hidden = !href && !opts.onDonate;   // no address anywhere: a capsule without the button
       if (banner) {
+        banner.href = href || '#';
         banner.hidden = !on;
         if (on) banner.textContent = (f.name || 'Fund drive') + ' · Donate now';
       }

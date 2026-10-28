@@ -2700,7 +2700,7 @@
     if(!window.FundDrive){ console.warn('[live page] fund-drive.js did not load; no donation capsule'); return; }
     lvFund = window.FundDrive.mount(document.getElementById('lvFund'), {
       active: function(){ return livePageOn; },
-      onDonate: function(){ openDonate(); },
+      onDonate: function(url){ openDonate(url); },
       donateHref: STATION.links.donate || '',
       banner: document.getElementById('lvBanner')
     });
@@ -3670,7 +3670,8 @@
     donateClose.focus();
     document.addEventListener('keydown', onDonateKey);
   }
-  function openDonate(){ if(!DONATE_URL) return; openFrameModal(DONATE_URL, ('Donate to ' + STATION.name), 'Close donate window'); }
+  // url: the fund drive's own donate link when the studio set one (fund-drive.js); else the station's.
+  function openDonate(url){ url = (typeof url === 'string' && url) || DONATE_URL; if(!url) return; openFrameModal(url, ('Donate to ' + STATION.name), 'Close donate window'); }
   function openPrivacy(){ if(!PRIVACY_URL) return; openFrameModal(PRIVACY_URL, 'Privacy Policy', 'Close privacy policy window'); }
   function closeDonate(){
     if(!donateOpen()) return;

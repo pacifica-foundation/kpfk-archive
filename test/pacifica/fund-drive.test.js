@@ -17,7 +17,9 @@ function writeJsonAtomic(file, data) { fs.mkdirSync(path.dirname(file), { recurs
 
 test('the figures: whole dollars, a goal before switching on, no stray fields', () => {
   const ok = F.checkValues({ on: true, name: '  Fall   Fund Drive ', goal: 75000, pledged: 42350 });
-  assert.deepEqual(ok, { ok: true, values: { on: true, name: 'Fall Fund Drive', goal: 75000, pledged: 42350 } });
+  assert.deepEqual(ok, { ok: true, values: { on: true, name: 'Fall Fund Drive', goal: 75000, pledged: 42350, donateUrl: '' } });
+  // The donate link (2026-10-28): blank = the station's usual page; otherwise https only.
+  assert.equal(F.checkValues({ on: true, goal: 10, pledged: 0, donateUrl: ' https://give.example.org/kpfk ' }).values.donateUrl, 'https://give.example.org/kpfk');
   assert.ok(F.checkValues({ on: false, goal: 0, pledged: 0 }).ok, 'off with nothing set is fine');
   assert.ok(F.checkValues({ on: true, goal: 1000, pledged: 5000 }).ok, 'pledges may pass the goal');
   for (const bad of [
@@ -31,6 +33,11 @@ test('the figures: whole dollars, a goal before switching on, no stray fields', 
     { on: true, goal: 10, pledged: 0, name: 'x'.repeat(F.NAME_MAX + 1) },
     { on: true, goal: 10, pledged: 0, name: '<script>' },
     { on: true, goal: 10, pledged: 0, extra: 1 },
+    { on: true, goal: 10, pledged: 0, donateUrl: 'http://give.example.org/' },        // not https
+    { on: true, goal: 10, pledged: 0, donateUrl: 'javascript:alert(1)' },
+    { on: true, goal: 10, pledged: 0, donateUrl: 'https://me:pw@give.example.org/' },
+    { on: true, goal: 10, pledged: 0, donateUrl: 'give.example.org' },                // no scheme
+    { on: true, goal: 10, pledged: 0, donateUrl: 5 },
   ]) assert.equal(F.checkValues(bad).ok, false, JSON.stringify(bad));
 });
 
@@ -40,7 +47,7 @@ test('store: publish, the same figures again change nothing, undo, and it surviv
   const open = () => F.createFundDrive({ dataDir: dir, writeJsonAtomic, now: () => (t += 1000) });
   try {
     const s = open();
-    assert.deepEqual(s.public(), { on: false, name: '', goal: 0, pledged: 0, updatedAt: null }, 'off until set');
+    assert.deepEqual(s.public(), { on: false, name: '', goal: 0, pledged: 0, donateUrl: '', updatedAt: null }, 'off until set');
     assert.equal(s.apply({ on: true, goal: 0, pledged: 0 }).ok, false, 'refused edits write nothing');
     assert.equal(s.history().length, 0);
     assert.ok(s.apply({ on: true, name: 'Fall', goal: 75000, pledged: 100 }).ok);
@@ -53,6 +60,12 @@ test('store: publish, the same figures again change nothing, undo, and it surviv
     assert.ok(again.undo().ok); assert.equal(again.public().pledged, 100);
     assert.ok(again.undo().ok); assert.equal(again.public().on, false, 'back to never set');
     assert.equal(again.undo().ok, false, 'nothing left to undo');
+    // A file saved before the donate link existed reads with a blank link, not undefined.
+    writeJsonAtomic(path.join(dir, 'fund-drive', 'current.json'), { schemaVersion: 1, values: { on: true, name: 'Fall', goal: 75000, pledged: 100 }, updatedAt: '2026-10-27T21:14:00Z' });
+    const older = open();
+    assert.equal(older.bootError(), null);
+    assert.equal(older.public().donateUrl, '');
+    assert.equal(older.public().pledged, 100);
     // A damaged file is reported and shown as off, never trusted.
     writeJsonAtomic(path.join(dir, 'fund-drive', 'current.json'), { schemaVersion: 1, values: { on: true, goal: -5, pledged: 0 } });
     const broken = open();
@@ -117,6 +130,27 @@ test('real HTTP: the studio publishes, listeners and the embed see it; only the 
   await sleep(1100);
   assert.equal((await post('/api/studio/fund-drive/undo', {})).status, 200);
   assert.equal((await figures()).body.on, false, 'undo puts back the previous figures');
+
+  // The donate link: its site may show in the Donate window (frame-src) only once it is set.
+  const frameSrc = async () => ((await fetch(url + '/live')).headers.get('content-security-policy').match(/frame-src ([^;]*)/) || [])[1] || '';
+  assert.doesNotMatch(await frameSrc(), /give\.example\.org/, 'not allowed before it is set');
+  assert.match(await frameSrc(), /https:\/\/docs\.pacifica\.org/, 'positive control: the station\'s donate site is allowed');
+  await sleep(1100);
+  assert.equal((await post('/api/studio/fund-drive/apply', { on: true, goal: 75000, pledged: 0, donateUrl: 'https://give.example.org/kpfk' })).status, 200);
+  assert.equal((await figures()).body.donateUrl, 'https://give.example.org/kpfk', 'listeners get the link');
+  assert.match(await frameSrc(), /https:\/\/give\.example\.org/, 'allowed once set, no restart');
+  assert.match(await frameSrc(), /https:\/\/docs\.pacifica\.org/, 'the station\'s own page still allowed');
+  await sleep(1100);
+  assert.equal((await post('/api/studio/fund-drive/apply', { on: true, goal: 75000, pledged: 0, donateUrl: 'http://give.example.org/' })).status, 422, 'https only');
+  // The link check: signed in and the token; never fetches an address inside the server's network.
+  assert.equal((await fetch(url + '/api/studio/fund-drive/check-link', { method: 'POST', body: '{}' })).status, 401);
+  const local = await (await post('/api/studio/fund-drive/check-link', { url: 'https://127.0.0.1/' })).json();
+  assert.equal(local.ok, false); assert.match(local.error, /public internet/);
+  await sleep(1100);
+  const plain = await (await post('/api/studio/fund-drive/check-link', { url: 'http://give.example.org/' })).json();
+  assert.equal(plain.ok, false); assert.match(plain.error, /https/);
+  await sleep(1100);
+  assert.equal((await post('/api/studio/fund-drive/apply', { on: false, goal: 75000, pledged: 0 })).status, 200);
 
   // The embed: framed by this app and the station's website only; the listener site stays unframeable.
   const embed = await fetch(url + '/embed/fund-drive');

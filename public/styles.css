@@ -4855,10 +4855,10 @@
 
 /* ---- Donation capsule (fund drive, Phase 4a; public/fund-drive.js). The same drawing on Listen
    Live, in the studio preview and on /embed/fund-drive. Site tokens, so light and dark follow. */
-.fd-cap{ --fd-line:var(--outline-strong, rgba(127,127,127,.3)); position:relative; overflow:hidden; display:grid;
-  grid-template-columns:1fr auto; grid-template-areas:"top top" "bar bar" "foot btn"; gap:10px 16px; align-items:center;
+.fd-cap{ --fd-line:var(--outline-strong, rgba(127,127,127,.3)); position:relative; overflow:hidden; container-type:inline-size;
   padding:16px 18px; border-radius:22px; background:var(--surface-1); color:var(--ink); border:1px solid var(--fd-line); box-sizing:border-box; }
 .fd-cap[hidden]{ display:none; }
+.fd-in{ display:grid; grid-template-columns:1fr auto; grid-template-areas:"top top" "bar bar" "foot btn"; gap:10px 16px; align-items:center; }
 .fd-cap::before{ content:''; position:absolute; inset:0; pointer-events:none;
   background:radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%); }
 .fd-top{ grid-area:top; position:relative; display:flex; justify-content:space-between; align-items:baseline; gap:12px; min-width:0; }
@@ -4883,9 +4883,11 @@
 .fd-btn[hidden]{ display:none; }
 .fd-cap.is-done .fd-eyebrow{ color:var(--ink); }
 @media (prefers-reduced-motion:reduce){ .fd-fill{ transition:none; } .fd-fill::after, .fd-eyebrow i{ animation:none; } }
-/* Narrow (phones, a small embed slot): stacked, a full-width Donate button. */
-@media (max-width:480px){
-  .fd-cap{ grid-template-columns:1fr; grid-template-areas:"top" "bar" "foot" "btn"; }
+/* Narrow slot (a phone, a narrow column, a small embed, the studio's Phone preview): stacked, a
+   full-width Donate button. By the capsule's own width, not the screen's: 440px inside the padding
+   is the old 480px screen rule. */
+@container (max-width:440px){
+  .fd-in{ grid-template-columns:1fr; grid-template-areas:"top" "bar" "foot" "btn"; }
   .fd-amt{ font-size:1.7rem; }
 }
 /* On Listen Live: under the player; the stacked layout in the narrow left column too. */

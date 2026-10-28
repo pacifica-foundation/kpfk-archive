@@ -113,8 +113,10 @@
     </div>
     <p class="disc-error" id="discError" role="alert"></p>
   </section>
-  <!-- Fund drive (Phase 4a, Paul 2026-10-27): the donation capsule's figures. A draft until Publish,
-       with the real capsule as the preview (public/fund-drive.js); Undo puts back the last version.
+  <!-- Fund drive (Phase 4a, Paul 2026-10-27): the donation capsule. The switch shows or takes it down
+       at once, after a confirm box (Paul, 2026-10-28: Publish beside a switch was confusing); the
+       figures are a draft until Update figures. The real capsule is the preview (public/fund-drive.js),
+       at phone or wide width; Undo puts back the last version.
        Just the figures for now (no quick pledge buttons). public/studio-fund-drive.js fills it. -->
   <section class="studio-section studio-section--wide" id="fundSection" aria-labelledby="fdTitle" hidden>
     <div class="st-head">
@@ -123,7 +125,7 @@
         <p class="studio-note">The donation capsule under the player on Listen Live: the goal and the amount pledged so far.
           Change the figures as pledges come in; listeners see them within a minute, with no redeploy.</p>
       </div>
-      <button class="studio-btn studio-btn--quiet" id="fdUndo" type="button" hidden>Undo last publish</button>
+      <button class="studio-btn studio-btn--quiet" id="fdUndo" type="button" hidden>Undo last change</button>
     </div>
     <!-- Two columns (Paul, 2026-10-27: the stacked full-width version was awkward): a compact form
          on the left; on the right the preview, always shown (example figures until real ones are
@@ -133,7 +135,7 @@
         <div class="fd-switch-row">
           <div>
             <h3 class="disc-label" id="fdOnLabel">Show the capsule</h3>
-            <p class="disc-desc">On Listen Live and in the embed.</p>
+            <p class="disc-desc">On Listen Live and in the embed. Takes effect at once, after you confirm.</p>
           </div>
           <button class="disc-switch" id="fdOn" type="button" role="switch" aria-checked="false" aria-labelledby="fdOnLabel"><span aria-hidden="true"></span></button>
         </div>
@@ -145,8 +147,13 @@
           <label class="studio-field"><span class="studio-field-label">Pledged so far ($)</span>
             <input class="studio-input" id="fdPledged" inputmode="numeric" autocomplete="off" placeholder="0"></label>
         </div>
+        <!-- Donate link (Paul, 2026-10-28): where Donate goes during the drive; blank = the station's
+             usual donate page. Checked on leaving the box: will it show inside the Donate window? -->
+        <label class="studio-field"><span class="studio-field-label">Donate link (optional)</span>
+          <input class="studio-input" id="fdLink" type="url" inputmode="url" autocomplete="off" spellcheck="false" maxlength="500"></label>
+        <p class="fd-link-check" id="fdLinkCheck" role="status" aria-live="polite"></p>
         <div class="fd-actions">
-          <button class="studio-btn export-go" id="fdPublish" type="button" disabled>Publish</button>
+          <button class="studio-btn export-go" id="fdPublish" type="button" disabled>Update figures</button>
           <button class="studio-btn studio-btn--quiet" id="fdDiscard" type="button" hidden>Discard changes</button>
         </div>
         <p class="export-status" id="fdStatus" role="status" aria-live="polite"></p>
@@ -160,8 +167,14 @@
             <button type="button" data-fd-theme="light" aria-pressed="true">Light</button>
             <button type="button" data-fd-theme="dark" aria-pressed="false">Dark</button>
           </div>
+          <!-- Phone or wide (Paul, 2026-10-28): the preview at a phone's width (stacked, Donate full
+               width) or the full column. The capsule follows its own width, so this is the real layout. -->
+          <div class="fd-theme fd-size" role="group" aria-label="Preview width">
+            <button type="button" data-fd-size="phone" aria-pressed="false">Phone</button>
+            <button type="button" data-fd-size="wide" aria-pressed="true">Wide</button>
+          </div>
         </div>
-        <div class="fd-preview" id="fdPreviewBox" data-theme-scope="light">
+        <div class="fd-preview" id="fdPreviewBox" data-theme-scope="light" data-fd-size="wide">
           <a class="fd-banner" id="fdPreviewBanner" href="#" hidden>Fund drive · Donate now</a>
           <div id="fdPreview"></div>
         </div>

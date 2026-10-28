@@ -1411,3 +1411,13 @@ th[aria-sort="ascending"] .th-sort::after { content: "\25B2"; }    /* ▲ */
 .fd-icon-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .fd-icon-btn:hover { background: var(--surface-3); }
 .fd-preview .fd-banner { margin: -1rem -1rem 1rem; border-radius: 15px 15px 0 0; }
+/* Preview width (Paul, 2026-10-28): Phone is an iPhone's 390px screen with the page's 16px gutters,
+   so the capsule inside is the 358px it gets on a phone; Wide is the whole column. */
+.fd-preview-head { flex-wrap: wrap; }
+.fd-theme.fd-size { margin-left: 0; }
+.fd-preview { box-sizing: border-box; width: 100%; transition: max-width .2s ease; }
+.fd-preview[data-fd-size="phone"] { max-width: 390px; margin-inline: auto; padding: 1rem 16px; }
+/* The donate link's check under its box: says whether the page shows inside the Donate window. */
+.fd-link-check { margin: -.6rem 0 0; font-size: .85rem; color: var(--ink-dim); min-height: 1.2em; overflow-wrap: anywhere; }
+.fd-link-check.is-ok { color: var(--good); }
+.fd-link-check.is-bad { color: var(--danger); font-weight: 600; }

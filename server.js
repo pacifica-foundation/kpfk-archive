@@ -89,6 +89,7 @@ if (stationEdits) {
 // Fund drive, Phase 4a (lib/fund-drive.js): the donation capsule's figures, set in the studio and
 // saved on the data volume. Shown on Listen Live and at /embed/fund-drive.
 const fundDrive = require('./lib/fund-drive').createFundDrive({ dataDir: DATA_DIR, writeJsonAtomic });
+const { checkFraming } = require('./lib/frame-check');
 if (fundDrive.bootError()) console.warn(`[fund drive] the saved figures are not valid and were NOT shown: ${fundDrive.bootError()}`);
 
 // Files that existed at boot and could not be parsed, and where their bytes were
@@ -2060,9 +2061,12 @@ const MIME = {
 // Origins the Donate/Privacy modal may frame: exactly those of the profile's links.
 // Read per response, not at boot: Donate and Privacy are editable in the studio (step 5b).
 function frameOrigins() {
-  return station
-    ? [...new Set(['donate', 'privacy'].map(k => station.links[k]).filter(Boolean).map(u => new URL(u).origin))].join(' ')
-    : '';
+  if (!station) return '';
+  // The fund drive's donate link (studio, 2026-10-28) opens in the same window as the station's
+  // Donate, so its site is allowed too. Read on every page load: changing it needs no restart.
+  const links = ['donate', 'privacy'].map(k => station.links[k]);
+  links.push(fundDrive.public().donateUrl);
+  return [...new Set(links.filter(Boolean).map(u => new URL(u).origin))].join(' ');
 }
 
 function securityHeaders() {
@@ -4160,10 +4164,20 @@ function fundDriveState() {
   return { ok: true, current: fundDrive.public(), history: fundDrive.history(), bootError: fundDrive.bootError(),
     embedUrl: `${station.siteUrl || ''}/embed/fund-drive`, donate: station.links.donate || '' };
 }
-let fundDriveLastPost = 0;
+let fundDriveLastPost = 0, fundDriveLastCheck = 0;
 async function studioFundDrivePost(req, res, pathOnly) {
   if (!studioAuthed(req)) return sendStudioJson(res, { error: 'unauthorized' }, 401);
   if (!secretEquals(req.headers['x-studio-csrf'] || '', studioCsrf(req))) return sendStudioJson(res, { error: 'bad token' }, 403);
+  // Will the donate link show inside the Donate window? Advice for the studio; changes nothing.
+  // Its own limit, so a check on leaving the box never makes the next Update "too fast".
+  if (pathOnly === '/api/studio/fund-drive/check-link') {
+    if (Date.now() - fundDriveLastCheck < 1000) return sendStudioJson(res, { ok: false, error: 'Too fast: wait a second and try again.' }, 429);
+    fundDriveLastCheck = Date.now();
+    let input;
+    try { input = JSON.parse(await readBody(req, 2048)); } catch (e) { return sendStudioJson(res, { ok: false, error: 'Not valid JSON.' }, 400); }
+    const r = await checkFraming(input && input.url, { ourOrigin: station.siteUrl || 'http://localhost' });
+    return sendStudioJson(res, r);
+  }
   // One change a second is plenty for a person; more is a stuck button or a script.
   if (Date.now() - fundDriveLastPost < 1000) return sendStudioJson(res, { ok: false, errors: ['Too fast: wait a second and try again.'] }, 429);
   fundDriveLastPost = Date.now();
@@ -4177,7 +4191,7 @@ async function studioFundDrivePost(req, res, pathOnly) {
   try { input = JSON.parse(await readBody(req, 2048)); } catch (e) { return sendStudioJson(res, { ok: false, errors: ['The figures are not valid JSON.'] }, 400); }
   const r = fundDrive.apply(input);
   if (!r.ok) return sendStudioJson(res, r, 422);
-  if (!r.unchanged) { const v = fundDrive.public(); console.log(`[studio] fund drive: ${v.on ? 'on' : 'off'}, $${v.pledged} of $${v.goal}`); }
+  if (!r.unchanged) { const v = fundDrive.public(); console.log(`[studio] fund drive: ${v.on ? 'on' : 'off'}, $${v.pledged} of $${v.goal}${v.donateUrl ? ', donate ' + v.donateUrl : ''}`); }
   return sendStudioJson(res, fundDriveState());
 }
 
