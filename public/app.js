@@ -2681,6 +2681,12 @@
   ['Art','Title','Sub','Desc','Play','Status','Status2','Vol','Mute','Volume','Full','Song','SongText','Show','Episodes','Count',
    'Donate','UpNextWrap','UpNext','LatestWrap','Latest','AllEpisodes','App','AppText','AppLink','SchedHead','Today',
    'Contact','Contacts','Signals','Tag'].forEach(function(k){ lv[k] = document.getElementById('lv' + k); });
+  // The phone strip (lvStripSync, below). Set here, before anything can paint the page: painting
+  // reads them, and a var read before its line runs is how the 2026-10-27 start-up crash happened.
+  var lvStrip = document.getElementById('lvStrip'), lvStripPlay = document.getElementById('lvStripPlay');
+  var lvStripTitle = document.getElementById('lvStripTitle');
+  var lvPlayerBox = livePageEl.querySelector('.lv-player'), lvAppbarInner = document.querySelector('.appbar-inner');
+  var lvOneCol = window.matchMedia ? window.matchMedia('(max-width: 899px)') : { matches: true };
   var LV_ICON = {
     play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
     stop:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
@@ -2718,16 +2724,20 @@
     paintLivePage();
     paintLivePageState();
     lvFundStart();
+    lvStripSync();
     if(!publishedDays && !publishedLoading) loadPublishedSchedule();
   }
   function leaveLivePage(fromHistory){
     if(!livePageOn) return;
     livePageOn = false;
+    var leaveCard = document.getElementById('lvLeave');   // left some other way (Back): the explainer goes too
+    if(leaveCard && leaveCard.open) leaveCard.close();
     document.body.classList.remove('live-page');
     livePageEl.hidden = true;
     if(livePageTitle) document.title = livePageTitle;
     if(!fromHistory && canHistory){ try { history.pushState({home:1}, '', urlFor(null)); } catch(e){} }
     window.scrollTo(0, 0);
+    lvStripSync();
   }
   // Arrival (openDeepLink): show the page and try to start the stream at once.
   function arriveLivePage(){
@@ -2792,6 +2802,7 @@
     lv.Tag.textContent = 'Live · ' + STATION.label;
     lv.Art.src = cur.photo || STATION.assets.icon;
     lv.Title.textContent = cur.name || STATION.label;
+    lvStripTitle.textContent = lv.Title.textContent;
     var times = cur.start && cur.end ? cur.start + ' – ' + cur.end : '';
     lv.Sub.textContent = [cur.dj ? 'with ' + cur.dj : '', times].filter(Boolean).join(' · ');
     lv.Sub.hidden = !lv.Sub.textContent;
@@ -2853,7 +2864,73 @@
     lv.Mute.setAttribute('aria-label', vol > 0 ? 'Mute' : 'Unmute');
     lv.Mute.setAttribute('aria-pressed', vol > 0 ? 'false' : 'true');
     lv.Full.hidden = !(lvFine.matches && lvNarrow.matches);
+    // The phone strip mirrors the page's Play (same state, same toggle).
+    lvStripPlay.innerHTML = (on ? LV_ICON.stop : LV_ICON.play) + '<span class="spinner" aria-hidden="true"></span>';
+    lvStripPlay.classList.toggle('loading', on && liveLoading);
+    lvStripPlay.setAttribute('aria-pressed', on ? 'true' : 'false');
+    lvStripPlay.setAttribute('aria-label', on ? 'Stop the live stream' : 'Play the live stream');
   }
+
+  // ---- Phones: the slim live strip (Paul, 2026-10-28). /live has no bottom player, so when the
+  // page's own player scrolls up under the header, a strip inside the header keeps Play/Stop and
+  // the show's name in reach. One-column layout only (under 900px); on desktop the player stays in view.
+  function lvStripSync(){
+    var show = false;
+    if(livePageOn && lvOneCol.matches && lvPlayerBox && lvAppbarInner){
+      // Against the header's own row, not the whole header: the strip lives in the header, and
+      // measuring with it would make it flicker on and off.
+      show = lvPlayerBox.getBoundingClientRect().bottom < lvAppbarInner.getBoundingClientRect().bottom;
+    }
+    if(lvStrip.hidden === show) lvStrip.hidden = !show;
+  }
+  var lvStripRaf = 0;
+  function lvStripQueue(){ if(!lvStripRaf) lvStripRaf = requestAnimationFrame(function(){ lvStripRaf = 0; lvStripSync(); }); }
+  window.addEventListener('scroll', lvStripQueue, { passive: true });
+  window.addEventListener('resize', lvStripQueue);
+  if(lvOneCol.addEventListener) lvOneCol.addEventListener('change', lvStripQueue);
+  lvStripPlay.addEventListener('click', function(){ livePageArrival = false; toggleLive(); });
+  document.getElementById('lvStripInfo').addEventListener('click', function(){
+    var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
+    lv.Play.focus({ preventScroll: true });
+  });
+
+  // ---- Leaving /live (Paul, 2026-10-28): every show, episode and schedule link, the logo and the
+  // menu's Schedule go to the podcast front. A short explainer says so first; the stream plays on
+  // whichever button is pressed (nothing here touches audio). A card, NOT a modal: nothing shown
+  // while audio plays may block the player (Paul's standing rule), so the page's Play/Stop and the
+  // phone strip stay tappable while it is up. "Don't show this again" is kept in
+  // this browser (LV_LEAVE_KEY) and counts on either button: the listener has learnt how it works.
+  var LV_LEAVE_KEY = STATION.storagePrefix + 'liveleavehint';
+  var lvLeaveDlg = document.getElementById('lvLeave'), lvLeaveAgain = document.getElementById('lvLeaveAgain');
+  var lvLeaveNext = null, lvLeaveBack = null;
+  function lvLeaveHintOff(){
+    try { return localStorage.getItem(LV_LEAVE_KEY) === 'off'; }
+    catch(e){ return false; }   // storage blocked (private mode): show the explainer each time
+  }
+  function lvLeaveThen(go){
+    if(!livePageOn || lvLeaveHintOff()){ go(); return; }
+    lvLeaveNext = go;
+    lvLeaveBack = document.activeElement;
+    lvLeaveAgain.checked = false;
+    if(!lvLeaveDlg.open) lvLeaveDlg.show();
+    document.getElementById('lvLeaveGo').focus();
+  }
+  function lvLeaveDone(going){
+    if(!lvLeaveDlg.open) return;
+    if(lvLeaveAgain.checked){
+      try { localStorage.setItem(LV_LEAVE_KEY, 'off'); }
+      catch(e){ console.warn('[live page] could not keep "don\'t show again":', e.message); }
+    }
+    var next = lvLeaveNext; lvLeaveNext = null;
+    lvLeaveDlg.close();
+    if(going && next) next();
+    else if(lvLeaveBack && lvLeaveBack.focus) lvLeaveBack.focus();
+  }
+  document.getElementById('lvLeaveGo').addEventListener('click', function(){ lvLeaveDone(true); });
+  document.getElementById('lvLeaveStay').addEventListener('click', function(){ lvLeaveDone(false); });
+  // Escape means Stay (a non-modal <dialog> gets no 'cancel' event of its own).
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && lvLeaveDlg.open){ e.preventDefault(); lvLeaveDone(false); } });
   // One volume for the page and the Live popup (the same setting, the same stored value).
   var lvUnmuteTo = 1;
   function setLiveVolumeLevel(v){
@@ -2882,12 +2959,12 @@
     var a = e.target.closest('a[data-lv-open]');
     if(!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
-    if(a.dataset.lvOpen === 'schedule'){ openSchedule(); return; }
-    if(a.dataset.lvId) openSheetById(a.dataset.lvId, a, false, a.dataset.lvOpen === 'episode' ? 'episode' : 'show');
+    if(a.dataset.lvOpen === 'schedule'){ lvLeaveThen(function(){ openSchedule(); }); return; }
+    if(a.dataset.lvId) lvLeaveThen(function(){ openSheetById(a.dataset.lvId, a, false, a.dataset.lvOpen === 'episode' ? 'episode' : 'show'); });
   });
   // The station logo leaves the page for the home page (Back returns here).
   document.querySelectorAll('.appbar .brand').forEach(function(a){
-    a.addEventListener('click', function(e){ if(!livePageOn) return; e.preventDefault(); leaveLivePage(); });
+    a.addEventListener('click', function(e){ if(!livePageOn) return; e.preventDefault(); lvLeaveThen(function(){ leaveLivePage(); }); });
   });
   [lvFine, lvNarrow].forEach(function(m){ if(m.addEventListener) m.addEventListener('change', paintLivePageState); });
 
@@ -5751,7 +5828,7 @@
       if(e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;  // let modified clicks use the href
       e.preventDefault();
       closeMenu();
-      openSchedule();
+      lvLeaveThen(function(){ openSchedule(); });   // from /live: the explainer first (goes straight elsewhere)
     });
   })();
 
@@ -5930,7 +6007,9 @@
       // From the bar's top edge to the bottom of the screen, not just its height: on wider
       // screens the bar floats as a card above a small gap (2026-09-28), and everything that
       // stops above the player (popups, panels, Back to top) must clear that gap too.
-      var h = (bar && !bar.hidden) ? Math.max(bar.offsetHeight, Math.round(window.innerHeight - bar.getBoundingClientRect().top)) : 0;
+      // offsetHeight 0: hidden by CSS (no bottom player on /live), not just by the attribute; its
+      // rect top is then 0, which would otherwise claim the whole screen.
+      var h = (bar && !bar.hidden && bar.offsetHeight) ? Math.max(bar.offsetHeight, Math.round(window.innerHeight - bar.getBoundingClientRect().top)) : 0;
       root.style.setProperty('--player-h', h + 'px');
       var t = 0;
       if(toast && !toast.hidden){

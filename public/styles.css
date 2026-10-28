@@ -4769,6 +4769,39 @@
   .lv-play.loading .spinner{ display:block; width:28px; height:28px; border-radius:50%; box-sizing:border-box;
     border:3px solid color-mix(in srgb, currentColor 35%, transparent); border-top-color:currentColor; animation:spin .7s linear infinite; }
   @media (prefers-reduced-motion:reduce){ .lv-play.loading .spinner{ animation-duration:1.4s; } }
+  /* /live is the plain live player (Paul, 2026-10-28): no bottom player bar on it; the page's own
+     Play is the player. The stream carries on in the bar once the listener moves to the front. */
+  body.live-page .player-bar{ display:none !important; }
+  /* Phones: a slim strip under the header while the page's player is scrolled out of view. */
+  .lv-strip{ display:flex; align-items:center; gap:10px; max-width:1180px; margin:0 auto; box-sizing:border-box;
+    padding:6px var(--page-gutter, 1rem) 8px; border-top:1px solid var(--outline); }
+  .lv-strip[hidden]{ display:none; }
+  .lv-strip-play{ width:40px; height:40px; border-radius:50%; border:0; background:var(--accent); color:var(--accent-ink);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; padding:0; }
+  .lv-strip-play svg{ width:18px; height:18px; }
+  .lv-strip-play .spinner{ display:none; }
+  .lv-strip-play.loading svg{ display:none; }
+  .lv-strip-play.loading .spinner{ display:block; width:18px; height:18px; border-radius:50%; box-sizing:border-box;
+    border:2px solid color-mix(in srgb, currentColor 35%, transparent); border-top-color:currentColor; animation:spin .7s linear infinite; }
+  .lv-strip-info{ flex:1; min-width:0; display:flex; align-items:center; gap:8px; border:0; background:none; color:var(--ink);
+    font:inherit; text-align:left; padding:0; cursor:pointer; min-height:40px; }
+  .lv-strip-tag{ flex:none; font-family:var(--font-display); font-weight:700; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); }
+  .lv-strip-title{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; }
+  @media (prefers-reduced-motion:reduce){ .lv-strip-play.loading .spinner{ animation-duration:1.4s; } }
+  /* Leaving /live: the explainer. A card low on the screen, not a modal: the page's Play/Stop and
+     the phone strip stay tappable while it is up (nothing may block the player). */
+  .lv-leave{ position:fixed; left:0; right:0; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); top:auto; z-index:400; margin:0 auto;
+    width:min(420px, calc(100vw - 32px)); box-sizing:border-box; padding:22px 22px 18px; border:1px solid var(--outline-strong);
+    border-radius:20px; background:var(--surface-1); color:var(--ink); box-shadow:0 18px 48px rgba(0,0,0,.35); }
+  .lv-leave-title{ margin:0 0 8px; font-family:var(--font-display); font-size:1.3rem; line-height:1.2; }
+  .lv-leave-text{ margin:0 0 14px; color:var(--ink-dim); line-height:1.45; font-size:.95rem; }
+  .lv-leave-again{ display:flex; align-items:center; gap:8px; font-size:.9rem; color:var(--ink-dim); cursor:pointer; min-height:32px; }
+  .lv-leave-again input{ width:18px; height:18px; margin:0; accent-color:var(--accent); }
+  .lv-leave-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .lv-leave-actions button{ min-height:44px; padding:0 18px; border-radius:999px; font:inherit; font-weight:700; cursor:pointer; }
+  .lv-leave-stay{ background:none; color:var(--ink); border:1px solid var(--outline-strong); }
+  .lv-leave-go{ background:var(--accent); color:var(--accent-ink); border:0; }
+  .lv-leave-actions button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   /* Live-only header (Paul, 2026-10-27): logo (to the podcast front), Donate, light/dark and the
      menu. No On Air (this page is the player) and no Schedule (today's schedule is on the page). */
   body.live-page #onAirBtn, body.live-page #scheduleBtn{ display:none; }

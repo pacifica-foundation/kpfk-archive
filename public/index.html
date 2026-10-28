@@ -124,6 +124,15 @@
         </button>
       </div>
     </div>
+    <!-- Listen Live on phones (Paul, 2026-10-28): /live has no bottom player, so once the page's
+         own player scrolls under the header this slim strip keeps Play/Stop in reach. app.js
+         (lvStripSync) shows it only on /live, in the one-column layout, while the player is out of view. -->
+    <div class="lv-strip" id="lvStrip" hidden>
+      <button class="lv-strip-play" id="lvStripPlay" type="button" aria-label="Play the live stream" aria-pressed="false"></button>
+      <button class="lv-strip-info" id="lvStripInfo" type="button" aria-label="Back to the live player">
+        <span class="lv-strip-tag">Live</span><span class="lv-strip-title" id="lvStripTitle"></span>
+      </button>
+    </div>
   </header>
 
   <!-- tabindex="-1" so Back to top can move FOCUS here as well as the viewport;
@@ -467,6 +476,21 @@
     </button>
     <img id="lightboxImg" alt="">
   </div>
+
+  <!-- Leaving Listen Live (Paul, 2026-10-28): /live is the plain live player; every show, episode
+       and schedule link goes to the podcast front. This says so before it happens. The stream plays
+       on whichever button is pressed. "Don't show this again" is kept in this browser only. A card
+       (dialog.show(), not showModal): the player stays tappable while it is up. -->
+  <dialog class="lv-leave" id="lvLeave" aria-labelledby="lvLeaveTitle" aria-describedby="lvLeaveText">
+    <h2 class="lv-leave-title" id="lvLeaveTitle">Going to {{station.name}} Podcasts</h2>
+    <p class="lv-leave-text" id="lvLeaveText">Shows, episodes and the full schedule are on the podcast site.
+      The live stream keeps playing in the player at the bottom of the screen. Your browser&rsquo;s Back button brings you back to Listen Live.</p>
+    <label class="lv-leave-again"><input type="checkbox" id="lvLeaveAgain"> Don&rsquo;t show this again</label>
+    <div class="lv-leave-actions">
+      <button type="button" class="lv-leave-stay" id="lvLeaveStay">Stay here</button>
+      <button type="button" class="lv-leave-go" id="lvLeaveGo">Go to podcasts</button>
+    </div>
+  </dialog>
 
   <!-- Framed content modal: embeds a docs.pacifica.org page (Donate, Privacy
      Policy) in an iframe so the flow never leaves the site. Shared by both the

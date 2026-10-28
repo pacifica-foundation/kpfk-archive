@@ -148,8 +148,11 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
 - **Listen Live (`/live`) does live things only** (Paul, 2026-10-27). Live-only header (logo,
   Donate, light/dark, menu — no Schedule or On Air). A show, an episode or the schedule leaves `/live`
   for the podcast front with that popup; closing it stays on the front; the browser's Back returns
-  to `/live`; the same bottom player carries the stream. Never a second live player over `/live`
-  (`openLivePlayer` sends you to the page's Play button). Donate opens over it. Autoplay on arrival
+  to `/live`. **No bottom player on `/live`** (Paul, 2026-10-28: a plain live player): the page's Play
+  is the player; the bottom bar takes the stream over on the front. Leaving shows an explainer first
+  (Stay / Go, "Don't show this again", kept per browser); the stream plays through all of it. Phones:
+  a slim strip in the header (Play/Stop + show) while the page's player is scrolled away. Never a
+  second live player over `/live` (`openLivePlayer` sends you to the page's Play button). Donate opens over it. Autoplay on arrival
   is Ace's ask ("one click to audio"); a refusal leaves one big Play button. One window always:
   new tabs on phones make navigation a puzzle (Paul). Plan: [docs/kpfk/listen-live-plan.md](docs/kpfk/listen-live-plan.md).
 - **Fund drive** (Phase 4a, 2026-10-27): the studio's Fund drive card sets on/off, name, goal and

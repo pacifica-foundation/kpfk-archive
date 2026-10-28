@@ -12,6 +12,10 @@
 //  5. The logo goes home (on the site); Back returns to /live; the stream is untouched.
 //  6. Volume on desktop only; "Full page" only in a small desktop window; the app prompt on phones.
 //  7. No sideways scroll at 390/420/768/1280, light and dark; the player bar never covers the end.
+//  8. The plain live player (Paul, 2026-10-28): no bottom player on /live (and no space kept for
+//     it); leaving explains itself first (Stay, Escape: still on /live; Go: the front, with the
+//     player bar); "Don't show this again" sends later links straight through; the stream plays
+//     throughout. Phones: a slim strip under the header while the page's player is scrolled away.
 // Shown to fail on the code before the page (it opened the Live popup at /live).
 const { connect, sleep } = require('../live-stream/cdp.js');
 const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
@@ -41,6 +45,10 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   const pageShown = `var s = document.getElementById('livePage'); return !!s && !s.hidden && s.offsetHeight > 200 && getComputedStyle(document.getElementById('top')).display === 'none';`;
   const homeShown = `var s = document.getElementById('livePage'); return (!s || s.hidden) && getComputedStyle(document.getElementById('top')).display !== 'none';`;
   const pressed = `return document.getElementById('lvPlay').getAttribute('aria-pressed');`;
+  // The stream is playing, whether or not a player bar is drawn (on /live none is).
+  const streaming = `return window.ArchiveApp.soundOn() && window.ArchiveApp.barMode() === 'live';`;
+  const barDrawn = `var b = document.getElementById('playerBar'); return !b.hidden && b.offsetHeight > 0;`;
+  const leaveUp = `var d = document.getElementById('lvLeave'); return !!d && d.open && d.offsetHeight > 0;`;
   const alertUp = `var a = document.getElementById('lpAlert'); return !!a && !a.hidden;`;
   const ready = `return document.readyState === 'complete' && !!window.ArchiveApp && document.querySelectorAll('.ja-play').length > 0;`;
 
@@ -94,8 +102,11 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
     return b.classList.contains('loading') && !!sp && getComputedStyle(sp).display === 'block' && sp.offsetWidth > 0 && getComputedStyle(ic).display === 'none';`, 2000),
     await ev(`var b = document.getElementById('lvPlay'); return b.className + ' ' + b.innerHTML.slice(0, 80);`));
   holdStream = false;
-  check('one tap starts the stream (the page and the player bar agree)', await until(`return document.getElementById('lvPlay').getAttribute('aria-pressed') === 'true' && document.getElementById('playerBar').classList.contains('live') && !document.getElementById('playerBar').hidden;`, 8000),
+  check('one tap starts the stream (the page and the live player agree)', await until(`return document.getElementById('lvPlay').getAttribute('aria-pressed') === 'true' && window.ArchiveApp.barMode() === 'live';`, 8000),
     `pressed=${await ev(pressed)} bar=${await ev(`return document.getElementById('playerBar').className + ' hidden=' + document.getElementById('playerBar').hidden;`)}`);
+  await sleep(300);
+  check('… no bottom player on /live, and no space kept for one', !(await ev(barDrawn)) && (await ev(`return getComputedStyle(document.documentElement).getPropertyValue('--player-h').trim();`)) === '0px',
+    await ev(`return document.getElementById('playerBar').offsetHeight + ' --player-h=' + getComputedStyle(document.documentElement).getPropertyValue('--player-h');`));
   check('… still no error alert', !(await ev(alertUp)));
 
   // ---- the header menu works on the page
@@ -124,7 +135,8 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   check('… latest episodes at their episode pages', links.eps.every(l => /^\/show\/[^/?]+\/[^/?]+$/.test(l.path)), JSON.stringify(links.eps));
   check('… today\'s schedule rows at show pages', links.today.length > 2 && links.today.every(l => /^\/show\/[^/?]+$/.test(l.path)), JSON.stringify(links.today.slice(0, 3)));
   check('… Full schedule at the schedule page', links.full.length >= 1 && links.full.every(l => l.path === '/schedule'), JSON.stringify(links.full));
-  const playing = `return window.ArchiveApp.soundOn() && window.ArchiveApp.barMode() === 'live' && !document.getElementById('playerBar').hidden;`;
+  // On the front the stream plays on in the player bar, drawn; on /live there is none (streaming).
+  const playing = `return window.ArchiveApp.soundOn() && window.ArchiveApp.barMode() === 'live' && !document.getElementById('playerBar').hidden && document.getElementById('playerBar').offsetHeight > 0;`;
   const onFront = `document.getElementById('livePage').hidden && getComputedStyle(document.getElementById('top')).display !== 'none'`;
   const sheetUp = `return document.getElementById('showSheet').classList.contains('show');`;
   const showPath = await ev(`return document.getElementById('lvShow').getAttribute('href');`);
@@ -133,29 +145,51 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   // Live-only header (Paul, 2026-10-27): no Schedule or On Air button; Donate and the menu stay.
   check('live-only header: no Schedule or On Air button; Donate and the menu are there', await ev(`var h = function(id){ var e = document.getElementById(id); return !!e && getComputedStyle(e).display !== 'none' && e.offsetWidth > 0; };
     return !h('scheduleBtn') && !h('onAirBtn') && h('donateBtn') && h('menuBtn');`));
-  // The page is the live player: the player bar never opens a second one over it.
-  await p.click('#playerInfoBtn');
-  await sleep(500);
-  check('tapping the player bar on /live opens no Live popup over the page', !(await ev(`return document.getElementById('livePlayer').classList.contains('show');`))
-    && (await ev(`return location.pathname;`)) === '/live');
+  // Leaving explains itself first (Paul, 2026-10-28). Stay: nothing changes, the stream plays on.
   await p.click('#lvShow');
-  check('Show page: the podcast front opens with the show, at its address', await until(`return (${onFront}) && document.getElementById('showSheet').classList.contains('show') && location.pathname === ${JSON.stringify(showPath)};`, 6000),
+  check('Show page: an explainer first, the stream still playing', await until(leaveUp, 3000) && await ev(streaming)
+    && /Podcasts/.test(await ev(`return document.getElementById('lvLeaveTitle').textContent;`)) && /keeps playing/.test(await ev(`return document.getElementById('lvLeaveText').textContent;`)),
+    await ev(`return document.getElementById('lvLeave').open + ' ' + document.getElementById('lvLeave').textContent.replace(/\\s+/g, ' ').slice(0, 160);`));
+  check('… the explainer blocks nothing: the page\'s Play/Stop is still tappable', await ev(`var d = document.getElementById('lvPlay'); d.scrollIntoView({block: 'center'}); var b = d.getBoundingClientRect(); var e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!e && d.contains(e);`),
+    await ev(`var d = document.getElementById('lvPlay'), b = d.getBoundingClientRect(), e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return e ? e.tagName + '#' + e.id + '.' + e.className : 'nothing';`));
+  await p.click('#lvLeaveStay');
+  check('… Stay: still on /live, the box gone, still streaming', await until(`return !document.getElementById('lvLeave').open;`, 3000)
+    && await ev(backToLive) && await ev(streaming) && !(await ev(sheetUp)));
+  await p.click('#lvShow');
+  await until(leaveUp, 3000);
+  await p.click('#lvLeaveGo');
+  check('Show page: Go opens the podcast front with the show, at its address', await until(`return (${onFront}) && document.getElementById('showSheet').classList.contains('show') && location.pathname === ${JSON.stringify(showPath)};`, 6000),
     await ev(`return location.pathname + ' live=' + !document.getElementById('livePage').hidden;`));
   check('… the stream keeps playing in the player bar', await ev(playing));
   await sleep(400);
   await p.click('#sheetClose');
   check('… closing it leaves the listener ON THE FRONT, still playing', await until(frontHome, 6000) && await ev(playing), await ev(`return location.pathname + ' live=' + !document.getElementById('livePage').hidden;`));
   await p.eval(`history.back(); return 1;`);
-  check('… the browser\'s Back from there returns to /live, still playing', await until(backToLive, 6000) && await ev(pageShown) && await ev(playing), await ev(`return location.pathname;`));
+  check('… the browser\'s Back from there returns to /live, still playing', await until(backToLive, 6000) && await ev(pageShown) && await ev(streaming), await ev(`return location.pathname;`));
   await p.click('#lvSchedWrap [data-lv-open="schedule"]');
+  check('Full schedule: the explainer again (not dismissed yet)', await until(leaveUp, 3000) && await ev(streaming));
+  await p.click('#lvLeaveGo');
   check('Full schedule: the front opens with the schedule', await until(`return location.pathname === '/schedule' && document.getElementById('schedModal').classList.contains('show') && document.getElementById('livePage').hidden;`, 6000));
   await sleep(400);
   await p.click('#schedClose');
   check('… closing it leaves the listener on the front', await until(frontHome, 6000) && await ev(playing), await ev(`return location.pathname;`));
   await p.eval(`history.back(); return 1;`);
   await until(backToLive, 6000);
+  // The menu's Schedule asks too; Escape means Stay.
+  await p.click('#menuBtn');
+  await until(`var b = document.getElementById('menuSchedule').getBoundingClientRect(); var e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return b.right <= innerWidth && b.left >= 0 && !!e && document.getElementById('menuSchedule').contains(e);`, 3000);
+  await p.click('#menuSchedule');
+  check('the menu\'s Schedule: the explainer first', await until(leaveUp, 3000) && !(await ev(`return document.body.classList.contains('menu-open');`)));
+  await p.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+  await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+  check('… Escape means Stay: still on /live, still streaming', await until(`return !document.getElementById('lvLeave').open;`, 3000)
+    && await ev(backToLive) && await ev(streaming) && !(await ev(`return document.getElementById('schedModal').classList.contains('show');`)));
+  // "Don't show this again", then Go.
   const epPath = await ev(`return document.querySelector('#lvLatest a.lv-row').getAttribute('href');`);
   await p.click('#lvLatest a.lv-row');
+  await until(leaveUp, 3000);
+  await p.click('#lvLeaveAgain');
+  await p.click('#lvLeaveGo');
   check('an episode: the front opens with the episode', await until(`return location.pathname === ${JSON.stringify(epPath)} && document.getElementById('showSheet').classList.contains('show') && document.getElementById('livePage').hidden;`, 6000), await ev(`return location.pathname;`));
   await sleep(400);
   await p.click('#sheetClose');
@@ -172,15 +206,17 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   // The sheet slides away; tap Donate once nothing covers it.
   await until(`var d = document.getElementById('lvDonate'); d.scrollIntoView({block: 'center'}); var b = d.getBoundingClientRect(); var e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!e && d.contains(e);`, 4000);
   await p.click('#lvDonate');
-  check('Donate opens over the page (stays on /live, still playing)', await until(`return document.getElementById('donateModal').classList.contains('show');`, 4000)
-    && (await ev(`return location.pathname;`)) === '/live' && await ev(pageShown) && await ev(playing));
+  check('Donate opens over the page (stays on /live, still streaming)', await until(`return document.getElementById('donateModal').classList.contains('show');`, 4000)
+    && (await ev(`return location.pathname;`)) === '/live' && await ev(pageShown) && await ev(streaming));
   await p.click('#donateClose');
   await until(`return !document.getElementById('donateModal').classList.contains('show');`, 4000);
 
   // ---- 5: logo home, Back to /live, stream untouched
   await p.click('.appbar .brand');
+  await sleep(300);
+  check('after "Don\'t show this again" the logo goes straight through (no explainer)', !(await ev(leaveUp)));
   check('the logo goes to the home page, on the site', await until(homeShown, 5000) && (await ev(`return location.pathname;`)) === '/' && (await ev(`return location.origin;`)) === base);
-  check('… the stream keeps playing in the player bar', await ev(`return document.getElementById('playerBar').classList.contains('live') && !document.getElementById('playerBar').hidden;`) && (await ev(pressed)) === 'true');
+  check('… the stream keeps playing in the player bar, drawn on the front', await ev(playing) && (await ev(pressed)) === 'true');
   await p.eval(`history.back(); return 1;`);
   check('Back returns to the Listen Live page', await until(pageShown, 5000) && (await ev(`return location.pathname;`)) === '/live');
 
@@ -212,7 +248,8 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
         var last = [...document.querySelectorAll('#livePage .lv-col > *, #livePage .lv-foot')].filter(function(e){ return e.offsetHeight > 0; }).pop();
         var lastBottom = last ? last.getBoundingClientRect().bottom : 0;
         var barNow = document.getElementById('playerBar');
-        var barTop = barNow.hidden ? innerHeight : barNow.getBoundingClientRect().top;
+        // Not drawn (hidden, or display:none as on /live): it covers nothing. Its rect top would be 0.
+        var barTop = (barNow.hidden || !barNow.offsetHeight) ? innerHeight : barNow.getBoundingClientRect().top;
         return JSON.stringify({ sideways: document.documentElement.scrollWidth - innerWidth, vol: vis('lvVol'), full: vis('lvFull'), app: vis('lvApp'),
           sched: vis('lvSchedWrap') && getComputedStyle(document.getElementById('lvSchedWrap')).display !== 'none', covered: lastBottom > barTop + 1, lastBottom: lastBottom, barTop: barTop,
           // Wide only: the schedule's Full schedule link is on screen and not covered, scrolled to the
@@ -226,6 +263,50 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
           under: (function(){ var a = document.getElementById('lvSchedWrap'); if(!a.offsetWidth) return []; var left = a.getBoundingClientRect().left;
             return [...document.querySelectorAll('#lvContacts .lv-contact, #lvSignals')].filter(function(c){ return c.offsetWidth && c.getBoundingClientRect().right > left; }).map(function(c){ return c.textContent.trim().slice(0, 24); }); })() });`));
       const tag = `${label} ${width} ${theme}`;
+      // The phone strip (Paul, 2026-10-28): scrolled to the end (above), it shows on one-column
+      // widths with the page's state; at the top, and on desktop, it never does.
+      // On these fixtures the page is barely taller than a phone screen, so even at the end the
+      // page's player is still in view (and the strip rightly hidden). A longer page (a long day's
+      // schedule, larger text, the fund drive) is made with a test-only spacer (CSSOM: the CSP
+      // voids style=""), then scrolled to the end.
+      await p.eval(`var t = document.createElement('div'); t.id = '__tall'; t.style.height = '1400px'; document.getElementById('livePage').appendChild(t);
+        window.scrollTo(0, document.documentElement.scrollHeight); return 1;`);
+      const oneCol = width < 900;
+      if (oneCol) await until(`return !document.getElementById('lvStrip').hidden;`, 3000);
+      else await sleep(400);
+      const strip = JSON.parse(await p.eval(`var s = document.getElementById('lvStrip'), r = s.getBoundingClientRect(), h = document.querySelector('.appbar').getBoundingClientRect();
+        return JSON.stringify({ shown: !s.hidden && s.offsetHeight > 0, inHeader: r.top >= h.top && r.bottom <= h.bottom + 1, title: document.getElementById('lvStripTitle').textContent,
+          label: document.getElementById('lvStripPlay').getAttribute('aria-label'),
+          scrollY: Math.round(scrollY), docH: document.documentElement.scrollHeight, innerH: innerHeight,
+          playerBottom: Math.round(document.querySelector('#livePage .lv-player').getBoundingClientRect().bottom),
+          headBottom: Math.round(document.querySelector('.appbar-inner').getBoundingClientRect().bottom) });`));
+      check(`${tag}: scrolled down, the live strip ${oneCol ? 'shows under the header, named, with Play' : 'does not show'}`,
+        oneCol ? strip.shown && strip.inHeader && strip.title.length > 1 && /Play the live stream/.test(strip.label) : !strip.shown, JSON.stringify(strip));
+      if (oneCol && strip.shown && label === 'iPhone' && theme === 'light') {
+        await p.clickInPlace('#lvStripPlay');
+        check(`${tag}: the strip's Play starts the stream (the page's Play agrees)`, await until(`return document.getElementById('lvStripPlay').getAttribute('aria-pressed') === 'true' && document.getElementById('lvPlay').getAttribute('aria-pressed') === 'true';`, 8000));
+        await p.clickInPlace('#lvStripPlay');
+        await until(`return document.getElementById('lvPlay').getAttribute('aria-pressed') === 'false';`, 5000);
+        // The explainer on a phone (shown again: "don't show" cleared): on screen, full-size buttons.
+        await p.eval(`Object.keys(localStorage).filter(function(k){ return /liveleavehint$/.test(k); }).forEach(function(k){ localStorage.removeItem(k); }); return 1;`);
+        await p.click('#lvShow');
+        await until(leaveUp, 3000);
+        const card = JSON.parse(await p.eval(`var r = document.getElementById('lvLeave').getBoundingClientRect(), g = document.getElementById('lvLeaveGo').getBoundingClientRect();
+          return JSON.stringify({ left: r.left, right: r.right, top: r.top, bottom: r.bottom, w: innerWidth, h: innerHeight, goH: g.height });`));
+        check(`${tag}: the explainer fits the phone screen, buttons full size`, card.left >= 8 && card.right <= card.w - 8 && card.top >= 0 && card.bottom <= card.h && card.goH >= 44, JSON.stringify(card));
+        await p.clickInPlace('#lvLeaveStay');
+        await until(`return !document.getElementById('lvLeave').open;`, 3000);
+        await p.eval(`window.scrollTo(0, document.documentElement.scrollHeight); return 1;`);
+        await sleep(300);
+        await p.clickInPlace('#lvStripInfo');
+        check(`${tag}: tapping the strip's name returns to the top, and the strip goes`, await until(`return window.scrollY < 5 && document.getElementById('lvStrip').hidden;`, 4000),
+          await ev(`return window.scrollY + ' ' + document.getElementById('lvStrip').hidden;`));
+      }
+      if (oneCol) {
+        await p.eval(`window.scrollTo(0, 0); return 1;`);
+        check(`${tag}: at the top, no strip (the page's own player is in view)`, await until(`return document.getElementById('lvStrip').hidden;`, 3000));
+      }
+      await p.eval(`var t = document.getElementById('__tall'); if (t) t.remove(); return 1;`);
       check(`${tag}: no sideways scroll`, L.sideways <= 0, 'overflow ' + L.sideways + 'px');
       check(`${tag}: volume ${mobile ? 'hidden (side buttons)' : 'shown'}`, L.vol === !mobile, JSON.stringify(L));
       check(`${tag}: "Full page" ${width === 420 && !mobile ? 'shown (small window)' : 'hidden'}`, L.full === (width === 420 && !mobile), JSON.stringify(L));
