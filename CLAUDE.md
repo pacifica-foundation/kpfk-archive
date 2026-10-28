@@ -155,8 +155,9 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
   second live player over `/live` (`openLivePlayer` sends you to the page's Play button). Donate opens over it. Autoplay on arrival
   is Ace's ask ("one click to audio"); a refusal leaves one big Play button. One window always:
   new tabs on phones make navigation a puzzle (Paul). Plan: [docs/kpfk/listen-live-plan.md](docs/kpfk/listen-live-plan.md).
-- **Fund drive** (Phase 4a, 2026-10-27): the studio's Fund drive card sets on/off, name, goal and
-  pledged (`lib/fund-drive.js`, data volume `fund-drive/`); `public/fund-drive.js` is the one capsule
+- **Fund drive** (Phase 4a, 2026-10-27): the studio's Fund drive card sets on/off (the switch acts at
+  once after an in-app confirm, 2026-10-28), name, goal, pledged and an optional donate link
+  (`lib/fund-drive.js`, data volume `fund-drive/`; the link's page is checked by `lib/frame-check.js`); `public/fund-drive.js` is the one capsule
   drawing (on `/live`, the studio preview, `/embed/fund-drive`). The embed's frame-ancestors are this
   app and the station's website only; the listener site stays `SAMEORIGIN`.
 - **Listen along naming:** "Transcript" (QIR) and **"Playlist"** (cue-file song list, was

@@ -1,10 +1,81 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-27 night (Listen Live page at `/live` and the fund drive donation capsule — **live and checked**, first section. Earlier the same day: Ace's review — episode counts, re-runs, name tiles, search, Radio Maiz — **live and checked**; Something's Happening handed to Ace). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-10-28 (fund drive studio card simplified, donate link; Listen Live a plain live player — no bottom player, leave explainer, phone strip, live glow; light donate page — all **live and checked**, first section). Previously 2026-10-27 night (Listen Live page at `/live` and the fund drive donation capsule — **live and checked**, first section. Earlier the same day: Ace's review — episode counts, re-runs, name tiles, search, Radio Maiz — **live and checked**; Something's Happening handed to Ace). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
+
+## 2026-10-28 — fund drive studio, Listen Live as a plain live player, light donate page: live and checked
+
+Four deploys today, each checked on the live site after Paul's redeploy (version changed,
+`instanceId` `73039ae5…` unchanged, `freshVolume:false`, filter basis `schedule`). Last code
+commit: `1e8673c` (the schedule header band; live after Paul's next redeploy). Fund drive is **ON** (Paul switched
+it on at 16:29 UTC: $20,000 of $75,000, no name, no donate link).
+
+### Fund drive studio card (62317b8)
+
+- **The switch acts at once, after an in-app confirm box** (Paul: "Publish beside a switch was
+  confusing"). On: "Start the fund drive?" with the figures; refused without a goal. Off: "Take the
+  fund drive down?". Publish is now **Update figures** (works while off: saved, not shown). Undo asks
+  first and says what comes back.
+- **Preview: Phone | Wide** beside Light | Dark. The capsule now lays out by its **own width**
+  (container query on `.fd-cap`, layout on an inner `.fd-in`), not the screen's, so the Phone box is
+  the real phone layout. Phones unchanged; Listen Live desktop column (~600px) stays one row.
+- **Donate link (optional)**: where the capsule's and banner's Donate go during the drive (blank =
+  the station's page). https only. Its origin joins `frame-src` on every page load (no restart).
+  `lib/frame-check.js` checks the page's headers when the box is left (https, public addresses only,
+  each redirect re-checked, headers only, 6 s) and warns if it refuses to show in a window; advice
+  only. Route `POST /api/studio/fund-drive/check-link` (signed in, CSRF, 1/s).
+  Caveat: a /live page opened before a new link was saved keeps its old frame-src until reloaded.
+
+### Listen Live: a plain live player (4b969eb)
+
+Paul: "/live is for a flat live listen; all links out go to the podcast front; an explainer guides
+them without surprise."
+- **No bottom player bar on /live** (`body.live-page .player-bar{display:none}`); the page's Play is
+  the player; the bar takes over on the front. `syncBarHeight` treats a bar with no box as 0 (its
+  rect top is 0 under display:none and claimed the whole screen as `--player-h`).
+- **Leave explainer** on every way out (show/episode/schedule links, logo, menu Schedule): "Going
+  to KPFK Podcasts", Stay here / Go to podcasts, **Don't show this again** (`<prefix>liveleavehint`
+  in localStorage, either button). A **card, not a modal** (`dialog.show()`): Paul's standing rule —
+  nothing shown while audio plays may block the player. Escape = Stay. The stream plays throughout.
+- **Phone strip** (one-column, under 900px): Play/Stop + show name inside the header while the
+  page's player is scrolled away; tap the name to return to the top. On real phones the page is
+  barely taller than the screen, so it shows mostly on longer pages (fund drive, big text).
+
+### Polish (9810b3d) and the schedule header
+
+- **Live glow**: the player card glows and breathes in on-air red while the signal is actually
+  playing (not connecting, not on an error); the on-air schedule row breathes too, with a pulsing dot
+  before ON AIR and room on the right. A state, not colour coding. Reduced motion: steady.
+- Leave explainer: 2px border in a new `--card-edge` token (strong on dark).
+- **Light donate page**: docs.pacifica.org's donate page is always dark and cannot follow our theme
+  inside the frame. New optional profile link `links.donateLight` (studio label "Donate (light mode
+  page)", never a menu item, in frame-src). KPFK: `https://docs.pacifica.org/kpfk/donate/light.html`,
+  uploaded by Paul, identical to [docs/kpfk/donate-page/light.html](docs/kpfk/donate-page/light.html)
+  (keep the two pages in step when the content changes). The Donate window, the capsule's Donate and
+  the embed (by its `?theme`) use it in light mode.
+- **Schedule card header** on /live (desktop): its own band flush with the card top, a shade off the
+  card in both themes, a line under it (was white on white / black on black).
+
+### Tests added today
+
+`test/pacifica/frame-check.test.js`, `donate-light.test.js`; `fund-drive.test.js` (link rules, older
+saved files, frame-src only once set, check-link guard); `test/fund-drive` (confirm/Cancel, no-goal
+refusal, Update while off, Phone/Wide, link warning, Donate goes to the link); `test/listen-live`
+(no bar and `--player-h` 0, explainer Stay/Escape/Go/don't-show, Play tappable under it, phone strip
+at 390/420/768 with a test spacer, glow on/off, on-air row, header band, Donate light/dark around a
+real theme tap). Final: listen-live 127, fund-drive 46, page-load, `npm test` — all green.
+**Flaky once:** the glow check allowed 5 s for the real stream to connect; now 15 s like the others.
+
+### Not done / next
+
+- Tauri Windows build (docs/TAURI.md): desktop/ is still WBAI-only and has never compiled. Step 1 is
+  a KPFK profile (`podcast.pacifica.kpfk`, https://podcast.kpfk.org, KPFK icon and installer art),
+  then re-enable `.github/workflows/desktop-windows.yml.disabled` and run it for `kpfk`. Paul to say
+  go and whether he has a Windows PC/VM for the installer test.
+- Ace wrap-up email still on hold (Paul).
 
 ## 2026-10-27 (evening and night) — Listen Live and the fund drive capsule: live and checked
 
@@ -361,8 +432,9 @@ other descriptions in the audit.
 
 ## Remind Paul first (say these at the start of every session)
 
-1. **Next session first (2026-10-28):** the fund drive capsule is **ON** on the live site ($20,000
-   of $75,000, no name; the banner shows too) — ask Paul whether it stays. **Ace email ON HOLD (Paul,
+1. **Next session first (2026-10-29):** fund drive is **ON** ($20,000 of $75,000; Paul switched it
+   on 2026-10-28 16:29 UTC) — ask whether it stays. Tauri Windows build waiting on Paul's go (see the
+   2026-10-28 section). Earlier: the fund drive capsule was ON 2026-10-27 night. **Ace email ON HOLD (Paul,
    2026-10-27 night): he has a few changes first and wants the site to run a while.** The wrap-up email to Ace (done items,
    Something's Happening, Listen Live and capsule mockups, the embed snippet, kpfk.org/listen →
    `/live`) — notes in `.local-notes/ace-wrapup-2026-10-27-notes.md`. Still from Ace: studio email

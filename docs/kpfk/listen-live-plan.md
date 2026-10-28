@@ -112,8 +112,16 @@ Paul's reviews changed the page after the mockup — these rules now win over th
   no Schedule or On Air button.
 - **Everything else leaves for the podcast front.** A show, an episode or the schedule opens the
   front with that popup; closing it stays on the front; the browser's Back returns to `/live`; the
-  same bottom player carries the stream. (Tried and dropped the same evening: popups over the page;
+  bottom player carries the stream there. (Tried and dropped the same evening: popups over the page;
   a new tab; a "the stream will stop" dialog; one Back to `/live`.)
+- **A plain live player (Paul, 2026-10-28).** No bottom player bar on `/live`: the page's Play is
+  the player. Every way out shows a short explainer first ("Going to KPFK Podcasts": Stay here / Go
+  to podcasts, "Don't show this again", kept per browser) — a non-blocking card, so Stop stays
+  tappable; the stream plays through Stay, Go and Escape. Phones: a slim strip in the header with
+  Play/Stop and the show while the page's player is scrolled away.
+- **Live glow (2026-10-28):** the player card glows and breathes while the signal plays; the on-air
+  row in today's schedule breathes too, with a pulsing dot before ON AIR. The schedule card's header
+  is its own band. Donate opens the station's light donate page in light mode (`links.donateLight`).
 - **One live player:** the Live popup never opens over `/live`. Donate opens over the page.
 - **Autoplay stays** (Ace's "one click to audio"); the big Play button shows a spinner while connecting.
 - Volume is a speaker button + short slider, desktop only; "Full page" only in a small desktop window.
@@ -218,6 +226,12 @@ The smallest useful fund drive piece, before the full Fund drive screen:
   - Preview at phone and desktop width before switching on; Review & publish, Undo, history as in
     Station & appearance. Thank-you gifts and Donate-open counts: later, not in the first build.
   - Next: a clickable mockup of the studio Fund drive screen, then build.
+  - **Built 2026-10-28 (differs from the above where noted):** the switch acts at once after an
+    in-app confirm (no Review & publish step for on/off); figures have **Update figures**; Undo
+    asks first; preview **Phone | Wide** and Light | Dark. **Donate link** box: the page is checked
+    when the box is left and the studio warns if it will not show in a window — but Donate still
+    opens it in the window (Paul's choice, not the "open outside" fallback above). Dates, the Privacy
+    link check and Ace's embed are still to do.
 
 ### Phase 5 — Schedule finish (INT-969, rest)
 
