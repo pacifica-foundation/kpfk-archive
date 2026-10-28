@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ways to Donate to KPFK</title>
+    <!-- Light version of index.html (same folder, same content). The podcast site's Donate window
+         shows this one when the site is in light mode. Keep the two in step when the content changes. -->
+    <meta name="color-scheme" content="light">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #B3261E;
+            --primary-light: #C8372B;
+            --header-red: #B3261E;
+            --surface: #FFFFFF;
+            --background: #F6F1EA;
+            --on-surface: #1E140F;
+            --on-surface-medium: #5C4F46;
+            --on-primary: #FFFFFF;
+            --line: rgba(30, 20, 15, 0.10);
+            --elevation-1: 0 1px 2px rgba(30, 20, 15, .08), 0 2px 6px rgba(30, 20, 15, .06);
+            --elevation-2: 0 2px 4px rgba(30, 20, 15, .10), 0 8px 18px rgba(30, 20, 15, .10);
+        }
+
+        body {
+            background: var(--background);
+            color: var(--on-surface);
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .logo-container {
+            text-align: center;
+            padding: 1rem 0 0.2rem 0;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--line);
+            box-shadow: var(--elevation-1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--elevation-2);
+        }
+
+        h1,
+        h2 {
+            color: var(--header-red);
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin: 0.2rem 0 1.5rem 0;
+            text-align: center;
+            font-weight: 700;
+            color: var(--on-surface);
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .material-icons {
+            color: var(--header-red);
+        }
+
+        p,
+        ul {
+            margin: 0 0 1.5rem 0;
+            color: var(--on-surface);
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        .donate-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: var(--on-primary);
+            font-weight: 500;
+            border: none;
+            border-radius: 2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: var(--elevation-1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .donate-btn:hover {
+            background: var(--primary-light);
+            box-shadow: var(--elevation-2);
+            transform: translateY(-1px);
+        }
+
+        .donate-btn:active {
+            transform: translateY(1px);
+        }
+
+        code {
+            background: rgba(30, 20, 15, 0.06);
+            color: var(--on-surface);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        address {
+            font-style: normal;
+            color: var(--on-surface-medium);
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-left: 3px solid var(--header-red);
+            background: rgba(30, 20, 15, 0.04);
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="header.png" alt="KPFK Logo" class="logo">
+        </div>
+        <h1>Ways to Donate to KPFK</h1>
+
+        <div class="card">
+            <h2><span class="material-icons">credit_card</span> Online Donation</h2>
+            <p>Make a secure, tax-deductible one-time donation or become a monthly Sustainer for continuous support.</p>
+            <a class="donate-btn" href="https://kpfk.org/donate/" target="_blank">
+                <span class="material-icons">favorite</span> Donate Now
+            </a>
+        </div>
+
+        <div class="card">
+            <h2><span class="material-icons">mail</span> Mail-in Donation</h2>
+            <p>Send a check or money order to:</p>
+            <address>
+                KPFK 90.7FM – Pacifica Radio<br>
+                3729 Cahuenga Blvd West<br>
+                North Hollywood, CA 91604
+            </address>
+            <a class="donate-btn" href="https://kpfk.org/donate/" target="_blank">
+                <span class="material-icons">description</span> Instructions &amp; Donate
+            </a>
+        </div>
+
+        <div class="card">
+            <h2><span class="material-icons">phone</span> Donate by Phone</h2>
+            <p>Call the KPFK membership hotline at <code>818-985-2711</code> during business hours.</p>
+            <a class="donate-btn" href="tel:8189852711" target="_blank">
+                <span class="material-icons">call</span> Call to Donate
+            </a>
+        </div>
+
+        <div class="card">
+            <h2><span class="material-icons">sms</span> Text-to-Donate</h2>
+            <p>Text <code>KPFK</code> to <code>41444</code> for fast, secure mobile giving.</p>
+            <a class="donate-btn" href="sms:41444?&body=KPFK">
+                <span class="material-icons">sms</span> Send Text
+            </a>
+        </div>
+
+        <div class="card">
+            <h2><span class="material-icons">payments</span> CashApp</h2>
+            <p>Give instantly using CashApp: <code>$KPFKRadio</code>.</p>
+            <a class="donate-btn" href="https://cash.app/$KPFKRadio" target="_blank">
+                <span class="material-icons">paid</span> Open CashApp
+            </a>
+        </div>
+
+        <div class="card">
+            <h2><span class="material-icons">directions_car</span> Vehicle Donation</h2>
+            <p>Donate your car, truck, motorcycle, or boat to support KPFK. Fast, free pickup and potential tax
+                deductions.<br>
+                Call <code>1-855-KPFK-CAR</code> (<code>1-855-573-5227</code>).</p>
+            <a class="donate-btn" href="https://kpfk.careasy.org/home" target="_blank">
+                <span class="material-icons">redeem</span> Vehicle Donation Details
+            </a>
+        </div>
+
+        <div class="card">
+            <h2><span class="material-icons">account_balance</span> Planned &amp; Legacy Giving</h2>
+            <p>Support KPFK through tax-advantaged methods:</p>
+            <ul>
+                <li><b>Securities &amp; Mutual Funds</b></li>
+                <li><b>Wills &amp; Trusts</b></li>
+                <li><b>Retirement Plans &amp; Life Insurance</b></li>
+                <li><b>Donor-Advised Funds</b></li>
+                <li><b>Bank/Brokerage Accounts</b></li>
+                <li><b>IRA Distributions</b></li>
+                <li><b>Savings Bonds</b></li>
+                <li><b>Real Estate Gifts</b></li>
+            </ul>
+            <p>Contact <code>plannedgiving@kpfk.org</code> or call <code>818-985-2711</code> for confidential guidance.
+            </p>
+            <a class="donate-btn" href="mailto:plannedgiving@kpfk.org" target="_blank">
+                <span class="material-icons">stars</span> Contact Planned Giving
+            </a>
+        </div>
+
+        <div class="card">
+            <h2><span class="material-icons">music_note</span> Program-Specific Donations</h2>
+            <p>Designate your gift to your favorite KPFK show or fundraising initiative.</p>
+            <a class="donate-btn" href="https://kpfk.org/donate/" target="_blank">
+                <span class="material-icons">campaign</span> Program Donation
+            </a>
+        </div>
+
+        <div class="card">
+            <h2><span class="material-icons">people</span> Volunteer Support</h2>
+            <p>Give your time! Learn about volunteer opportunities at KPFK.</p>
+            <a class="donate-btn" href="https://kpfk.org/support-kpfk/" target="_blank">
+                <span class="material-icons">volunteer_activism</span> Volunteer Info
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

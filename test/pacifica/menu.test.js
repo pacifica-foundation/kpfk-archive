@@ -22,6 +22,7 @@ test('every configured KPFK link and social account is in the rendered menu', ()
   for (const [key, url] of Object.entries(profile.links)) {
     if (key === 'archive') continue;                 // the archive is this site, not a menu item
     if (key === 'schedule') continue;                // Schedule is the app's own /schedule (below)
+    if (key === 'donateLight') continue;             // the Donate window's light page, not a menu item (donate-light.test.js)
     assert.ok(found.includes(url), `menu links ${key}: ${url}`);
   }
   for (const url of Object.values(profile.social)) assert.ok(found.includes(url), `social ${url}`);

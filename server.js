@@ -2064,7 +2064,7 @@ function frameOrigins() {
   if (!station) return '';
   // The fund drive's donate link (studio, 2026-10-28) opens in the same window as the station's
   // Donate, so its site is allowed too. Read on every page load: changing it needs no restart.
-  const links = ['donate', 'privacy'].map(k => station.links[k]);
+  const links = ['donate', 'donateLight', 'privacy'].map(k => station.links[k]);
   links.push(fundDrive.public().donateUrl);
   return [...new Set(links.filter(Boolean).map(u => new URL(u).origin))].join(' ');
 }

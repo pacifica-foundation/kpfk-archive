@@ -2853,6 +2853,8 @@
     // Connecting: the spinner stands in for the icon, as on the Live popup's and the bar's buttons.
     lv.Play.innerHTML = (on ? LV_ICON.stop : LV_ICON.play) + '<span class="spinner" aria-hidden="true"></span>';
     lv.Play.classList.toggle('loading', on && liveLoading);
+    // The card glows while the signal is actually playing: not while connecting, not on an error.
+    lvPlayerBox.classList.toggle('is-live', on && !liveLoading && !liveErrored);
     lv.Play.setAttribute('aria-pressed', on ? 'true' : 'false');
     lv.Play.setAttribute('aria-label', on ? 'Stop the live stream' : 'Play the live stream');
     lv.Status.textContent = liveErrored ? 'Stream unavailable' : on ? (liveLoading ? 'Connecting…' : 'Live now') : 'Tap to listen live';
@@ -3747,8 +3749,17 @@
     donateClose.focus();
     document.addEventListener('keydown', onDonateKey);
   }
-  // url: the fund drive's own donate link when the studio set one (fund-drive.js); else the station's.
-  function openDonate(url){ url = (typeof url === 'string' && url) || DONATE_URL; if(!url) return; openFrameModal(url, ('Donate to ' + STATION.name), 'Close donate window'); }
+  // url: the fund drive's own donate link when the studio set one (fund-drive.js); else the station's,
+  // its light version when the site is in light mode and the profile has one (links.donateLight:
+  // the page in the window cannot follow our theme itself; Paul, 2026-10-28).
+  function stationDonateUrl(){
+    var light = window.StationTheme && window.StationTheme.active() === 'light';
+    return (light && STATION.links.donateLight) || DONATE_URL;
+  }
+  function openDonate(url){
+    // The station's own address (the capsule passes it) means "the station's page": light or dark.
+    if(typeof url !== 'string' || !url || url === DONATE_URL) url = stationDonateUrl();
+    if(!url) return; openFrameModal(url, ('Donate to ' + STATION.name), 'Close donate window'); }
   function openPrivacy(){ if(!PRIVACY_URL) return; openFrameModal(PRIVACY_URL, 'Privacy Policy', 'Close privacy policy window'); }
   function closeDonate(){
     if(!donateOpen()) return;

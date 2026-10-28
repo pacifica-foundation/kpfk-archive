@@ -11,7 +11,7 @@
   if (!section || !tabs || !dlg || typeof dlg.showModal !== 'function') return;
   var state = null, draft = null, csrf = null, busy = false, onDone = null;
 
-  var LINK_LABELS = { website: 'Station website', archive: 'Original archive', donate: 'Donate', privacy: 'Privacy policy',
+  var LINK_LABELS = { website: 'Station website', archive: 'Original archive', donate: 'Donate', donateLight: 'Donate (light mode page)', privacy: 'Privacy policy',
     schedule: 'Schedule page', programs: 'Programs A–Z', androidApp: 'Android app', appleApp: 'Apple app', about: 'About',
     mission: 'Mission', pacifica: 'Pacifica Foundation', news: 'News', volunteer: 'Volunteer', contact: 'Contact' };
   var SOCIAL_LABELS = { x: 'X', facebook: 'Facebook', instagram: 'Instagram', youtube: 'YouTube', linkedin: 'LinkedIn', bluesky: 'Bluesky' };

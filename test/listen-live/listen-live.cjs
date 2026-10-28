@@ -101,10 +101,15 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   check('while connecting, the Play button shows a spinner (not the stop square)', await until(`var b = document.getElementById('lvPlay'), sp = b.querySelector('.spinner'), ic = b.querySelector('svg');
     return b.classList.contains('loading') && !!sp && getComputedStyle(sp).display === 'block' && sp.offsetWidth > 0 && getComputedStyle(ic).display === 'none';`, 2000),
     await ev(`var b = document.getElementById('lvPlay'); return b.className + ' ' + b.innerHTML.slice(0, 80);`));
+  // The glow says the signal IS playing (Paul, 2026-10-28): not while it is still connecting.
+  const glow = `var c = document.querySelector('#livePage .lv-player'), a = getComputedStyle(c, '::after'); return c.classList.contains('is-live') && a.animationName === 'lv-breathe' && parseFloat(a.opacity) > 0;`;
+  check('… no live glow while connecting', !(await ev(glow)));
   holdStream = false;
   check('one tap starts the stream (the page and the live player agree)', await until(`return document.getElementById('lvPlay').getAttribute('aria-pressed') === 'true' && window.ArchiveApp.barMode() === 'live';`, 8000),
     `pressed=${await ev(pressed)} bar=${await ev(`return document.getElementById('playerBar').className + ' hidden=' + document.getElementById('playerBar').hidden;`)}`);
   await sleep(300);
+  check('… playing: the player card glows and breathes', await until(glow, 5000),
+    await ev(`var c = document.querySelector('#livePage .lv-player'), a = getComputedStyle(c, '::after'); return c.className + ' ' + a.animationName + ' ' + a.opacity;`));
   check('… no bottom player on /live, and no space kept for one', !(await ev(barDrawn)) && (await ev(`return getComputedStyle(document.documentElement).getPropertyValue('--player-h').trim();`)) === '0px',
     await ev(`return document.getElementById('playerBar').offsetHeight + ' --player-h=' + getComputedStyle(document.documentElement).getPropertyValue('--player-h');`));
   check('… still no error alert', !(await ev(alertUp)));
@@ -208,8 +213,25 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   await p.click('#lvDonate');
   check('Donate opens over the page (stays on /live, still streaming)', await until(`return document.getElementById('donateModal').classList.contains('show');`, 4000)
     && (await ev(`return location.pathname;`)) === '/live' && await ev(pageShown) && await ev(streaming));
+  // The donate page matches the site's light/dark (links.donateLight, 2026-10-28): a real tap on the
+  // theme button between two opens, both themes checked.
+  const LIGHT = 'https://docs.pacifica.org/kpfk/donate/light.html', DARK = 'https://docs.pacifica.org/kpfk/donate/';
+  const donateFor = async () => ({ theme: await ev(`return window.StationTheme.active();`), src: await ev(`return document.getElementById('donateFrame').src;`) });
+  const first = await donateFor();
+  check(`Donate in ${first.theme} mode shows the ${first.theme} donate page`, first.src === (first.theme === 'light' ? LIGHT : DARK), JSON.stringify(first));
   await p.click('#donateClose');
   await until(`return !document.getElementById('donateModal').classList.contains('show');`, 4000);
+  await p.click('#themeBtn');
+  await sleep(300);
+  await until(`var d = document.getElementById('lvDonate'); d.scrollIntoView({block: 'center'}); var b = d.getBoundingClientRect(); var e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!e && d.contains(e);`, 4000);
+  await p.click('#lvDonate');
+  await until(`return document.getElementById('donateModal').classList.contains('show');`, 4000);
+  const second = await donateFor();
+  check(`… after the theme button, ${second.theme} mode shows the ${second.theme} donate page`, second.theme !== first.theme && second.src === (second.theme === 'light' ? LIGHT : DARK), JSON.stringify(second));
+  await p.click('#donateClose');
+  await until(`return !document.getElementById('donateModal').classList.contains('show');`, 4000);
+  await p.click('#themeBtn');   // back as it was
+  await sleep(300);
 
   // ---- 5: logo home, Back to /live, stream untouched
   await p.click('.appbar .brand');
@@ -221,6 +243,11 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   check('Back returns to the Listen Live page', await until(pageShown, 5000) && (await ev(`return location.pathname;`)) === '/live');
 
   // ---- today's schedule and contacts
+  // The show on air in today's schedule: the same breathing glow, a pulsing dot, ON AIR clear of the edge.
+  const onAirRow = JSON.parse(await p.eval(`var r = document.querySelector('#lvToday .lv-row.now'); if (!r) return JSON.stringify(null);
+    r.scrollIntoView({block: 'nearest'}); var t = r.querySelector('.lv-onair'), rr = r.getBoundingClientRect(), tr = t.getBoundingClientRect();
+    return JSON.stringify({ breathe: getComputedStyle(r, '::after').animationName, dot: getComputedStyle(t, '::before').animationName, gap: Math.round(rr.right - tr.right) });`));
+  check('the on-air row in today\'s schedule breathes, ON AIR has a pulsing dot and room on the right', !!onAirRow && onAirRow.breathe === 'lv-breathe' && onAirRow.dot === 'lv-pulse' && onAirRow.gap >= 10, JSON.stringify(onAirRow));
   check('today’s schedule is listed', await until(`return document.querySelectorAll('#lvToday .lv-row').length > 3;`, 15000), await ev(`return document.getElementById('lvToday').textContent.slice(0,120);`));
   check('contacts: the studio call-in line is a phone link', await ev(`return [...document.querySelectorAll('#lvContacts a')].some(a => /^tel:\\+?\\d{10,}/.test(a.getAttribute('href')));`));
   check('… a contact the station has not set (studio email) is not shown', !(await ev(`return !!document.querySelector('#lvContacts a[href^="mailto:"]');`)));
@@ -232,6 +259,7 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   rolled = false;
   await p.click('#lvPlay');
   check('Stop stops the stream', await until(`return document.getElementById('lvPlay').getAttribute('aria-pressed') === 'false';`, 5000));
+  check('… and the glow goes', await until(`return !document.querySelector('#livePage .lv-player').classList.contains('is-live');`, 3000) && !(await ev(glow)));
 
   // ---- 6 + 7: device rules and layout at each width, light and dark
   for (const [label, width, mobile] of [['iPhone', 390, true], ['popup window', 420, false], ['tablet', 768, true], ['desktop', 1280, false]]) {
@@ -293,6 +321,9 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
         await until(leaveUp, 3000);
         const card = JSON.parse(await p.eval(`var r = document.getElementById('lvLeave').getBoundingClientRect(), g = document.getElementById('lvLeaveGo').getBoundingClientRect();
           return JSON.stringify({ left: r.left, right: r.right, top: r.top, bottom: r.bottom, w: innerWidth, h: innerHeight, goH: g.height });`));
+        const edge = await ev(`var d = document.getElementById('lvLeave'); document.documentElement.dataset.theme = 'dark'; var c = getComputedStyle(d).borderTopColor, w = getComputedStyle(d).borderTopWidth; document.documentElement.dataset.theme = 'light'; return c + ' ' + w;`);
+        const alpha = parseFloat((/rgba\([^)]*,\s*([\d.]+)\)/.exec(edge) || [])[1] || '1');
+        check(`${tag}: in dark mode the explainer's border stands out (alpha ≥ 0.3, 2px)`, alpha >= 0.3 && /2px/.test(edge), edge);
         check(`${tag}: the explainer fits the phone screen, buttons full size`, card.left >= 8 && card.right <= card.w - 8 && card.top >= 0 && card.bottom <= card.h && card.goH >= 44, JSON.stringify(card));
         await p.clickInPlace('#lvLeaveStay');
         await until(`return !document.getElementById('lvLeave').open;`, 3000);

@@ -8,6 +8,9 @@
   // donate link gets a capsule without the button; missing settings are a bug, so say so.
   var cfg = window.StationConfig;
   if (!cfg) console.warn('[fund drive embed] /station.js did not load: no donate link');
-  var donate = (cfg && cfg.links && cfg.links.donate) || '';
+  // The donate page's light version when this embed is light (links.donateLight, 2026-10-28).
+  var shown = theme || ((window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark');
+  var links = (cfg && cfg.links) || {};
+  var donate = (shown === 'light' && links.donateLight) || links.donate || '';
   window.FundDrive.mount(document.getElementById('capsule'), { donateHref: donate, newTab: true });
 })();
