@@ -108,7 +108,8 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   check('one tap starts the stream (the page and the live player agree)', await until(`return document.getElementById('lvPlay').getAttribute('aria-pressed') === 'true' && window.ArchiveApp.barMode() === 'live';`, 8000),
     `pressed=${await ev(pressed)} bar=${await ev(`return document.getElementById('playerBar').className + ' hidden=' + document.getElementById('playerBar').hidden;`)}`);
   await sleep(300);
-  check('… playing: the player card glows and breathes', await until(glow, 5000),
+  // The real stream connects over the network (the other stream waits here allow 8 s or more).
+  check('… playing: the player card glows and breathes', await until(glow, 15000),
     await ev(`var c = document.querySelector('#livePage .lv-player'), a = getComputedStyle(c, '::after'); return c.className + ' ' + a.animationName + ' ' + a.opacity;`));
   check('… no bottom player on /live, and no space kept for one', !(await ev(barDrawn)) && (await ev(`return getComputedStyle(document.documentElement).getPropertyValue('--player-h').trim();`)) === '0px',
     await ev(`return document.getElementById('playerBar').offsetHeight + ' --player-h=' + getComputedStyle(document.documentElement).getPropertyValue('--player-h');`));
@@ -348,6 +349,10 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
         check(`${tag}: "Full schedule" stays on screen beside the pinned schedule (its list scrolls${L.fullSched && L.fullSched.listScrolls ? '' : ' — NOT long enough to prove it'})`,
           !!L.fullSched && L.fullSched.onScreen && L.fullSched.reachable && L.fullSched.listScrolls, JSON.stringify(L.fullSched));
         check(`${tag}: no contact card or signal line reaches under the schedule`, !L.under.length, JSON.stringify(L.under));
+        // The schedule's header is a band of its own: flush with the card's top, a different shade.
+        const head = JSON.parse(await p.eval(`var c = document.getElementById('lvSchedWrap'), h = c.querySelector('.lv-h2'); c.scrollTop = 0;
+          return JSON.stringify({ gap: Math.round(h.getBoundingClientRect().top - c.getBoundingClientRect().top), card: getComputedStyle(c).backgroundColor, band: getComputedStyle(h).backgroundColor });`));
+        check(`${tag}: the schedule header is its own band at the top of the card`, Math.abs(head.gap) <= 2 && head.band !== head.card && !/rgba\(0, 0, 0, 0\)/.test(head.band), JSON.stringify(head));
       }
     }
   }

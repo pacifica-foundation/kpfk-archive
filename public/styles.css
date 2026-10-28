@@ -4896,7 +4896,11 @@
     .lv-sched{ display:flex; flex-direction:column; position:sticky; top:84px; grid-row:1 / span 2; grid-column:2;
       max-height:calc(100vh - var(--player-h, 90px) - 120px); overflow:hidden;
       padding:14px 14px 6px; border-radius:16px; background:var(--surface-1); border:1px solid var(--lv-line); box-sizing:border-box; }
-    .lv-sched .lv-h2{ flex:none; }
+    /* Its header is a band of its own (Paul, 2026-10-28: it was white on white / black on black,
+       with the rows scrolling up into it): flush with the card's top edge, a shade off the card in
+       either theme (the card mixed toward the text colour), a line under it, full-contrast date. */
+    .lv-sched .lv-h2{ flex:none; margin:-14px -14px 6px; padding:10px 16px; align-items:center; border-radius:15px 15px 0 0;
+      background:color-mix(in srgb, var(--ink) 7%, var(--surface-1)); border-bottom:1px solid var(--lv-line); color:var(--ink); }
     #lvToday{ position:relative; flex:1 1 auto; min-height:0; overflow:auto; }
     .lv-upnext{ display:none !important; }
     .lv-foot{ grid-column:1; }
