@@ -50,11 +50,32 @@ const CHROME = [
  */
 const PALETTE = {
   CANVAS: '#14100f',
-  INK: '#fafafa',
+  PAPER: '#ffffff',  // the Windows wizard's own page colour, behind the header strip
+  INK: '#f3ece4',
   INK_DIM: '#b7a99e',
   INK_FAINT: '#7d7168',
-  ACCENT: '#2f8ab9', // the "I" quadrant — the one saturated colour in the mark
+  ACCENT: '#2f8ab9', // default only; a station sets its own in desktop/stations.json
 };
+
+/**
+ * Per-station look, from desktop/stations.json `<slug>.installer` (Tauri rejects unknown
+ * keys, so it can't sit in the profile): `accent` (the app's own accent colour), `logo`
+ * (the station's wordmark, relative to desktop/), `title` (the word under it) and `tagline`. All optional.
+ */
+function stationLook(slug) {
+  const file = path.join(__dirname, '..', 'stations.json');
+  const entry = (JSON.parse(fs.readFileSync(file, 'utf8'))[slug] || {}).installer || {};
+  if (entry.accent && !/^#[0-9a-f]{6}$/i.test(entry.accent)) {
+    throw new Error(`stations.json ${slug}.installer.accent must be #rrggbb, got ${entry.accent}`);
+  }
+  let logo = '';
+  if (entry.logo) {
+    const logoPath = path.join(__dirname, '..', entry.logo);
+    if (!fs.existsSync(logoPath)) throw new Error(`stations.json ${slug}.installer.logo: no file at ${logoPath}`);
+    logo = `data:image/png;base64,${fs.readFileSync(logoPath).toString('base64')}`;
+  }
+  return { accent: entry.accent, logo, tagline: entry.tagline, title: entry.title };
+}
 
 /**
  * `minInk` is the floor for "how much of this image isn't just canvas colour",
@@ -68,9 +89,9 @@ const PALETTE = {
  * so ordinary design changes don't trip them.
  */
 const SHEETS = [
-  { template: 'nsis-header.html', out: 'nsis-header', width: 150, height: 57, format: 'bmp', minInk: 0.06 },
-  { template: 'nsis-sidebar.html', out: 'nsis-sidebar', width: 164, height: 314, format: 'bmp', minInk: 0.04 },
-  { template: 'dmg-background.html', out: 'dmg-background', width: 1320, height: 800, format: 'png', minInk: 0.01 },
+  { template: 'nsis-header.html', out: 'nsis-header', width: 150, height: 57, format: 'bmp', minInk: 0.06, canvas: 'PAPER' },
+  { template: 'nsis-sidebar.html', out: 'nsis-sidebar', width: 164, height: 314, format: 'bmp', minInk: 0.04, canvas: 'CANVAS' },
+  { template: 'dmg-background.html', out: 'dmg-background', width: 1320, height: 800, format: 'png', minInk: 0.01, canvas: 'CANVAS' },
 ];
 
 // ---------------------------------------------------------------- PNG reading
@@ -191,12 +212,12 @@ function encodeBmp24(img, background) {
  * Fraction of pixels that differ perceptibly from the canvas colour — i.e. how
  * much artwork is actually on the sheet. A blank render scores ~0.
  */
-function inkCoverage(img) {
+function inkCoverage(img, background) {
   const { width, height, channels, stride, pixels } = img;
   const canvas = [
-    parseInt(PALETTE.CANVAS.slice(1, 3), 16),
-    parseInt(PALETTE.CANVAS.slice(3, 5), 16),
-    parseInt(PALETTE.CANVAS.slice(5, 7), 16),
+    parseInt(background.slice(1, 3), 16),
+    parseInt(background.slice(3, 5), 16),
+    parseInt(background.slice(5, 7), 16),
   ];
 
   let inked = 0;
@@ -231,8 +252,16 @@ function stationValues(slug) {
     ? path.join(__dirname, '..', 'src-tauri', png)
     : path.join(ICONS, '128x128@2x.png');
 
+  const look = stationLook(slug);
   return {
     ...PALETTE,
+    ACCENT: look.accent || PALETTE.ACCENT,
+    // No wordmark: the templates fall back to the square icon (an empty src paints nothing).
+    LOGO_DATA_URI: look.logo || `data:image/png;base64,${fs.readFileSync(iconPath).toString('base64')}`,
+    LOGO_CLASS: look.logo ? 'has-logo' : 'no-logo',
+    TAGLINE: look.tagline || 'Desktop Player',
+    // The big word under the wordmark; the wordmark already says the station's name.
+    SHORT_NAME: look.title || profile.productName || 'Station Archive',
     NAME: profile.productName || 'Station Archive',
     FOOTER: (profile.bundle && profile.bundle.copyright) || '',
     ICON_DATA_URI: `data:image/png;base64,${fs.readFileSync(iconPath).toString('base64')}`,
@@ -269,6 +298,8 @@ function render(slug) {
     execFileSync(CHROME, [
       '--headless',
       '--disable-gpu',
+      '--mute-audio',
+      `--user-data-dir=${path.join(tmp, 'profile')}`,
       '--hide-scrollbars',
       '--force-device-scale-factor=1',
       `--window-size=${sheet.width},${sheet.height}`,
@@ -281,7 +312,7 @@ function render(slug) {
       throw new Error(`${sheet.out}: rendered ${img.width}x${img.height}, wanted ${sheet.width}x${sheet.height}`);
     }
 
-    const ink = inkCoverage(img);
+    const ink = inkCoverage(img, values[sheet.canvas]);
     if (ink < sheet.minInk) {
       throw new Error(
         `${sheet.out}: only ${(ink * 100).toFixed(2)}% of pixels differ from the canvas — ` +
@@ -294,7 +325,7 @@ function render(slug) {
 
     const ext = sheet.format === 'bmp' ? '.bmp' : '.png';
     const dest = path.join(outDir, sheet.out + ext);
-    fs.writeFileSync(dest, sheet.format === 'bmp' ? encodeBmp24(img, PALETTE.CANVAS) : fs.readFileSync(shot));
+    fs.writeFileSync(dest, sheet.format === 'bmp' ? encodeBmp24(img, values[sheet.canvas]) : fs.readFileSync(shot));
 
     const size = (fs.statSync(dest).size / 1024).toFixed(1);
     console.log(

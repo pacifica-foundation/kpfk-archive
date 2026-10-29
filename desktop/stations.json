@@ -17,6 +17,16 @@
     "Baked in at compile time — changing a URL means rebuilding, not a setting."
   ],
 
+  "kpfk": {
+    "url": "https://podcasts.kpfk.org",
+    "installer": {
+      "accent": "#e14a2e",
+      "logo": "../public/assets/kpfk-logo.png",
+      "title": "Podcasts",
+      "tagline": "On demand · Live"
+    }
+  },
+
   "wbai": {
     "url": "https://wbai.supersoul.top"
   }

@@ -15,7 +15,7 @@ on:
       station:
         description: "Station profile in desktop/src-tauri/stations (slug, no .json)"
         required: true
-        default: "wbai"
+        default: "kpfk"
         type: string
       app_url:
         description: "Override the URL in desktop/stations.json (optional)"
@@ -59,7 +59,7 @@ jobs:
           # input, so it builds this default. One station is not worth a
           # repository variable; change the line when there's a reason to.
           STATION="${{ inputs.station }}"
-          if [ -z "$STATION" ]; then STATION="wbai"; fi
+          if [ -z "$STATION" ]; then STATION="kpfk"; fi
 
           PROFILE="desktop/src-tauri/stations/$STATION.json"
           if [ ! -f "$PROFILE" ]; then

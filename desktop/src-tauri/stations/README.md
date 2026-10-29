@@ -6,7 +6,7 @@ differs between stations: the name, the bundle identifier, the store copy and
 the copyright line.
 
 ```bash
-STATION=wbai
+STATION=kpfk
 STATION_URL=$(node -p "require('./stations.json')['$STATION'].url") \
 STATION_NAME=$(node -p "require('./src-tauri/stations/$STATION.json').productName") \
   npm run build -- --config src-tauri/stations/$STATION.json
@@ -23,7 +23,7 @@ than quietly ship one station's app under another's name.
 
 ## Adding a station
 
-1. Copy `wbai.json`. Set `productName`, `identifier` and the three bundle
+1. Copy `kpfk.json`. Set `productName`, `identifier` and the three bundle
    strings.
 2. **The identifier is the one thing you cannot change later.** Use reverse-DNS
    of a domain that station controls (`org.kpfa.archive`). Once a build is
@@ -41,10 +41,11 @@ than quietly ship one station's app under another's name.
    ```
 
    It reads `productName` and `copyright` straight out of the profile, uses that
-   station's icon if it ships one, and writes
+   station's icon if it ships one, takes its accent colour, wordmark, title word and
+   tagline from `desktop/stations.json` → `<slug>.installer` (see `kpfk`), and writes
    `src-tauri/installer/<slug>/`. Then point the profile's
    `bundle.windows.nsis.headerImage` / `sidebarImage` and
-   `bundle.macOS.dmg.background` at those files, as `wbai.json` does.
+   `bundle.macOS.dmg.background` at those files, as `kpfk.json` does.
 5. **Add its URL to `desktop/stations.json`** — the deployment the window loads.
 
 ## Who can sign what

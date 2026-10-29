@@ -2,20 +2,20 @@
 
 Native macOS and Windows builds of the web app, from `desktop/`.
 
-> **Status: nothing has been compiled yet.** Project, config, station profiles,
-> icons, installer artwork and Windows CI are all committed, and the Tauri CLI
-> parses the config cleanly — but **no binary has been produced**, because
-> building needs a Rust toolchain that still isn't installed. Treat every step
-> below as untested until one build succeeds.
+> **Status (2026-10-29): KPFK is the station this repo builds.** `stations/kpfk.json`
+> (product **KPFK Podcasts**, identifier `podcast.pacifica.kpfk.desktop` — the iPhone app is
+> `podcast.pacifica.kpfk`), KPFK's own icons in `stations/kpfk/icons/`, installer artwork in
+> `installer/kpfk/`, and `desktop/stations.json` → `https://podcasts.kpfk.org` (the station file's
+> `siteUrl`; `test/pacifica/desktop-profile.test.js` keeps them equal and fails on a WBAI icon).
+> The Windows workflow is switched on and builds `kpfk` by default. The Tauri CLI accepts the
+> merged KPFK config locally (it stops only at the missing `cargo`). The first Windows build is
+> the first compile this project has ever had — see the HANDOFF for its result.
 >
-> What *is* independently verified: **the Tauri CLI accepts the merged config**
-> (`tauri build --config src-tauri/stations/wbai.json` now fails only on the
-> missing cargo, and a deliberately bogus key was confirmed to fail *earlier* than
-> that, so validation really is happening); the icons are 32-bit RGBA with the
-> required `.ico` layers; the NSIS bitmaps are 24-bit BMPs, checked with a second
-> parser; every asset path in the merged config resolves to a file on disk; and
-> the artwork generator refuses to emit a blank sheet. What is not: that NSIS,
-> Finder and `codesign` accept any of it. That is what the first build is for.
+> **Installer look** (Paul, 2026-10-29: "modern, beautiful, not basic generic"): the Welcome/Finish
+> side panel is the app's dark canvas with the station wordmark, the product word, and broadcast
+> rings in a glow of the station's accent; the header strip is white with the wordmark. The accent,
+> wordmark, word and tagline are per station in `desktop/stations.json` → `<slug>.installer`
+> (`accent`, `logo`, `title`, `tagline`); `npm run artwork <slug>` re-renders.
 
 ## What it is
 
@@ -74,7 +74,7 @@ STATION_NAME="WBAI 99.5 FM Archive" npm run dev -- --config src-tauri/stations/w
 
 ```bash
 cd desktop
-STATION=wbai
+STATION=kpfk
 STATION_URL=$(node -p "require('./stations.json')['$STATION'].url") \
 STATION_NAME=$(node -p "require('./src-tauri/stations/$STATION.json').productName") \
   npm run build -- --config src-tauri/stations/$STATION.json
@@ -111,7 +111,7 @@ station's deployment lives in [`desktop/stations.json`](../desktop/stations.json
 in git:
 
 ```json
-{ "wbai": { "url": "https://wbai.supersoul.top" } }
+{ "kpfk": { "url": "https://podcasts.kpfk.org", "installer": { "accent": "#e14a2e", "logo": "../public/assets/kpfk-logo.png", "title": "Podcasts", "tagline": "On demand · Live" } } }
 ```
 
 That is a deliberate choice over an Actions variable: one variable cannot serve
@@ -123,7 +123,7 @@ The workflow **fails on purpose** rather than guessing: no profile for the named
 station (listing the ones that exist), or no URL for it, and the run stops.
 
 Which station a **tag push** builds is a one-word default in the workflow
-(`wbai`). **Manual runs** take the station from an input box, and can override
+(`kpfk`). **Manual runs** take the station from an input box, and can override
 the URL from a second one for a throwaway build against staging.
 
 ## Step 5 — Produce a Windows build

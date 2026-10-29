@@ -1,0 +1,30 @@
+{
+  "$schema": "../../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "KPFK Podcasts",
+  "identifier": "podcast.pacifica.kpfk.desktop",
+  "bundle": {
+    "icon": [
+      "stations/kpfk/icons/32x32.png",
+      "stations/kpfk/icons/128x128.png",
+      "stations/kpfk/icons/128x128@2x.png",
+      "stations/kpfk/icons/icon.icns",
+      "stations/kpfk/icons/icon.ico"
+    ],
+    "shortDescription": "KPFK 90.7 FM podcasts and live stream",
+    "longDescription": "Listen live to KPFK 90.7 FM and play past shows on demand. Audio, artwork and listings come from KPFK's own podcast site.",
+    "copyright": "(c) Pacifica Foundation / KPFK 90.7 FM.",
+    "macOS": {
+      "dmg": {
+        "background": "installer/kpfk/dmg-background.png"
+      }
+    },
+    "windows": {
+      "nsis": {
+        "headerImage": "installer/kpfk/nsis-header.bmp",
+        "sidebarImage": "installer/kpfk/nsis-sidebar.bmp",
+        "installerIcon": "stations/kpfk/icons/icon.ico",
+        "uninstallerIcon": "stations/kpfk/icons/icon.ico"
+      }
+    }
+  }
+}

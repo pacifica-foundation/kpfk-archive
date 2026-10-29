@@ -1,84 +1,84 @@
 <!-- NSIS Welcome/Finish page bitmap. Rendered at exactly 164x314, then
      converted to 24-bit BMP — NSIS has no alpha channel, so the canvas colour
-     is baked in. Placeholders are filled by ../render.js.
+     is baked in. Placeholders are filled by ../render.js. Windows draws the
+     page's own heading and text to the right of this panel, on white.
+
+     The look: the app's dark warm canvas, the station's wordmark, the product
+     word, and broadcast rings rising out of a glow of the station's accent —
+     the installer should feel like the app it installs, not a generic wizard.
 
      CENTERED ABSOLUTE ELEMENTS NEED AN EXPLICIT PIXEL WIDTH. In the headless
      Chrome that renders these, an element that is `position:absolute` against
      the page, gets its width from `left:0;right:0` or `width:100%`, *and*
      centres its contents (`text-align:center`, or `align-items:center` in a
      flex row) paints **nothing at all** — no text, no images, just backgrounds.
-     Give it `width: 164px` instead and it renders. This file was silently blank
-     until that was bisected; the DMG template avoids it by putting everything
-     inside a fixed-width stage. Re-render and *look at the output* after
-     touching layout here — a blank BMP is not obviously blank in a diff. -->
+     Give it `width: 164px` instead and it renders. Re-render and *look at the
+     output* after touching layout here — a blank BMP is not obviously blank in
+     a diff (render.js also refuses a near-blank sheet). -->
 <meta charset="utf-8">
 <style>
   html, body { margin: 0; padding: 0; width: 164px; height: 314px; overflow: hidden; }
   body {
+    position: relative;
     background: {{CANVAS}};
-    font-family: 'Arial Narrow', 'Helvetica Neue', sans-serif;
+    font-family: 'Segoe UI', -apple-system, 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* A single hairline of the accent, top to bottom, so the panel reads as
-     deliberate rather than as a dark rectangle NSIS failed to fill. */
-  .edge {
-    position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
-    background: {{ACCENT}};
+  /* Warm glow of the accent from below, and a faint lift at the top. */
+  .glow {
+    position: absolute; left: 0; top: 0; width: 164px; height: 314px;
+    background:
+      radial-gradient(120% 70% at 50% 108%, color-mix(in srgb, {{ACCENT}} 62%, transparent) 0%,
+                      color-mix(in srgb, {{ACCENT}} 20%, transparent) 45%, transparent 75%),
+      radial-gradient(90% 40% at 50% -6%, rgba(243,236,228,0.07) 0%, transparent 70%);
   }
 
-  /* width in pixels, not left+right — see the note at the top of this file. */
-  .stack {
-    position: absolute; left: 0; top: 34px; width: 164px;
-    text-align: center;
-  }
+  /* Broadcast rings, centred below the bottom edge. */
+  svg.rings { position: absolute; left: 0; top: 0; width: 164px; height: 314px; }
 
-  img.mark {
-    width: 88px; height: 88px;
-    display: block; margin: 0 auto;
-    /* The mark carries its own dark plate; a faint ring keeps it from
-       dissolving into the canvas. */
-    border-radius: 18px;
-    box-shadow: 0 0 0 1px rgba(250,250,250,0.10);
-  }
+  .stack { position: absolute; left: 0; top: 42px; width: 164px; text-align: center; }
 
+  img.logo { display: block; margin: 0 auto; }
+  img.logo.has-logo { width: 136px; height: auto; }
+  img.logo.no-logo { width: 84px; height: 84px; border-radius: 18px; }
+
+  .bar {
+    width: 22px; height: 3px; border-radius: 2px;
+    margin: 22px auto 0; background: {{ACCENT}};
+  }
   .name {
-    margin: 20px auto 0;
-    width: 132px;
-    font-size: 21px; line-height: 1.05;
-    letter-spacing: 0.01em;
-    color: {{INK}};
+    margin: 14px auto 0; width: 148px;
+    font-size: 22px; line-height: 1.1; font-weight: 600;
+    letter-spacing: -0.01em; color: {{INK}};
   }
-
-  .kind {
-    margin-top: 9px;
-    font-size: 10px; line-height: 1.3;
-    letter-spacing: 0.16em; text-transform: uppercase;
+  .tag {
+    margin: 7px auto 0; width: 148px;
+    font-size: 8.5px; line-height: 1.3; font-weight: 600;
+    letter-spacing: 0.2em; text-transform: uppercase;
     color: {{INK_DIM}};
   }
 
-  /* Bottom third stays empty on purpose: NSIS draws its own body text over
-     this bitmap on the Welcome page. */
-  .rule {
-    position: absolute; left: 38px; right: 38px; bottom: 46px;
-    height: 1px; background: rgba(250,250,250,0.12);
-  }
-  .foot {
-    position: absolute; left: 12px; width: 140px; bottom: 22px;
-    text-align: center;
-    font-size: 8px; line-height: 1.35;
-    letter-spacing: 0.05em;
-    color: {{INK_FAINT}};
-  }
 </style>
 
-<div class="edge"></div>
+<div class="glow"></div>
+
+<svg class="rings" viewBox="0 0 164 314" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="{{INK}}" stroke-width="1">
+    <circle cx="82" cy="356" r="70"  stroke-opacity="0.2"/>
+    <circle cx="82" cy="356" r="104" stroke-opacity="0.14"/>
+    <circle cx="82" cy="356" r="138" stroke-opacity="0.095"/>
+    <circle cx="82" cy="356" r="172" stroke-opacity="0.05"/>
+    <circle cx="82" cy="356" r="206" stroke-opacity="0.03"/>
+  </g>
+  <circle cx="82" cy="356" r="70" stroke="{{ACCENT}}" stroke-opacity="0.75" stroke-width="1.5"/>
+</svg>
 
 <div class="stack">
-  <img class="mark" src="{{ICON_DATA_URI}}" alt="">
-  <div class="name">{{NAME}}</div>
-  <div class="kind">Desktop Player</div>
+  <img class="logo {{LOGO_CLASS}}" src="{{LOGO_DATA_URI}}" alt="">
+  <div class="bar"></div>
+  <div class="name">{{SHORT_NAME}}</div>
+  <div class="tag">{{TAGLINE}}</div>
 </div>
 
-<div class="rule"></div>
-<div class="foot">{{FOOTER}}</div>
+<!-- No copyright line here: it crossed the rings, and Windows shows it in the app's file details. -->
