@@ -17,6 +17,13 @@
   var preview = window.FundDrive.build($('fdPreview'), { donateHref: '#', banner: $('fdPreviewBanner') });
   [$('fdPreview').querySelector('.fd-btn'), $('fdPreviewBanner')].forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); }); });
   var published = null, lastHistory = [], csrf = null, busy = false, embedUrl = location.origin + '/embed/fund-drive', theme = 'light';
+  // The chosen look (classic | slim | ring): part of the draft, saved with Update figures.
+  var style = 'classic';
+  var STYLE_NOTES = { classic: 'The full card: under the player on Listen Live.', slim: 'One line: for a website header or footer.', ring: 'A progress ring card: for a website sidebar.' };
+  var EMBED_H = { classic: 170, slim: 120, ring: 340 };
+  document.querySelectorAll('button[data-fd-style]').forEach(function (b) {
+    b.addEventListener('click', function () { style = b.dataset.fdStyle; paintTheme(); paintDraft(); });
+  });
   // Phone or Wide: the capsule follows its own width (styles.css container query), so the narrow
   // box shows the real phone layout.
   document.querySelectorAll('button[data-fd-size]').forEach(function (b) {
@@ -29,8 +36,10 @@
   function paintTheme() {
     $('fdPreviewBox').setAttribute('data-theme-scope', theme);
     document.querySelectorAll('[data-fd-theme]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.fdTheme === theme ? 'true' : 'false'); });
-    $('fdSnippet').textContent = '<iframe src="' + embedUrl + '?theme=' + theme + '" title="Fund drive" style="width:100%;height:170px;border:0" loading="lazy"></iframe>';
-    $('fdOpenEmbed').href = '/embed/fund-drive?theme=' + theme;
+    document.querySelectorAll('button[data-fd-style]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.fdStyle === style ? 'true' : 'false'); });
+    $('fdStyleNote').textContent = STYLE_NOTES[style];
+    $('fdSnippet').textContent = '<iframe src="' + embedUrl + '?theme=' + theme + '&style=' + style + '" title="Fund drive" style="width:100%;height:' + EMBED_H[style] + 'px;border:0" loading="lazy"></iframe>';
+    $('fdOpenEmbed').href = '/embed/fund-drive?theme=' + theme + '&style=' + style;
   }
   document.querySelectorAll('[data-fd-theme]').forEach(function (b) {
     b.addEventListener('click', function () { theme = b.dataset.fdTheme; paintTheme(); });
@@ -47,11 +56,11 @@
   }
   // The figures in the boxes. On/off is not part of the draft: the switch shows what is published.
   function draft() {
-    return { name: nameIn.value.replace(/\s+/g, ' ').trim(), goal: digits(goalIn.value), pledged: digits(pledgedIn.value), donateUrl: linkIn.value.trim() };
+    return { name: nameIn.value.replace(/\s+/g, ' ').trim(), goal: digits(goalIn.value), pledged: digits(pledgedIn.value), donateUrl: linkIn.value.trim(), style: style };
   }
-  function same(a, b) { return a.name === b.name && a.goal === b.goal && a.pledged === b.pledged && a.donateUrl === b.donateUrl; }
+  function same(a, b) { return a.name === b.name && a.goal === b.goal && a.pledged === b.pledged && a.donateUrl === b.donateUrl && a.style === b.style; }
   // What the server sends: the figures plus the donate link, ready to post.
-  function body(isOn, v) { return { on: isOn, name: v.name, goal: v.goal || 0, pledged: v.pledged || 0, donateUrl: v.donateUrl || '' }; }
+  function body(isOn, v) { return { on: isOn, name: v.name, goal: v.goal || 0, pledged: v.pledged || 0, donateUrl: v.donateUrl || '', style: v.style || 'classic' }; }
   // The donate link's check (lib/frame-check.js on the server): will it show inside the Donate
   // window over Listen Live? Advice only; it never blocks a save. lastCheck remembers the answer
   // so switching on can warn about a page that will not show.
@@ -90,10 +99,10 @@
     var tag, note;
     on.setAttribute('aria-checked', isOn ? 'true' : 'false');
     if (!d.goal) {
-      preview.paint(EXAMPLE);
+      preview.paint(Object.assign({}, EXAMPLE, { style: style }));
       tag = 'Example'; note = 'Example figures. Type a goal and the amount pledged to see yours.';
     } else {
-      preview.paint({ on: true, name: d.name, goal: d.goal, pledged: d.pledged || 0 });
+      preview.paint({ on: true, name: d.name, goal: d.goal, pledged: d.pledged || 0, style: style });
       if (changed) { tag = 'Draft'; note = isOn ? 'Not shown yet: Update figures to show these on Listen Live.' : 'The fund drive is off. Update figures saves these for later.'; }
       else if (isOn) { tag = 'Live'; note = 'Showing on Listen Live now.'; }
       else { tag = 'Off'; note = 'Not shown. Switch it on to show it on Listen Live.'; }
@@ -109,6 +118,8 @@
     // Never set up: empty fields (null), so an untouched form is not a change to save.
     published = { on: !!c.on, name: c.name || '', goal: c.goal || null, pledged: c.updatedAt ? (c.pledged || 0) : null };
     published.donateUrl = c.donateUrl || '';
+    published.style = c.style || 'classic';
+    style = published.style;
     nameIn.value = c.name || '';
     linkIn.value = published.donateUrl;
     linkIn.placeholder = state.donate || 'https://';

@@ -12,5 +12,7 @@
   var shown = theme || ((window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark');
   var links = (cfg && cfg.links) || {};
   var donate = (shown === 'light' && links.donateLight) || links.donate || '';
-  window.FundDrive.mount(document.getElementById('capsule'), { donateHref: donate, newTab: true });
+  // ?style=classic|slim|ring pins this spot's look (the studio snippet sets it); without it, the studio's choice.
+  var style = (/[?&]style=(classic|slim|ring)\b/.exec(location.search) || [])[1];
+  window.FundDrive.mount(document.getElementById('capsule'), { donateHref: donate, newTab: true, style: style });
 })();

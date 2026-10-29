@@ -4191,7 +4191,7 @@ async function studioFundDrivePost(req, res, pathOnly) {
   try { input = JSON.parse(await readBody(req, 2048)); } catch (e) { return sendStudioJson(res, { ok: false, errors: ['The figures are not valid JSON.'] }, 400); }
   const r = fundDrive.apply(input);
   if (!r.ok) return sendStudioJson(res, r, 422);
-  if (!r.unchanged) { const v = fundDrive.public(); console.log(`[studio] fund drive: ${v.on ? 'on' : 'off'}, $${v.pledged} of $${v.goal}${v.donateUrl ? ', donate ' + v.donateUrl : ''}`); }
+  if (!r.unchanged) { const v = fundDrive.public(); console.log(`[studio] fund drive: ${v.on ? 'on' : 'off'}, $${v.pledged} of $${v.goal}${v.donateUrl ? ', donate ' + v.donateUrl : ''}, style ${v.style}`); }
   return sendStudioJson(res, fundDriveState());
 }
 

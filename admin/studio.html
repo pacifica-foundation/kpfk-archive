@@ -93,6 +93,9 @@
     <p class="studio-note">QIR search, summaries and transcripts on the listener site. The station
       profile decides whether this station may have it; these switches turn it on and off
       right away, with no redeploy.</p>
+    <!-- Two tiles side by side on desktop (Paul, 2026-10-29: full width put each switch far from
+         its text); stacked on phones. -->
+    <div class="disc-grid">
     <div class="disc-setting">
       <div>
         <h3 class="disc-label" id="discEnabledLabel">Discovery on this station</h3>
@@ -110,6 +113,7 @@
         <p class="disc-status" id="discQirStatus" role="status"></p>
       </div>
       <button class="disc-switch" id="discQir" type="button" role="switch" aria-checked="false" aria-labelledby="discQirLabel"><span aria-hidden="true"></span></button>
+    </div>
     </div>
     <p class="disc-error" id="discError" role="alert"></p>
   </section>
@@ -152,6 +156,17 @@
         <label class="studio-field"><span class="studio-field-label">Donate link (optional)</span>
           <input class="studio-input" id="fdLink" type="url" inputmode="url" autocomplete="off" spellcheck="false" maxlength="500"></label>
         <p class="fd-link-check" id="fdLinkCheck" role="status" aria-live="polite"></p>
+        <!-- Style (Paul, 2026-10-29): the capsule's look on Listen Live and the embed's default; saved with
+             Update figures. The embed snippet below pins the chosen one with &style=. -->
+        <div class="studio-field">
+          <span class="studio-field-label" id="fdStyleLabel">Style</span>
+          <div class="fd-theme fd-style" role="group" aria-labelledby="fdStyleLabel">
+            <button type="button" data-fd-style="classic" aria-pressed="true">Classic</button>
+            <button type="button" data-fd-style="slim" aria-pressed="false">Slim bar</button>
+            <button type="button" data-fd-style="ring" aria-pressed="false">Ring</button>
+          </div>
+          <p class="fd-style-note" id="fdStyleNote"></p>
+        </div>
         <div class="fd-actions">
           <button class="studio-btn export-go" id="fdPublish" type="button" disabled>Update figures</button>
           <button class="studio-btn studio-btn--quiet" id="fdDiscard" type="button" hidden>Discard changes</button>

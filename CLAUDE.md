@@ -160,6 +160,11 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
   (`lib/fund-drive.js`, data volume `fund-drive/`; the link's page is checked by `lib/frame-check.js`); `public/fund-drive.js` is the one capsule
   drawing (on `/live`, the studio preview, `/embed/fund-drive`). The embed's frame-ancestors are this
   app and the station's website only; the listener site stays `SAMEORIGIN`.
+  **Three styles** (Paul, 2026-10-29): `classic` (the card), `slim` (one line, for a site header or
+  footer), `ring` (progress ring card, for a sidebar) — saved with the figures (`style`), used on
+  `/live`; the embed snippet pins one per spot with `&style=`.
+- **Fading layers take no taps** (2026-10-29): a popup's hidden state must say `pointer-events:none`
+  (visibility:hidden lands only after the fade). `test/pacifica/layers-no-taps.test.js`.
 - **Listen along naming:** "Transcript" (QIR) and **"Playlist"** (cue-file song list, was
   "Songs"). Never rename "Transcript" (Paul).
   **Transcripts and headlines have broken five times** — read [docs/transcripts.md](docs/transcripts.md) before

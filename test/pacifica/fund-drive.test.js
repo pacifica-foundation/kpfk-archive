@@ -17,7 +17,7 @@ function writeJsonAtomic(file, data) { fs.mkdirSync(path.dirname(file), { recurs
 
 test('the figures: whole dollars, a goal before switching on, no stray fields', () => {
   const ok = F.checkValues({ on: true, name: '  Fall   Fund Drive ', goal: 75000, pledged: 42350 });
-  assert.deepEqual(ok, { ok: true, values: { on: true, name: 'Fall Fund Drive', goal: 75000, pledged: 42350, donateUrl: '' } });
+  assert.deepEqual(ok, { ok: true, values: { on: true, name: 'Fall Fund Drive', goal: 75000, pledged: 42350, donateUrl: '', style: 'classic' } });
   // The donate link (2026-10-28): blank = the station's usual page; otherwise https only.
   assert.equal(F.checkValues({ on: true, goal: 10, pledged: 0, donateUrl: ' https://give.example.org/kpfk ' }).values.donateUrl, 'https://give.example.org/kpfk');
   assert.ok(F.checkValues({ on: false, goal: 0, pledged: 0 }).ok, 'off with nothing set is fine');
@@ -41,13 +41,26 @@ test('the figures: whole dollars, a goal before switching on, no stray fields', 
   ]) assert.equal(F.checkValues(bad).ok, false, JSON.stringify(bad));
 });
 
+test('the style (2026-10-29): classic, slim or ring; classic when unset; anything else refused', () => {
+  assert.deepEqual(F.STYLES, ['classic', 'slim', 'ring']);
+  for (const style of F.STYLES) assert.equal(F.checkValues({ on: true, goal: 10, pledged: 0, style }).values.style, style);
+  assert.equal(F.checkValues({ on: true, goal: 10, pledged: 0 }).values.style, 'classic', 'a file saved before styles existed reads as classic');
+  for (const style of ['', 'Ring', 'thermometer', 3, null]) assert.equal(F.checkValues({ on: true, goal: 10, pledged: 0, style }).ok, false, `refuses ${JSON.stringify(style)}`);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fd-style-'));
+  try {
+    const fd = F.createFundDrive({ dataDir: dir, writeJsonAtomic });
+    assert.ok(fd.apply({ on: true, goal: 100, pledged: 5, style: 'ring' }).ok);
+    assert.equal(F.createFundDrive({ dataDir: dir, writeJsonAtomic }).public().style, 'ring', 'survives a restart');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 test('store: publish, the same figures again change nothing, undo, and it survives a restart', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kpfk-fd-'));
   let t = Date.parse('2026-10-27T20:00:00Z');
   const open = () => F.createFundDrive({ dataDir: dir, writeJsonAtomic, now: () => (t += 1000) });
   try {
     const s = open();
-    assert.deepEqual(s.public(), { on: false, name: '', goal: 0, pledged: 0, donateUrl: '', updatedAt: null }, 'off until set');
+    assert.deepEqual(s.public(), { on: false, name: '', goal: 0, pledged: 0, donateUrl: '', style: 'classic', updatedAt: null }, 'off until set');
     assert.equal(s.apply({ on: true, goal: 0, pledged: 0 }).ok, false, 'refused edits write nothing');
     assert.equal(s.history().length, 0);
     assert.ok(s.apply({ on: true, name: 'Fall', goal: 75000, pledged: 100 }).ok);

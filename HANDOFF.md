@@ -1,10 +1,24 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-28 (fund drive studio card simplified, donate link; Listen Live a plain live player — no bottom player, leave explainer, phone strip, live glow; light donate page — all **live and checked**, first section). Previously 2026-10-27 night (Listen Live page at `/live` and the fund drive donation capsule — **live and checked**, first section. Earlier the same day: Ace's review — episode counts, re-runs, name tiles, search, Radio Maiz — **live and checked**; Something's Happening handed to Ace). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-10-29 (Windows desktop app builds; Listen Live schedule header redesigned; closing popups no longer catch taps; studio Discovery in two columns; three fund drive capsule styles — first section). Previously 2026-10-28 (fund drive studio card simplified, donate link; Listen Live a plain live player — no bottom player, leave explainer, phone strip, live glow; light donate page — all **live and checked**, first section). Previously 2026-10-27 night (Listen Live page at `/live` and the fund drive donation capsule — **live and checked**, first section. Earlier the same day: Ace's review — episode counts, re-runs, name tiles, search, Radio Maiz — **live and checked**; Something's Happening handed to Ace). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
+
+## 2026-10-29 — Windows desktop app, schedule header, capsule styles
+
+- **Windows desktop app (Tauri)**: first green build on GitHub Actions — `KPFK Podcasts_1.0.0_x64-setup.exe`,
+  KPFK icons and redesigned installer, opens podcasts.kpfk.org. Not yet run on Windows (Paul: Shadow PC).
+  Unsigned: Windows signing is Ace's tracker item (Microsoft nonprofit Azure credit); Mac needs a
+  Developer ID certificate from Stephanie (Apple Account Holder). See docs/TAURI.md.
+- **Listen Live schedule header** (third pass): red top edge, "Today on KPFK" kicker, the date as a
+  heading, Full schedule pill. Live (`c3873ae`).
+- **Fading popups took taps** (show popup, Live popup, menu, on-air choice): fixed at the source; a
+  test guards every fading layer. Live (`c3873ae`).
+- **Studio**: Discovery's two switches side by side on desktop. **Fund drive style**: Classic, Slim bar,
+  Ring — picked in the studio (saved with Update figures, used on /live); the embed snippet carries
+  `&style=` so each spot on kpfk.org keeps its own. Pushed for Paul's live testing.
 
 ## 2026-10-28 — fund drive studio, Listen Live as a plain live player, light donate page: live and checked
 

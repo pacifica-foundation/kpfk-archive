@@ -3,7 +3,10 @@
  * studio's preview. Figures come from /api/fund-drive (set in the studio, lib/fund-drive.js);
  * switched off, the capsule is hidden. Nothing here is about the listener.
  *
- *   FundDrive.build(el, { onDonate, donateHref, newTab, banner })  → { paint(figures) }
+ *   FundDrive.build(el, { onDonate, donateHref, newTab, banner, style })  → { paint(figures) }
+ *   Three looks (Paul, 2026-10-29), one drawing laid out by styles.css on data-style: classic (the
+ *   card), slim (one line, for a site header or footer), ring (a progress ring card, for a sidebar).
+ *   The figures' style is the studio's choice; opts.style (the embed's ?style=) overrides it.
  *   Donate goes to the figures' donateUrl when the studio set one (a pledge page for the drive,
  *   Paul 2026-10-28), else donateHref; onDonate(url) gets that address.
  *   `banner` (optional): an <a> for the fund drive banner (Paul, 2026-10-27: the approved design's
@@ -14,6 +17,8 @@
   'use strict';
   var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
   function fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+  var STYLES = ['classic', 'slim', 'ring'], SVG = 'http://www.w3.org/2000/svg', R = 44, C = 2 * Math.PI * R;
+  function svg(tag, attrs) { var n = document.createElementNS(SVG, tag); for (var k in attrs) n.setAttribute(k, attrs[k]); return n; }
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; }
 
   function build(root, opts) {
@@ -48,7 +53,15 @@
     // The layout lives on an inner box so it can follow the slot's width (a container query on
     // .fd-cap), not the screen's: the studio's Phone preview and a narrow column stack it too.
     var inner = el('div', 'fd-in');
-    [top, bar, foot, btn].forEach(function (n) { inner.appendChild(n); });
+    // The ring (ring style only; styles.css hides it otherwise). Presentation attributes, not style="",
+    // which the CSP would void.
+    var ring = el('div', 'fd-ring'), ringSvg = svg('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' });
+    var ringArc = svg('circle', { cx: 50, cy: 50, r: R, 'class': 'fd-ring-arc', 'stroke-dasharray': C.toFixed(2), 'stroke-dashoffset': C.toFixed(2), transform: 'rotate(-90 50 50)' });
+    ringSvg.appendChild(svg('circle', { cx: 50, cy: 50, r: R, 'class': 'fd-ring-track' }));
+    ringSvg.appendChild(ringArc);
+    var ringPct = el('span', 'fd-ring-pct');
+    ring.appendChild(ringSvg); ring.appendChild(ringPct);
+    [ring, top, bar, foot, btn].forEach(function (n) { inner.appendChild(n); });
     root.appendChild(inner);
 
     var shown = null, raf = 0;
@@ -75,12 +88,16 @@
         banner.hidden = !on;
         if (on) banner.textContent = (f.name || 'Fund drive') + ' · Donate now';
       }
+      var style = STYLES.indexOf(opts.style) >= 0 ? opts.style : (f && STYLES.indexOf(f.style) >= 0 ? f.style : 'classic');
+      root.setAttribute('data-style', style);
       if (!on) return;
       var goal = f.goal, pledged = f.pledged, done = pledged >= goal, p = Math.floor(pledged / goal * 100);
       root.classList.toggle('is-done', done);
       name.textContent = done ? 'Goal reached — thank you!' : (f.name || 'Fund drive');
       pct.textContent = p + '%';
       fill.style.width = Math.min(100, p) + '%';
+      ringArc.setAttribute('stroke-dashoffset', (C * (1 - Math.min(100, p) / 100)).toFixed(2));
+      ringPct.textContent = p + '%';
       bar.setAttribute('aria-valuemax', String(goal));
       bar.setAttribute('aria-valuenow', String(pledged));
       bar.setAttribute('aria-label', fmt(pledged) + ' pledged of a ' + fmt(goal) + ' goal');

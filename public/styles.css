@@ -4964,6 +4964,38 @@
   .fd-in{ grid-template-columns:1fr; grid-template-areas:"top" "bar" "foot" "btn"; }
   .fd-amt{ font-size:1.7rem; }
 }
+/* Three looks (Paul, 2026-10-29), chosen in the studio (data-style, public/fund-drive.js). The ring
+   shows only in ring style; classic is everything above. */
+.fd-ring{ display:none; }
+/* Slim: one line for a site's header or footer — name, a thin bar, the amount, a small Donate. */
+/* 28px: a pill at one line (~60px tall), a rounded card once it wraps (a container query cannot
+   restyle the capsule itself, only what is inside it). */
+.fd-cap[data-style="slim"]{ padding:10px 12px 10px 18px; border-radius:28px; }
+.fd-cap[data-style="slim"] .fd-in{ grid-template-columns:auto minmax(90px,1fr) auto auto; grid-template-areas:"top bar foot btn"; gap:8px 16px; }
+.fd-cap[data-style="slim"] .fd-pct{ display:none; }
+.fd-cap[data-style="slim"] .fd-bar{ height:10px; }
+.fd-cap[data-style="slim"] .fd-foot{ display:flex; align-items:baseline; gap:6px; white-space:nowrap; }
+.fd-cap[data-style="slim"] .fd-amt{ font-size:1.2rem; }
+.fd-cap[data-style="slim"] .fd-of{ font-size:.8rem; }
+.fd-cap[data-style="slim"] .fd-btn{ min-height:38px; padding:0 18px; font-size:.88rem; }
+/* Ring: a card with a progress ring, for a sidebar; the ring holds the percentage. */
+.fd-cap[data-style="ring"] .fd-in{ grid-template-columns:auto 1fr; grid-template-areas:"ring top" "ring foot" "ring btn"; gap:6px 20px; }
+.fd-cap[data-style="ring"] .fd-bar, .fd-cap[data-style="ring"] .fd-pct{ display:none; }
+.fd-cap[data-style="ring"] .fd-ring{ grid-area:ring; position:relative; display:grid; place-items:center; width:128px; height:128px; }
+.fd-cap[data-style="ring"] .fd-btn{ justify-self:start; }
+.fd-ring svg{ position:absolute; inset:0; width:100%; height:100%; }
+.fd-ring-track{ fill:none; stroke:var(--surface-2); stroke-width:9; }
+.fd-ring-arc{ fill:none; stroke:var(--accent); stroke-width:9; stroke-linecap:round; transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1); }
+.fd-ring-pct{ position:relative; font-family:var(--font-display); font-weight:700; font-size:1.7rem; font-variant-numeric:tabular-nums; }
+@media (prefers-reduced-motion:reduce){ .fd-ring-arc{ transition:none; } }
+/* Narrow slots: slim wraps to two lines; ring stacks, centred. */
+@container (max-width:560px){
+  .fd-cap[data-style="slim"] .fd-in{ grid-template-columns:1fr auto; grid-template-areas:"top btn" "bar bar" "foot foot"; }
+}
+@container (max-width:440px){
+  .fd-cap[data-style="ring"] .fd-in{ grid-template-columns:1fr; grid-template-areas:"ring" "top" "foot" "btn"; justify-items:center; text-align:center; }
+  .fd-cap[data-style="ring"] .fd-btn{ justify-self:stretch; }
+}
 /* On Listen Live: under the player; the stacked layout in the narrow left column too. */
 .lv-fund{ margin:0; }
 /* The embed page: nothing but the capsule, on whatever the host page has behind it. */

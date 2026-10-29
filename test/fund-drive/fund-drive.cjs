@@ -122,7 +122,7 @@ const DRIVE_LINK = 'https://docs.pacifica.org/kpfk/donate/?drive=fall';
   check('… Show it now: listeners\' figures change at once', await until(`return /^On\./.test(document.getElementById('fdStatus').textContent);`, 6000)
     && JSON.stringify((({ on, name, goal, pledged }) => ({ on, name, goal, pledged }))(await publicFigures())) === JSON.stringify({ on: true, name: 'Fall Fund Drive', goal: 75000, pledged: 42350 }),
     JSON.stringify(await publicFigures()) + ' ' + await ev(`return document.getElementById('fdStatus').textContent;`));
-  check('… the embed snippet is ready to copy', /<iframe src="[^"]*\/embed\/fund-drive\?theme=light"/.test(await ev(`return document.getElementById('fdSnippet').textContent;`)));
+  check('… the embed snippet is ready to copy', /<iframe src="[^"]*\/embed\/fund-drive\?theme=light&style=classic"/.test(await ev(`return document.getElementById('fdSnippet').textContent;`)));
   check('… the preview is marked Live', (await ev(`return document.getElementById('fdPreviewTag').textContent;`)) === 'Live');
   // Paul, 2026-10-27: the snippet said theme=light but the embed opened dark. One choice now sets
   // the preview's colours, the snippet's ?theme= and Open the embed's address.
@@ -130,10 +130,19 @@ const DRIVE_LINK = 'https://docs.pacifica.org/kpfk/donate/?drive=fall';
   const th = async () => JSON.parse(await p.eval(`return JSON.stringify({ bg: getComputedStyle(document.getElementById('fdPreview')).backgroundColor,
     snippet: /theme=(\\w+)/.exec(document.getElementById('fdSnippet').textContent)[1], open: document.getElementById('fdOpenEmbed').getAttribute('href') });`));
   const light = await th();
-  check('… light by default: a white capsule, snippet and Open both theme=light', light.bg === 'rgb(255, 255, 255)' && light.snippet === 'light' && light.open === '/embed/fund-drive?theme=light', JSON.stringify(light));
+  check('… light by default: a white capsule, snippet and Open both theme=light', light.bg === 'rgb(255, 255, 255)' && light.snippet === 'light' && light.open === '/embed/fund-drive?theme=light&style=classic', JSON.stringify(light));
   await p.click('[data-fd-theme="dark"]');
   const dark = await th();
-  check('… Dark: a dark capsule, snippet and Open both theme=dark', dark.bg === 'rgb(28, 22, 21)' && dark.snippet === 'dark' && dark.open === '/embed/fund-drive?theme=dark', JSON.stringify(dark));
+  check('… Dark: a dark capsule, snippet and Open both theme=dark', dark.bg === 'rgb(28, 22, 21)' && dark.snippet === 'dark' && dark.open === '/embed/fund-drive?theme=dark&style=classic', JSON.stringify(dark));
+  // Style (2026-10-29): the picker redraws the preview and pins the snippet's style and height; it is a
+  // draft until Update figures, so picking Classic again leaves nothing to save.
+  await p.click('[data-fd-style="ring"]');
+  const ring = JSON.parse(await ev(`return JSON.stringify({ style: document.getElementById('fdPreview').getAttribute('data-style'), ringShown: getComputedStyle(document.querySelector('#fdPreview .fd-ring')).display !== 'none',
+    barShown: getComputedStyle(document.querySelector('#fdPreview .fd-bar')).display !== 'none', snippet: document.getElementById('fdSnippet').textContent, save: !document.getElementById('fdPublish').disabled });`));
+  check('… Style Ring: the preview draws the ring (no bar), the snippet pins style=ring at 340px, Update figures is offered',
+    ring.style === 'ring' && ring.ringShown && !ring.barShown && /style=ring"/.test(ring.snippet) && /height:340px/.test(ring.snippet) && ring.save, JSON.stringify(ring));
+  await p.click('[data-fd-style="classic"]');
+  check('… back to Classic: nothing to save', await ev(`return document.getElementById('fdPublish').disabled && document.getElementById('fdPreview').getAttribute('data-style') === 'classic';`));
   await p.click('[data-fd-theme="light"]');
   check('… Copy and Open are buttons, their labels centred', await ev(`return ['fdCopy', 'fdOpenEmbed'].every(function(id){ var b = document.getElementById(id), r = b.getBoundingClientRect(), t = b.querySelector('span').getBoundingClientRect();
     return /flex/.test(getComputedStyle(b).display) && Math.abs((t.top + t.height / 2) - (r.top + r.height / 2)) <= 2 && !!b.querySelector('svg'); });`));
@@ -173,6 +182,11 @@ const DRIVE_LINK = 'https://docs.pacifica.org/kpfk/donate/?drive=fall';
   check('… light as asked (?theme=light)', (await ev(`return document.documentElement.getAttribute('data-theme');`)) === 'light');
   check('… its Donate opens the drive\'s donate link in a new tab', await ev(`var a = document.querySelector('#capsule .fd-btn'); return a.target === '_blank' && a.href === ${JSON.stringify(DRIVE_LINK)} && !a.hidden;`),
     await ev(`var a = document.querySelector('#capsule .fd-btn'); return a.target + ' ' + a.href;`));
+  await go('/embed/fund-drive?theme=light&style=slim');
+  check('… ?style=slim: the same capsule as one line', await until(`var c = document.getElementById('capsule'); return !!c && !c.hidden && c.getAttribute('data-style') === 'slim' && c.getBoundingClientRect().height < 90;`, 8000),
+    await ev(`var c = document.getElementById('capsule'); return c.getAttribute('data-style') + ' h=' + Math.round(c.getBoundingClientRect().height) + ' w=' + innerWidth;`));
+  await go('/embed/fund-drive?theme=light');
+  await until(`var c = document.getElementById('capsule'); return !!c && !c.hidden;`, 8000);
   check('… nothing but the capsule, on a see-through page', await ev(`return getComputedStyle(document.body).backgroundColor === 'rgba(0, 0, 0, 0)' && document.body.children.length <= 2;`),
     await ev(`return getComputedStyle(document.body).backgroundColor;`));
 
