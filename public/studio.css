@@ -1420,8 +1420,32 @@ th[aria-sort="ascending"] .th-sort::after { content: "\25B2"; }    /* ▲ */
    so the capsule inside is the 358px it gets on a phone; Wide is the whole column. */
 .fd-preview-head { flex-wrap: wrap; }
 .fd-theme.fd-size { margin-left: 0; }
-.fd-theme.fd-style { margin-left: 0; align-self: flex-start; }
-.fd-style-note { margin: .35rem 0 0; font-size: .85rem; color: var(--ink-dim); }
+/* Style templates (2026-10-29): three cards with a drawing of each look; the chosen one is ringed in
+   the accent and badged, so the choice reads at a glance. */
+.fd-styles { margin: 0 0 1.4rem; }
+.fd-style-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: .5rem; }
+@media (max-width: 640px) { .fd-style-grid { grid-template-columns: 1fr; } }
+.fd-style-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px 14px;
+  border: 2px solid var(--outline-strong); border-radius: 14px; background: var(--surface-2); color: var(--ink);
+  font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, background-color .15s; }
+@media (hover: hover) { .fd-style-card:hover { border-color: var(--ink-dim); } }
+.fd-style-card:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }
+.fd-style-card[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--surface-2)); }
+.fd-style-thumb { width: 100%; height: 96px; margin-bottom: 8px; border-radius: 8px; background: var(--surface-1); }
+.fd-style-thumb .t-frame { fill: var(--surface-2); stroke: var(--outline-strong); stroke-width: 1; }
+.fd-style-thumb .t-acc { fill: var(--accent); }
+.fd-style-thumb .t-track { fill: var(--outline-strong); }
+.fd-style-thumb .t-ink { fill: var(--ink); }
+.fd-style-thumb .t-dim { fill: var(--ink-dim); }
+.fd-style-thumb .t-track-ring { fill: none; stroke: var(--outline-strong); stroke-width: 5; }
+.fd-style-thumb .t-acc-ring { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; }
+.fd-style-name { font-weight: 700; font-size: 1rem; }
+.fd-style-use { font-size: .85rem; color: var(--ink-dim); }
+.fd-style-tick { position: absolute; top: 8px; right: 8px; display: none; padding: 2px 9px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-size: .72rem; font-weight: 700; letter-spacing: .04em; }
+.fd-style-card[aria-pressed="true"] .fd-style-tick { display: inline-block; }
+.fd-style-note { margin: .6rem 0 0; font-size: .88rem; color: var(--ink-dim); }
+.fd-style-note.is-draft { color: var(--ink); font-weight: 600; }
 .fd-preview { box-sizing: border-box; width: 100%; transition: max-width .2s ease; }
 .fd-preview[data-fd-size="phone"] { max-width: 390px; margin-inline: auto; padding: 1rem 16px; }
 /* The donate link's check under its box: says whether the page shows inside the Donate window. */

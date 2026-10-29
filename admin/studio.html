@@ -134,6 +134,30 @@
     <!-- Two columns (Paul, 2026-10-27: the stacked full-width version was awkward): a compact form
          on the left; on the right the preview, always shown (example figures until real ones are
          typed), and the embed snippet, not folded away. Stacked on phones, preview first. -->
+    <!-- Style templates (Paul, 2026-10-29: a small segmented control was lost in the form): three
+         cards with a drawing of each look, at the top of the card. The capsule's look on Listen Live
+         and the embed's default; saved with Update figures. The embed snippet pins it with &style=. -->
+    <div class="fd-styles">
+      <p class="studio-field-label" id="fdStyleLabel">Style — pick a template</p>
+      <div class="fd-style-grid" role="group" aria-labelledby="fdStyleLabel">
+        <button class="fd-style-card" type="button" data-fd-style="classic" aria-pressed="true">
+          <svg class="fd-style-thumb" viewBox="0 0 160 72" aria-hidden="true"><rect class="t-frame" x="6" y="8" width="148" height="56" rx="10"/><circle class="t-acc" cx="17" cy="19" r="2.5"/><rect class="t-acc" x="23" y="17" width="38" height="4" rx="2"/><rect class="t-track" x="14" y="28" width="132" height="6" rx="3"/><rect class="t-acc" x="14" y="28" width="76" height="6" rx="3"/><rect class="t-ink" x="14" y="42" width="44" height="9" rx="2"/><rect class="t-dim" x="14" y="54" width="60" height="3" rx="1.5"/><rect class="t-acc" x="108" y="42" width="38" height="14" rx="7"/></svg>
+          <span class="fd-style-name">Classic card</span><span class="fd-style-use">Under the player on Listen Live</span>
+          <span class="fd-style-tick" aria-hidden="true">Selected</span>
+        </button>
+        <button class="fd-style-card" type="button" data-fd-style="slim" aria-pressed="false">
+          <svg class="fd-style-thumb" viewBox="0 0 160 72" aria-hidden="true"><rect class="t-frame" x="6" y="24" width="148" height="24" rx="12"/><circle class="t-acc" cx="17" cy="36" r="2.5"/><rect class="t-acc" x="23" y="34" width="26" height="4" rx="2"/><rect class="t-track" x="55" y="33" width="40" height="5" rx="2.5"/><rect class="t-acc" x="55" y="33" width="23" height="5" rx="2.5"/><rect class="t-ink" x="100" y="32" width="20" height="7" rx="2"/><rect class="t-acc" x="124" y="29" width="26" height="14" rx="7"/></svg>
+          <span class="fd-style-name">Slim bar</span><span class="fd-style-use">Website header or footer</span>
+          <span class="fd-style-tick" aria-hidden="true">Selected</span>
+        </button>
+        <button class="fd-style-card" type="button" data-fd-style="ring" aria-pressed="false">
+          <svg class="fd-style-thumb" viewBox="0 0 160 72" aria-hidden="true"><rect class="t-frame" x="6" y="8" width="148" height="56" rx="10"/><circle class="t-track-ring" cx="36" cy="36" r="17"/><path class="t-acc-ring" d="M36 19 A17 17 0 1 1 22 46"/><circle class="t-acc" cx="64" cy="22" r="2.5"/><rect class="t-acc" x="70" y="20" width="38" height="4" rx="2"/><rect class="t-ink" x="62" y="30" width="44" height="9" rx="2"/><rect class="t-dim" x="62" y="42" width="56" height="3" rx="1.5"/><rect class="t-acc" x="62" y="49" width="36" height="11" rx="5.5"/></svg>
+          <span class="fd-style-name">Ring</span><span class="fd-style-use">Website sidebar</span>
+          <span class="fd-style-tick" aria-hidden="true">Selected</span>
+        </button>
+      </div>
+      <p class="fd-style-note" id="fdStyleNote" role="status" aria-live="polite"></p>
+    </div>
     <div class="fd-layout">
       <div class="fd-form">
         <div class="fd-switch-row">
@@ -156,17 +180,6 @@
         <label class="studio-field"><span class="studio-field-label">Donate link (optional)</span>
           <input class="studio-input" id="fdLink" type="url" inputmode="url" autocomplete="off" spellcheck="false" maxlength="500"></label>
         <p class="fd-link-check" id="fdLinkCheck" role="status" aria-live="polite"></p>
-        <!-- Style (Paul, 2026-10-29): the capsule's look on Listen Live and the embed's default; saved with
-             Update figures. The embed snippet below pins the chosen one with &style=. -->
-        <div class="studio-field">
-          <span class="studio-field-label" id="fdStyleLabel">Style</span>
-          <div class="fd-theme fd-style" role="group" aria-labelledby="fdStyleLabel">
-            <button type="button" data-fd-style="classic" aria-pressed="true">Classic</button>
-            <button type="button" data-fd-style="slim" aria-pressed="false">Slim bar</button>
-            <button type="button" data-fd-style="ring" aria-pressed="false">Ring</button>
-          </div>
-          <p class="fd-style-note" id="fdStyleNote"></p>
-        </div>
         <div class="fd-actions">
           <button class="studio-btn export-go" id="fdPublish" type="button" disabled>Update figures</button>
           <button class="studio-btn studio-btn--quiet" id="fdDiscard" type="button" hidden>Discard changes</button>

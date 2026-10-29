@@ -138,9 +138,10 @@ const DRIVE_LINK = 'https://docs.pacifica.org/kpfk/donate/?drive=fall';
   // draft until Update figures, so picking Classic again leaves nothing to save.
   await p.click('[data-fd-style="ring"]');
   const ring = JSON.parse(await ev(`return JSON.stringify({ style: document.getElementById('fdPreview').getAttribute('data-style'), ringShown: getComputedStyle(document.querySelector('#fdPreview .fd-ring')).display !== 'none',
-    barShown: getComputedStyle(document.querySelector('#fdPreview .fd-bar')).display !== 'none', snippet: document.getElementById('fdSnippet').textContent, save: !document.getElementById('fdPublish').disabled });`));
+    barShown: getComputedStyle(document.querySelector('#fdPreview .fd-bar')).display !== 'none', snippet: document.getElementById('fdSnippet').textContent, save: !document.getElementById('fdPublish').disabled,
+    card: document.querySelector('.fd-style-card[data-fd-style="ring"]').getAttribute('aria-pressed'), badge: getComputedStyle(document.querySelector('.fd-style-card[data-fd-style="ring"] .fd-style-tick')).display, note: document.getElementById('fdStyleNote').textContent });`));
   check('… Style Ring: the preview draws the ring (no bar), the snippet pins style=ring at 340px, Update figures is offered',
-    ring.style === 'ring' && ring.ringShown && !ring.barShown && /style=ring"/.test(ring.snippet) && /height:340px/.test(ring.snippet) && ring.save, JSON.stringify(ring));
+    ring.card === 'true' && ring.badge !== 'none' && /not saved yet/.test(ring.note) && ring.style === 'ring' && ring.ringShown && !ring.barShown && /style=ring"/.test(ring.snippet) && /height:340px/.test(ring.snippet) && ring.save, JSON.stringify(ring));
   await p.click('[data-fd-style="classic"]');
   check('… back to Classic: nothing to save', await ev(`return document.getElementById('fdPublish').disabled && document.getElementById('fdPreview').getAttribute('data-style') === 'classic';`));
   await p.click('[data-fd-theme="light"]');

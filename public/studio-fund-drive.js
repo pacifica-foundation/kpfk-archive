@@ -19,7 +19,13 @@
   var published = null, lastHistory = [], csrf = null, busy = false, embedUrl = location.origin + '/embed/fund-drive', theme = 'light';
   // The chosen look (classic | slim | ring): part of the draft, saved with Update figures.
   var style = 'classic';
-  var STYLE_NOTES = { classic: 'The full card: under the player on Listen Live.', slim: 'One line: for a website header or footer.', ring: 'A progress ring card: for a website sidebar.' };
+  var STYLE_NAMES = { classic: 'Classic card', slim: 'Slim bar', ring: 'Ring' };
+  // Under the cards: is the picked style the one listeners see, or still a draft?
+  function styleNote() {
+    if (!published) return '';
+    if (style === published.style) return STYLE_NAMES[style] + (published.on ? ' is showing on Listen Live.' : ' is saved; it shows when the fund drive is on.');
+    return STYLE_NAMES[style] + ' is not saved yet: press Update figures to use it (now: ' + STYLE_NAMES[published.style] + ').';
+  }
   var EMBED_H = { classic: 170, slim: 120, ring: 340 };
   document.querySelectorAll('button[data-fd-style]').forEach(function (b) {
     b.addEventListener('click', function () { style = b.dataset.fdStyle; paintTheme(); paintDraft(); });
@@ -37,7 +43,8 @@
     $('fdPreviewBox').setAttribute('data-theme-scope', theme);
     document.querySelectorAll('[data-fd-theme]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.fdTheme === theme ? 'true' : 'false'); });
     document.querySelectorAll('button[data-fd-style]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.fdStyle === style ? 'true' : 'false'); });
-    $('fdStyleNote').textContent = STYLE_NOTES[style];
+    $('fdStyleNote').textContent = styleNote();
+    $('fdStyleNote').className = 'fd-style-note' + (published && style !== published.style ? ' is-draft' : '');
     $('fdSnippet').textContent = '<iframe src="' + embedUrl + '?theme=' + theme + '&style=' + style + '" title="Fund drive" style="width:100%;height:' + EMBED_H[style] + 'px;border:0" loading="lazy"></iframe>';
     $('fdOpenEmbed').href = '/embed/fund-drive?theme=' + theme + '&style=' + style;
   }
