@@ -2793,7 +2793,11 @@
     // so the row's offsetTop is measured from the top of the list.
     var box = lv.Today;
     if(here && box.scrollHeight > box.clientHeight) box.scrollTop = Math.max(0, here.offsetTop - 80);
+    // The list fades under the header only once it has scrolled (styles.css, #lvToday[data-scrolled]).
+    if(!box.__edge){ box.__edge = true; box.addEventListener('scroll', function(){ lvTodayEdge(box); }, {passive:true}); }
+    lvTodayEdge(box);
   }
+  function lvTodayEdge(box){ box.toggleAttribute('data-scrolled', box.scrollTop > 2); }
   // Everything that follows the show on air: called with the Live popup's paint (every
   // now-playing poll, so the page rolls over by itself at the top of the hour) and on refresh.
   function paintLivePage(){

@@ -389,7 +389,10 @@
         </div>
       </div>
       <aside class="lv-sched" id="lvSchedWrap" aria-labelledby="lvSchedHead">
-        <h2 class="lv-h2"><span id="lvSchedHead">Today</span><a class="lv-link" href="/schedule" data-lv-open="schedule">Full schedule →</a></h2>
+        <div class="lv-sh">
+          <h2 class="lv-sh-title"><span class="lv-sh-kicker">Today on {{station.name}}</span><span class="lv-sh-date" id="lvSchedHead">Today</span></h2>
+          <a class="lv-chip lv-sh-full" href="/schedule" data-lv-open="schedule">Full schedule <span aria-hidden="true">→</span></a>
+        </div>
         <div id="lvToday"><p class="lv-quiet">Loading today’s schedule…</p></div>
       </aside>
       <section class="lv-section lv-foot" id="lvContact" aria-label="Contact the station" hidden>

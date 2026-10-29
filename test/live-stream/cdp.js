@@ -120,7 +120,7 @@ async function connect(port = 9222) {
       return { x: cx, y: cy, w: r.width, h: r.height, scrolledBy: se.scrollTop - was,
                inView: r.top >= 0 && r.bottom <= innerHeight,
                hit: !!(top && (top === el || el.contains(top) || top.contains(el))),
-               topEl: top ? (top.tagName + '#' + top.id) : 'none' };
+               topEl: top ? (top.tagName + '#' + top.id + '.' + String(top.className).trim().split(' ').join('.') + (top.parentElement ? ' in ' + top.parentElement.tagName + '#' + top.parentElement.id + '.' + String(top.parentElement.className).trim().split(' ')[0] : '')) : 'none' };
     `);
     if (!box) throw new Error('no element: ' + selector);
     if (box.w === 0 || box.h === 0) throw new Error('element not visible: ' + selector);

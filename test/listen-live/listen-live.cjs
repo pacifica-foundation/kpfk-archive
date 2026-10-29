@@ -285,7 +285,7 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
           // bottom of the page (the schedule card is pinned); no contact card reaches under the card.
           // Scrolled to the end of today, as when the card follows the show on air late in the day
           // (Paul's 2026-10-27 screenshot): both the card and its list are scrolled as far as they go.
-          fullSched: (function(){ var l = document.querySelector('#lvSchedWrap .lv-link'); if(!l || !l.offsetWidth) return null;
+          fullSched: (function(){ var l = document.querySelector('#lvSchedWrap [data-lv-open="schedule"]'); if(!l || !l.offsetWidth) return null;
             [document.getElementById('lvSchedWrap'), document.getElementById('lvToday')].forEach(function(e){ e.scrollTop = e.scrollHeight; });
             var r = l.getBoundingClientRect(); var hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
             return { onScreen: r.top >= 0 && r.bottom <= innerHeight, reachable: !!hit && (hit === l || l.contains(hit)), listScrolls: document.getElementById('lvToday').scrollHeight > document.getElementById('lvToday').clientHeight }; })(),
@@ -349,10 +349,26 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
         check(`${tag}: "Full schedule" stays on screen beside the pinned schedule (its list scrolls${L.fullSched && L.fullSched.listScrolls ? '' : ' — NOT long enough to prove it'})`,
           !!L.fullSched && L.fullSched.onScreen && L.fullSched.reachable && L.fullSched.listScrolls, JSON.stringify(L.fullSched));
         check(`${tag}: no contact card or signal line reaches under the schedule`, !L.under.length, JSON.stringify(L.under));
-        // The schedule's header is a band of its own: flush with the card's top, a different shade.
-        const head = JSON.parse(await p.eval(`var c = document.getElementById('lvSchedWrap'), h = c.querySelector('.lv-h2'); c.scrollTop = 0;
-          return JSON.stringify({ gap: Math.round(h.getBoundingClientRect().top - c.getBoundingClientRect().top), card: getComputedStyle(c).backgroundColor, band: getComputedStyle(h).backgroundColor });`));
-        check(`${tag}: the schedule header is its own band at the top of the card`, Math.abs(head.gap) <= 2 && head.band !== head.card && !/rgba\(0, 0, 0, 0\)/.test(head.band), JSON.stringify(head));
+        // The schedule's header must stand out from the PAGE around the card, not just differ from the
+        // card (2026-10-29: a grey band passed that and still melted into the light page). Measured:
+        // the card's top edge against the page behind it, the kicker, the date as a heading, the pill.
+        const head = JSON.parse(await p.eval(`
+          function rgb(c){ if(!/^rgba?[(]/.test(c)) return null; var v = c.replace(/[^0-9.,]/g, '').split(',').map(parseFloat); return v.length > 3 && v[3] === 0 ? null : v; }
+          function lum(v){ return [0,1,2].map(function(i){ var x = v[i]/255; return x <= .03928 ? x/12.92 : Math.pow((x+.055)/1.055, 2.4); }).reduce(function(a,x,i){ return a + x*[.2126,.7152,.0722][i]; }, 0); }
+          function ratio(a, b){ var x = lum(a), y = lum(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05); }
+          function behind(el){ for(var e = el.parentElement; e; e = e.parentElement){ var c = rgb(getComputedStyle(e).backgroundColor); if(c) return c; } return [255,255,255]; }
+          var c = document.getElementById('lvSchedWrap'), cs = getComputedStyle(c), title = c.querySelector('h2'), date = document.getElementById('lvSchedHead');
+          var kick = title && title.querySelector('.lv-sh-kicker'), pill = c.querySelector('[data-lv-open="schedule"]'), page = behind(c);
+          var edge = rgb(cs.borderTopColor);
+          return JSON.stringify({ edgePx: parseFloat(cs.borderTopWidth), edgeVsPage: edge ? +ratio(edge, page).toFixed(2) : 0,
+            gap: Math.round(title.getBoundingClientRect().top - c.getBoundingClientRect().top),
+            dateText: date.textContent, datePx: parseFloat(getComputedStyle(date).fontSize), dateWeight: +getComputedStyle(date).fontWeight,
+            kicker: kick ? kick.textContent : '', kickerIsAccent: !!kick && getComputedStyle(kick).color === getComputedStyle(document.querySelector('.lv-tag')).color,
+            pillRadius: pill ? parseFloat(getComputedStyle(pill).borderTopLeftRadius) : 0, pillBorder: pill ? parseFloat(getComputedStyle(pill).borderTopWidth) : 0 });`));
+        check(`${tag}: the schedule card's top edge stands out from the page behind it (≥ 2px, contrast ≥ 3:1)`, head.edgePx >= 2 && head.edgeVsPage >= 3, JSON.stringify(head));
+        check(`${tag}: the schedule header is a title — red kicker like LIVE, the date as a bold heading, at the card's top`,
+          /^Today on /.test(head.kicker) && head.kickerIsAccent && /\w+day, \w+ \d+/.test(head.dateText) && head.datePx >= 18 && head.dateWeight >= 600 && head.gap <= 20, JSON.stringify(head));
+        check(`${tag}: "Full schedule" is a pill button like the page's others`, head.pillRadius >= 15 && head.pillBorder >= 1, JSON.stringify(head));
       }
     }
   }
