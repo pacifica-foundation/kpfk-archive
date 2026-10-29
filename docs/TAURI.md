@@ -9,7 +9,12 @@ Native macOS and Windows builds of the web app, from `desktop/`.
 > `siteUrl`; `test/pacifica/desktop-profile.test.js` keeps them equal and fails on a WBAI icon).
 > The Windows workflow is switched on and builds `kpfk` by default. The Tauri CLI accepts the
 > merged KPFK config locally (it stops only at the missing `cargo`). The first Windows build is
-> the first compile this project has ever had — see the HANDOFF for its result.
+> the first compile this project has ever had.
+>
+> **First Windows build: green, 2026-10-29** (Actions run 40886809714, Rust compile 4 min 19 s,
+> no warnings): `KPFK Podcasts_1.0.0_x64-setup.exe`, 1.5 MB, NSIS, against
+> `https://podcasts.kpfk.org`. Its resolved `Cargo.lock` is committed, so later builds are
+> reproducible. Not yet tried on a Windows machine; unsigned, so SmartScreen warns.
 >
 > **Installer look** (Paul, 2026-10-29: "modern, beautiful, not basic generic"): the Welcome/Finish
 > side panel is the app's dark canvas with the station wordmark, the product word, and broadcast
