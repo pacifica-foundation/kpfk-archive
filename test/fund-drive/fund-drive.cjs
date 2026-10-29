@@ -205,6 +205,16 @@ const DRIVE_LINK = 'https://docs.pacifica.org/kpfk/donate/?drive=fall';
     check(`phone ${theme}: no sideways scroll`, L.sideways <= 0, JSON.stringify(L));
     check(`phone ${theme}: nothing cut off in the capsule`, !L.cut.length, JSON.stringify(L.cut));
     check(`phone ${theme}: Donate is full width`, L.fullBtn, JSON.stringify(L));
+    // The bar's unfilled track must show against the card (2026-10-29: --surface-2 vanished in dark).
+    // Colours are resolved by painting them on a canvas, so color-mix() and any syntax count as seen.
+    const T = JSON.parse(await p.eval(`
+      function px(colors){ var cv = document.createElement('canvas'); cv.width = cv.height = 1; var x = cv.getContext('2d');
+        colors.forEach(function(c){ x.fillStyle = c; x.fillRect(0, 0, 1, 1); }); return [].slice.call(x.getImageData(0, 0, 1, 1).data, 0, 3); }
+      function lum(v){ return v.map(function(c){ c /= 255; return c <= .03928 ? c/12.92 : Math.pow((c+.055)/1.055, 2.4); }).reduce(function(a, c, i){ return a + c*[.2126,.7152,.0722][i]; }, 0); }
+      var c = document.getElementById('lvFund'), card = getComputedStyle(c).backgroundColor, track = getComputedStyle(c.querySelector('.fd-bar')).backgroundColor;
+      var a = px([card]), b = px([card, track]), la = lum(a), lb = lum(b);
+      return JSON.stringify({ card: a, track: b, ratio: +((Math.max(la, lb) + .05) / (Math.min(la, lb) + .05)).toFixed(2) });`));
+    check(`phone ${theme}: the bar's unfilled track shows against the card (contrast ≥ 1.4)`, T.ratio >= 1.4, JSON.stringify(T));
   }
 
   // ---- 4: off

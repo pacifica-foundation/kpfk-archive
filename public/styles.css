@@ -4929,7 +4929,8 @@
 
 /* ---- Donation capsule (fund drive, Phase 4a; public/fund-drive.js). The same drawing on Listen
    Live, in the studio preview and on /embed/fund-drive. Site tokens, so light and dark follow. */
-.fd-cap{ --fd-line:var(--outline-strong, rgba(127,127,127,.3)); position:relative; overflow:hidden; container-type:inline-size;
+/* --fd-track: the unfilled part of the bar and ring (2026-10-29: --surface-2 vanished on the dark card). */
+.fd-cap{ --fd-line:var(--outline-strong, rgba(127,127,127,.3)); --fd-track:color-mix(in srgb, var(--ink) 22%, transparent); position:relative; overflow:hidden; container-type:inline-size;
   padding:16px 18px; border-radius:22px; background:var(--surface-1); color:var(--ink); border:1px solid var(--fd-line); box-sizing:border-box; }
 .fd-cap[hidden]{ display:none; }
 .fd-in{ display:grid; grid-template-columns:1fr auto; grid-template-areas:"top top" "bar bar" "foot btn"; gap:10px 16px; align-items:center; }
@@ -4942,7 +4943,7 @@
 .fd-eyebrow i{ flex:none; width:8px; height:8px; border-radius:50%; background:var(--accent); animation:fd-pulse 2s infinite; }
 @keyframes fd-pulse{ 0%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 70%{ box-shadow:0 0 0 8px transparent; } 100%{ box-shadow:0 0 0 0 transparent; } }
 .fd-pct{ flex:none; font-family:var(--font-display); font-weight:700; font-size:1rem; color:var(--ink-dim); font-variant-numeric:tabular-nums; }
-.fd-bar{ grid-area:bar; position:relative; height:16px; border-radius:999px; background:var(--surface-2); box-shadow:inset 0 1px 2px rgba(0,0,0,.12); overflow:hidden; }
+.fd-bar{ grid-area:bar; position:relative; height:16px; border-radius:999px; background:var(--fd-track); box-shadow:inset 0 1px 2px rgba(0,0,0,.12); overflow:hidden; }
 .fd-fill{ position:absolute; inset:0 auto 0 0; width:0; border-radius:999px; transition:width 1.1s cubic-bezier(.2,.8,.2,1);
   background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 80%, #000) 0%, var(--accent) 70%, color-mix(in srgb, var(--accent) 75%, #fff) 100%); }
 .fd-fill::after{ content:''; position:absolute; inset:0; background:linear-gradient(100deg, transparent 0%, rgba(255,255,255,.35) 45%, transparent 60%);
@@ -4984,7 +4985,7 @@
 .fd-cap[data-style="ring"] .fd-ring{ grid-area:ring; position:relative; display:grid; place-items:center; width:128px; height:128px; }
 .fd-cap[data-style="ring"] .fd-btn{ justify-self:start; }
 .fd-ring svg{ position:absolute; inset:0; width:100%; height:100%; }
-.fd-ring-track{ fill:none; stroke:var(--surface-2); stroke-width:9; }
+.fd-ring-track{ fill:none; stroke:var(--fd-track); stroke-width:9; }
 .fd-ring-arc{ fill:none; stroke:var(--accent); stroke-width:9; stroke-linecap:round; transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1); }
 .fd-ring-pct{ position:relative; font-family:var(--font-display); font-weight:700; font-size:1.7rem; font-variant-numeric:tabular-nums; }
 @media (prefers-reduced-motion:reduce){ .fd-ring-arc{ transition:none; } }
