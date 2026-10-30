@@ -12,7 +12,7 @@ Current state and working rules live at the repo root: [HANDOFF.md](../HANDOFF.m
 
 | Doc | What it covers |
 | --- | --- |
-| [overview/](overview/README.md) → [KPFK-Archive-Website-Overview.pdf](overview/KPFK-Archive-Website-Overview.pdf) | **2026-10-15.** Plain-language illustrated overview of the website for Pacifica's ED and staff (companion to the app's). Regenerate when the site changes visibly |
+| [overview/](overview/README.md) → [KPFK-Podcasts-Website-Overview.pdf](overview/KPFK-Podcasts-Website-Overview.pdf) | **2026-10-15, updated 2026-10-30.** Plain-language illustrated overview of the website for Pacifica's ED and staff (companion to the app's). Regenerate when the site changes visibly |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Coolify setup, the `/app/data` volume, `/healthz` checks, backups |
 | [exports.md](exports.md) | **Built 2026-09-16.** Studio Export dialog: listening, archive, coverage, station profile, printable report, backup and restore — spec, decisions and as-built notes per phase |
 | [exports-for-pacifica.md](exports-for-pacifica.md) | **Current.** For Pacifica: combining several stations' export files — columns, sums, clocks, versions |

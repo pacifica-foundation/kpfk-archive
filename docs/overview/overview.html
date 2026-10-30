@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>KPFK Archive website — an overview</title>
+<title>KPFK Podcasts website — an overview</title>
 <style>
   /* Printed overview of podcasts.kpfk.org for Pacifica's Executive Director and staff
-     (2026-10-15), the companion to the KPFK Podcasts app overview (kpfk-podcast
+     (2026-10-15; new features added 2026-10-30: Listen Live page, fund drives, re-runs), the companion to the KPFK Podcasts app overview (kpfk-podcast
      docs/overview/). Plain language; screenshots from capture.cjs (live site, beacon
-     blocked). PDF: see README.md. Claims are only what was checked on 2026-10-15. */
+     blocked). PDF: see README.md. Claims are only what was checked on the live site (2026-10-15, updated 2026-10-30). */
   @font-face { font-family: 'Oswald'; src: url('fonts/Oswald-Regular.ttf'); font-weight: 400; }
   @font-face { font-family: 'Oswald'; src: url('fonts/Oswald-Medium.ttf'); font-weight: 500; }
   @font-face { font-family: 'Oswald'; src: url('fonts/Oswald-SemiBold.ttf'); font-weight: 600; }
@@ -96,7 +96,25 @@
   .status ul { margin: 0; padding-left: 14pt; }
   .status li { margin-bottom: 2pt; font-size: 10pt; line-height: 1.35; }
   .keep { break-inside: avoid; }
-  footer { margin-top: 18pt; font-size: 9pt; color: var(--ink-faint); text-align: center; }
+  /* Added 2026-10-30: the Listen Live page, New tags, the fund drive page */
+  .livepair { display: grid; grid-template-columns: 2.55fr 1fr; gap: 10pt; align-items: end; margin-bottom: 10pt; }
+  .livepair figure { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 8pt; }
+  .livepair img { width: 100%; border-radius: 8px; border: 1px solid var(--rule); display: block; }
+  .live-rules { grid-auto-rows: 1fr; }
+  .rule.new { border-color: var(--on-air); }
+  .tag { font-family: 'Nunito', sans-serif; font-size: 7pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+         color: #fff; background: var(--on-air); border-radius: 99px; padding: 1pt 6pt; vertical-align: 2pt; margin-left: 4pt; }
+  .closing .rule { padding: 7pt 11pt; }
+  .closing .rules { gap: 6pt; }
+  .status.two ul { columns: 2; column-gap: 18pt; }
+  .status.two li { break-inside: avoid; }
+  .fd-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 14pt; }
+  .fd-split { grid-template-columns: 1fr 1.5fr; }
+  .styles { display: grid; grid-template-columns: 1fr 0.5fr; grid-template-rows: auto auto; gap: 6pt 8pt; align-items: start; }
+  .styles figure:not(.ring) { grid-column: 1; }
+  .styles .ring { grid-column: 2; grid-row: 1 / span 2; }
+  .styles img { width: 100%; border-radius: 8px; border: 1px solid var(--rule); display: block; }
+  footer { margin-top: 8pt; font-size: 9pt; color: var(--ink-faint); text-align: center; }
 </style>
 </head>
 <body>
@@ -104,8 +122,8 @@
   <div>
     <img class="logo" src="../../public/assets/kpfk-logo.png" alt="KPFK 90.7 FM">
     <div class="eyebrow">An overview for Pacifica</div>
-    <h1>KPFK's whole archive, on the web, on every screen</h1>
-    <p>The KPFK Archive website lets anyone browse every program on KPFK's schedule, play any episode, listen live, search everything, and read along with the transcript — on a phone, a tablet or a computer. Nothing to install, no account, no sign-in.</p>
+    <h1>Every KPFK program, on every screen</h1>
+    <p>The KPFK Podcasts website lets anyone browse every program on KPFK's schedule, play any episode, listen live, search everything, and read along with the transcript — on a phone, a tablet or a computer. Nothing to install, no account, no sign-in.</p>
     <p class="url">podcasts.kpfk.org</p>
   </div>
   <div class="devices">
@@ -114,7 +132,7 @@
   </div>
 </div>
 <div class="facts">
-  <div class="fact"><b>106 programs</b><span>And about 1,190 episodes today — everything on KPFK's published schedule, plus its podcasts.</span></div>
+  <div class="fact"><b>106 programs</b><span>And about 1,100 episodes today — everything on KPFK's published schedule, plus its podcasts.</span></div>
   <div class="fact"><b>Read along</b><span>A title, a summary and a full transcript for nearly every talk episode, in English and Spanish.</span></div>
   <div class="fact"><b>No personal data</b><span>No accounts, no tracking, no advertising. The station sees counts — never who.</span></div>
 </div>
@@ -140,14 +158,32 @@
   </div>
   <div class="feature">
     <div>
-      <h3>The player, and KPFK live</h3>
-      <p>One tap plays an episode; the player stays at the bottom of the screen while listeners keep browsing, and remembers where each listener stopped.</p>
-      <p><b>Listen live</b> shows what is on air now, the host, the time slot and what comes next — with a link to the program's past episodes.</p>
+      <h3>The player, and KPFK live from any page</h3>
+      <p>One tap plays an episode; the player stays at the bottom of the screen while listeners keep browsing, and remembers where each listener stopped — without an account.</p>
+      <p><b>Live</b> in the header shows what is on air now, the host, the time slot and what comes next, with a link to the program's past episodes. KPFK's live player also has a page of its own: see the next page.</p>
     </div>
     <div class="pair">
       <figure><img src="img/phone-player-light.jpg" alt=""><figcaption>Now playing — light</figcaption></figure>
-      <figure><img src="img/phone-live-dark.jpg" alt=""><figcaption>Listen live — dark</figcaption></figure>
+      <figure><img src="img/phone-live-dark.jpg" alt=""><figcaption>Live, from any page — dark</figcaption></figure>
     </div>
+  </div>
+</section>
+
+<section class="page">
+  <div class="eyebrow">New · since 27 October 2026</div>
+  <h2>Listen Live: KPFK's live player, at its own address</h2>
+  <p class="note"><b>podcasts.kpfk.org/live</b> is a plain live player that kpfk.org's Listen Live buttons can point straight at, and that can be shared anywhere. It does live things only.</p>
+  <div class="livepair">
+    <figure><img src="img/desktop-livepage-light.jpg" alt=""><figcaption>Listen Live on a computer — light · as it first opens in Safari</figcaption></figure>
+    <figure><img src="img/phone-livepage-dark.jpg" alt=""><figcaption>On a phone — dark</figcaption></figure>
+  </div>
+  <div class="rules live-rules">
+    <div class="rule"><h3>One click to audio</h3><p>It starts playing as it opens. Where a browser blocks that (Safari usually does), the only thing in the way is one large Play button.</p></div>
+    <div class="rule"><h3>What's on now</h3><p>The program on air, its host, times and description, the song playing, and the show's latest episodes. It moves on by itself at the top of the hour.</p></div>
+    <div class="rule"><h3>Today on KPFK</h3><p>Today's schedule, from KPFK's own published schedule, with the program on air marked. On a phone: the next two programs.</p></div>
+    <div class="rule"><h3>Call, give, get the app</h3><p>The studio call-in line, the office line, the station's signals, Donate, and on phones a link to the KPFK app.</p></div>
+    <div class="rule"><h3>Nothing in the way of the stream</h3><p>The page's own Play is the player. On a phone, a slim Play / Stop strip stays in the header while listeners scroll.</p></div>
+    <div class="rule"><h3>One window, no surprises</h3><p>A show, an episode or the full schedule opens on the main podcast site, after a short note that says so; the stream keeps playing throughout.</p></div>
   </div>
 </section>
 
@@ -166,7 +202,7 @@
   <div class="feature">
     <div>
       <h3>Search everything</h3>
-      <p>One search covers program names, hosts, episode titles and summaries. Searching "climate" finds the program that covers it and 76 episodes that discuss it, grouped by program, with the matching words highlighted.</p>
+      <p>One search covers program names, hosts, and every episode's headline and summary. Best matches come first, and every result shows the words that matched — a program found through its episodes says so. Searching "climate" finds 8 programs and 59 episodes, grouped by program.</p>
     </div>
     <div class="pair">
       <figure><img src="img/tablet-search-light.jpg" alt=""><figcaption>Search on a tablet — light</figcaption></figure>
@@ -210,16 +246,18 @@
     <div class="rule"><h3>Search that knows what was said</h3><p>Because every episode has a headline and summary, a search for a person or a subject finds the episodes where it came up — not only program names.</p></div>
     <div class="rule"><h3>Better shares</h3><p>Every episode has a link. Shared in Messages, WhatsApp, Facebook or Slack, it shows a card with the program's artwork and the episode's own headline — and it opens on this website for anyone, app or not.</p></div>
     <div class="rule"><h3>Honest labels</h3><p>All of this is machine-made and marked so: "names and words may be wrong." It reaches the KPFK Podcasts app too, from the same source.</p></div>
+    <div class="rule new"><h3>Re-runs listed once <span class="tag">New</span></h3><p>Many programs air twice a day. The site recognises a repeat by what was said, not by its title, so each broadcast is listed once, with a note such as "Also aired 4 PM". 77 repeats are folded this way today.</p></div>
+    <div class="rule new"><h3>Pages with their own address <span class="tag">New</span></h3><p>The schedule, the week grid and Listen Live each have a link of their own — podcasts.kpfk.org/schedule, /grid and /live — for the station's website, social posts or a printed flyer.</p></div>
   </div>
 </section>
 
 <section class="page">
   <div class="eyebrow">One website</div>
   <h2>Made for every screen</h2>
-  <p class="note">The same address works everywhere and arranges itself for the screen in hand. On a phone, the player, program pages and transcript slide up from the bottom; on a computer, Listen live and each program open as cards over the page, and the transcript sits beside it while listeners keep browsing. Light and dark follow the device's own setting.</p>
+  <p class="note">The same address works everywhere and arranges itself for the screen in hand. On a phone, the player, program pages and transcript slide up from the bottom; on a computer, live and each program open as cards over the page, and the transcript sits beside it while listeners keep browsing. Light and dark follow the device's own setting.</p>
   <div class="screens">
     <figure class="tall"><img src="img/tablet-home-dark.jpg" alt=""><figcaption>Tablet — home, dark</figcaption></figure>
-    <figure><img src="img/desktop-live-light.jpg" alt=""><figcaption>Computer — Listen live, light</figcaption></figure>
+    <figure><img src="img/desktop-live-light.jpg" alt=""><figcaption>Computer — live, from any page, light</figcaption></figure>
     <figure><img src="img/desktop-transcript-light.jpg" alt=""><figcaption>Computer — transcript beside the page, light</figcaption></figure>
   </div>
 </section>
@@ -265,6 +303,32 @@
 </section>
 
 <section class="page">
+  <div class="eyebrow">For station staff · new since 27 October 2026</div>
+  <h2>Fund drives, from the studio</h2>
+  <p class="note">During a drive, staff switch it on in the studio and keep the amount pledged up to date. Listeners see a fund drive banner across Listen Live and a progress capsule under the player, which updates itself about once a minute. No technical change, no waiting.</p>
+  <div class="feature wide">
+    <div class="fd-steps">
+      <div><h3>Running a drive</h3>
+        <p>Give the drive a name and a goal, check the preview — light or dark, phone or wide — and switch it on; a box asks first. Update "Pledged so far" as totals come in, and switch it off when the drive ends. Undo puts back the last version.</p></div>
+      <div><h3>Its own donate page</h3>
+        <p>Optionally, a drive can send Donate to its own page. The studio checks the page at once and warns if it won't open inside the site's Donate window.</p></div>
+    </div>
+    <figure><img src="img/studio-funddrive-light.jpg" alt="" style="width:74%; margin:0 auto"><figcaption>The studio's fund drive card — light (example figures)</figcaption></figure>
+  </div>
+  <div class="feature split fd-split">
+    <div>
+      <h3>Three styles, for kpfk.org too</h3>
+      <p>The same capsule can sit on the station's own website: the studio gives a short snippet to paste. Staff pick a style for each spot — <b>Classic</b> under the player, a <b>Slim</b> bar for a page header or footer, a <b>Ring</b> for a sidebar — in light or dark. Only kpfk.org and the podcast site may show it.</p>
+    </div>
+    <div class="styles">
+      <figure><img src="img/embed-classic-light.jpg" alt=""><figcaption>Classic — light</figcaption></figure>
+      <figure><img src="img/embed-slim-light.jpg" alt=""><figcaption>Slim — light</figcaption></figure>
+      <figure class="ring"><img src="img/embed-ring-dark.jpg" alt=""><figcaption>Ring — dark</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="page closing">
   <div class="eyebrow">For KPFK and Pacifica</div>
   <h2>Built around the station's rules</h2>
   <div class="rules">
@@ -279,24 +343,27 @@
   <h2 style="margin-top:10pt; font-size:17pt">Where it stands</h2>
   <div class="status">
     <ul>
-      <li><b>Live</b> at podcasts.kpfk.org since September 2026.</li>
-      <li><b>Audited 15 October 2026</b> in the engines behind Safari and Chrome, on phone, tablet and computer sizes, in light and dark — every main screen and button clicked through; fixes tested on an iPhone and a desktop the same day.</li>
-      <li><b>Checked automatically</b> by about two hundred tests, plus browser tests that measure what a listener actually sees.</li>
+      <li><b>Live</b> at podcasts.kpfk.org since September 2026; the Listen Live page and fund drive controls since 27 October, ready for kpfk.org's Listen Live buttons.</li>
+      <li><b>Audited 15 October 2026</b> in the engines behind Safari and Chrome, on phone, tablet and computer sizes, in light and dark — every main screen and button clicked through.</li>
+      <li><b>Checked automatically</b> by about 250 tests, plus browser tests that tap through the pages like a listener; every change is checked on the live site after it goes up.</li>
     </ul>
   </div>
   </div>
   <div class="keep">
   <h2 style="margin-top:8pt; font-size:17pt">What's next</h2>
-  <div class="status" style="border-left-color: var(--ink-faint)">
+  <div class="status two" style="border-left-color: var(--ink-faint)">
     <ul>
-      <li><b>Links that open the app:</b> a shared KPFK link opens straight in the app when it is installed, and on the website otherwise.</li>
+      <li><b>A desktop app:</b> KPFK Podcasts for Windows is built and in testing; a Mac version follows.</li>
+      <li><b>More for fund drives:</b> start and end dates that switch a drive on and off by themselves.</li>
+      <li><b>Contacts and a footer:</b> the station's phone lines and email, edited in the studio; a footer on every page.</li>
+      <li><b>Links that open the app:</b> a shared link opens in the app when it is installed.</li>
       <li><b>Hold back a program or episode from the studio</b> — for rights, legal or a bad recording — without a technical change.</li>
-      <li><b>A picture to share:</b> a designed image of each episode for Instagram and other image-first platforms.</li>
-      <li><b>The same website for other Pacifica stations:</b> everything station-specific is in one settings file, so a sister station's archive can power its own copy.</li>
+      <li><b>A picture to share:</b> a designed image of each episode for Instagram.</li>
+      <li><b>The same website for other Pacifica stations:</b> everything station-specific is in one settings file.</li>
     </ul>
   </div>
   </div>
 </section>
-<footer>KPFK 90.7 FM · Pacifica Foundation · KPFK Archive website overview, October 2026</footer>
+<footer>KPFK 90.7 FM · Pacifica Foundation · KPFK Podcasts website overview · updated 30 October 2026</footer>
 </body>
 </html>

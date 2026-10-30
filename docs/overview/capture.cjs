@@ -32,6 +32,7 @@ const sizes = {
   const open = async (size, scheme) => {
     const ctx = await b.newContext({ ...sizes[size], colorScheme: scheme });
     await ctx.route('**/api/ev', r => r.abort());   // never count these visits
+    await ctx.route(/streams\.pacifica\.org/, r => r.abort());   // never connect to the live stream
     const page = await ctx.newPage();
     page.setDefaultTimeout(15000);
     return { ctx, page };

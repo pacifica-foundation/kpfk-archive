@@ -26,9 +26,22 @@ Regenerate (~10 min):
 Claims are kept to what was read on the live site on 2026-10-27: 106 programs, 1,093 episodes,
 "climate" → 7 programs and 59 episodes, 75 repeats folded.
 
+## Website overview for Pacifica leadership (2026-10-15, updated 2026-10-30)
+
+**2026-10-30 update** (11 pages): renamed "KPFK Podcasts" (the site's name since 2026-10-23); every
+picture retaken; new pages **Listen Live** (`/live`, as a plain live player since 10-28) and **Fund
+drives** (studio card, switch with confirm, donate link check, Classic / Slim / Ring); re-runs listed
+once and pages with their own address added under "What makes it dynamic"; "Where it stands" and
+"What's next" brought up to date (Windows desktop app in testing). Figures read live that day: 106
+programs, 1,129 episodes ("about 1,100"), "climate" → 8 programs and 59 episodes, 77 repeats folded.
+Pictures come from all three scripts: `capture.cjs`, then `capture-guide.cjs` (Listen Live, re-runs;
+both block the stream), then `capture-guide-studio.cjs` on a scratch server (now follows Update
+figures → switch → confirm, waits out the studio's one-action-a-second limit, and shoots the three
+embed styles). Shrink the ones `overview.html` uses into `img/`; embeds at 1400 px.
+
 ## Earlier: website overview for Pacifica leadership (2026-10-15)
 
-[KPFK-Archive-Website-Overview.pdf](KPFK-Archive-Website-Overview.pdf): a plain-language, illustrated
+[KPFK-Podcasts-Website-Overview.pdf](KPFK-Podcasts-Website-Overview.pdf): a plain-language, illustrated
 overview of podcasts.kpfk.org for the Executive Director and staff (first made 2026-10-15). The
 companion to the app's overview (`~/Desktop/kpfk-podcast/docs/overview/`) — same layout and fonts.
 
@@ -68,7 +81,7 @@ retakes just the computer Listen live and schedule-list pictures.
    ```sh
    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu \
      --no-pdf-header-footer --allow-file-access-from-files --virtual-time-budget=10000 \
-     --print-to-pdf="$PWD/docs/overview/KPFK-Archive-Website-Overview.pdf" "file://$PWD/docs/overview/overview.html"
+     --print-to-pdf="$PWD/docs/overview/KPFK-Podcasts-Website-Overview.pdf" "file://$PWD/docs/overview/overview.html"
    ```
    Then look at every page (`pdftoppm -r 45 -png …`): two features a page, nothing stranded alone.
 

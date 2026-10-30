@@ -45,15 +45,23 @@ const REFUSE_AUTOPLAY = `(function(){ var real = HTMLMediaElement.prototype.play
   await report.goto(BASE + '/studio/report?from=2026-09-01&to=' + new Date().toISOString().slice(0, 10), { waitUntil: 'load' });
   await report.waitForTimeout(2500);
   await shot(report, 'studio-report-light');
-  // The Fund drive card: example figures typed and published, as staff would.
+  // The Fund drive card: example figures typed and saved, then switched on, as staff would
+  // (since 2026-10-28: Update figures saves; the switch acts after an in-app confirm box).
+  // Status lines are polled: waitForFunction is refused by the studio's script-src 'self', no eval.
+  const waitStatus = async re => {
+    for (let i = 0; i < 40; i++) { if (re.test(await page.textContent('#fdStatus'))) return; await page.waitForTimeout(250); }
+    throw new Error('fund drive status never matched ' + re + ': ' + await page.textContent('#fdStatus'));
+  };
   await page.click('#tabDiscovery'); await page.waitForSelector('#fundSection:not([hidden])');
-  if ((await page.getAttribute('#fdOn', 'aria-checked')) !== 'true') await page.click('#fdOn');
+  await page.click('[data-fd-style="classic"]');
   await page.fill('#fdName', 'Fall Fund Drive');
   await page.fill('#fdGoal', '75000'); await page.press('#fdGoal', 'Tab');
   await page.fill('#fdPledged', '42350'); await page.press('#fdPledged', 'Tab');
-  await page.click('#fdPublish');
-  // Polled (waitForFunction is refused by the studio's script-src 'self', no eval).
-  for (let i = 0; i < 40 && !/Published/.test(await page.textContent('#fdStatus')); i++) await page.waitForTimeout(250);
+  await page.click('#fdPublish'); await waitStatus(/Saved|Updated/);
+  if ((await page.getAttribute('#fdOn', 'aria-checked')) !== 'true') {
+    await page.waitForTimeout(1500);   // the studio takes one fund drive action a second ("Too fast")
+    await page.click('#fdOn'); await page.click('.studio-dialog [data-answer="yes"]'); await waitStatus(/^On\./);
+  }
   await page.evaluate(() => { document.getElementById('fundSection').scrollIntoView({ block: 'start' }); window.scrollBy(0, -70); });
   await shot(page, 'studio-funddrive-light');
   await ctx.close();
@@ -81,5 +89,14 @@ const REFUSE_AUTOPLAY = `(function(){ var real = HTMLMediaElement.prototype.play
   await page.goto(BASE + '/embed/fund-drive?theme=light', { waitUntil: 'load' }); await page.waitForTimeout(3000);
   await shot(page, 'embed-funddrive-light');
   await ctx.close();
+  // The three styles (2026-10-29), as the embed draws each one on a station's page: the width of
+  // the spot it is made for, the height the studio's snippet gives it (EMBED_H in studio-fund-drive.js).
+  for (const [style, viewport, theme] of [['classic', { width: 640, height: 170 }, 'light'],
+    ['slim', { width: 900, height: 120 }, 'light'], ['ring', { width: 320, height: 340 }, 'dark']]) {
+    ({ ctx, page } = await session(theme, viewport));
+    await page.goto(BASE + '/embed/fund-drive?theme=' + theme + '&style=' + style, { waitUntil: 'load' }); await page.waitForTimeout(3000);
+    await shot(page, 'embed-' + style + '-' + theme);
+    await ctx.close();
+  }
   await b.close();
 })().catch(e => { console.error(e); process.exit(1); });
