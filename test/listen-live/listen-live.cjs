@@ -16,6 +16,10 @@
 //     it); leaving explains itself first (Stay, Escape: still on /live; Go: the front, with the
 //     player bar); "Don't show this again" sends later links straight through; the stream plays
 //     throughout. Phones: a slim strip under the header while the page's player is scrolled away.
+//  9. The description folds (Paul, 2026-10-30): beside the artwork it ends level with the artwork's
+//     bottom, Show more included; on phones four lines; Show more / Show less open and close it.
+//     The hosts are bold, in a colour of their own. Measured on the show with the longest
+//     description, at three desktop widths and a phone.
 // Shown to fail on the code before the page (it opened the Live popup at /live).
 const { connect, sleep } = require('../live-stream/cdp.js');
 const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
@@ -67,7 +71,7 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
   const sho = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
   const info = (Array.isArray(arch.directory) ? Object.fromEntries(arch.directory) : arch.directory)[sho] || {};
   const onAir = { ...(real.current || {}), altid: sho, upstreamAltId: sho.split('.').pop(), name: info.name || sho, dj: info.dj || '', photo: info.photo || (real.current || {}).photo };
-  let rolled = false, holdStream = false;
+  let rolled = false, holdStream = false, onAirOverride = null;
   p.on(m => {
     if (m.method !== 'Fetch.requestPaused') return;
     // The live stream: let it through, after a pause while the spinner check needs the connecting state.
@@ -75,7 +79,7 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
       setTimeout(() => p.send('Fetch.continueRequest', { requestId: m.params.requestId }).catch(() => {}), holdStream ? 2500 : 0);
       return;
     }
-    const body = { ...real, stale: false, current: rolled ? { ...onAir, name: 'Rollover Test Show', dj: 'Test Host' } : onAir };
+    const body = { ...real, stale: false, current: onAirOverride || (rolled ? { ...onAir, name: 'Rollover Test Show', dj: 'Test Host' } : onAir) };
     p.send('Fetch.fulfillRequest', { requestId: m.params.requestId, responseCode: 200,
       responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }],
       body: Buffer.from(JSON.stringify(body)).toString('base64') });
@@ -371,6 +375,61 @@ const base = (process.env.APP || 'http://127.0.0.1:8091/').replace(/\/$/, '');
         check(`${tag}: "Full schedule" is a pill button like the page's others`, head.pillRadius >= 15 && head.pillBorder >= 1, JSON.stringify(head));
       }
     }
+  }
+  // ---- 9: the description folds level with the artwork; the hosts stand out (Paul, 2026-10-30)
+  {
+    const dir = Array.isArray(arch.directory) ? Object.fromEntries(arch.directory) : arch.directory;
+    const [longKey, longInfo] = Object.entries(dir).filter(([, v]) => v.dj && v.desc).sort((a, b) => b[1].desc.length - a[1].desc.length)[0];
+    onAirOverride = { ...onAir, altid: longKey, upstreamAltId: longKey.split('.').pop(), name: longInfo.name, dj: longInfo.dj, photo: longInfo.photo || onAir.photo };
+    // No button at all (the code before the fold) measures as a hidden one, so it FAILs instead of crashing.
+    const fold = `var d = document.getElementById('lvDesc'), b = document.getElementById('lvMore') || document.createElement('button'), a = document.getElementById('lvArt').getBoundingClientRect();
+      var r = d.getBoundingClientRect(), br = b.getBoundingClientRect(), lh = parseFloat(getComputedStyle(d).lineHeight);
+      return JSON.stringify({ text: d.textContent.length, cut: d.scrollHeight - d.clientHeight, h: Math.round(r.height), descBottom: Math.round(r.bottom), artBottom: Math.round(a.bottom),
+        btnShown: !b.hidden && b.offsetHeight > 0, btnBottom: Math.round(br.bottom), label: b.textContent, expanded: b.getAttribute('aria-expanded'),
+        lines: Math.round(d.clientHeight / lh) });`;
+    for (const [width, mobile] of [[900, false], [1280, false], [1440, false], [390, true]]) {
+      await size(width, mobile);
+      await p.send('Page.navigate', { url: base + '/live' });
+      await until(ready, 30000);
+      await until(`return document.getElementById('lvTitle').textContent === ${JSON.stringify(longInfo.name)};`, 15000);
+      await sleep(600);
+      const tag = `fold ${width}${mobile ? ' phone' : ''}`;
+      const f = JSON.parse(await p.eval(fold));
+      check(`${tag}: the long description (${longInfo.name}, ${longInfo.desc.length} chars) is folded, with Show more`,
+        f.text > 0 && f.cut > 20 && f.btnShown && f.label === 'Show more' && f.expanded === 'false', JSON.stringify(f));
+      if (mobile) check(`${tag}: under the artwork it stops at four lines`, f.lines === 4, JSON.stringify(f));
+      else check(`${tag}: beside the artwork it ends level with the artwork's bottom, Show more included`,
+        f.btnBottom <= f.artBottom + 2 && f.btnBottom >= f.artBottom - 40, JSON.stringify(f));
+      await p.clickInPlace('#lvMore');
+      await sleep(300);
+      const o = JSON.parse(await p.eval(fold));
+      check(`${tag}: Show more opens all of it (Show less, expanded)`, o.cut <= 1 && o.label === 'Show less' && o.expanded === 'true' && o.h > f.h, JSON.stringify(o));
+      // Opened, Show less sits further down: scroll to it, as a listener would.
+      await p.eval(`document.getElementById('lvMore').scrollIntoView({ block: 'center' }); return 1;`);
+      await sleep(200);
+      await p.clickInPlace('#lvMore');
+      await sleep(300);
+      const c = JSON.parse(await p.eval(fold));
+      check(`${tag}: Show less folds it again`, c.cut > 20 && c.label === 'Show more' && c.h === f.h, JSON.stringify(c));
+      if (width === 1280) {
+        const h = JSON.parse(await p.eval(`var s = document.getElementById('lvSub'), h = s.querySelector('.lv-host'), hs = h && getComputedStyle(h), ss = getComputedStyle(s);
+          return JSON.stringify({ host: h ? h.textContent : null, weight: hs ? +hs.fontWeight : 0, color: hs ? hs.color : '', subColor: ss.color, sub: s.textContent });`));
+        check(`${tag}: the hosts are bold, in a colour of their own`, h.host === longInfo.dj && h.weight >= 700 && h.color !== h.subColor && h.sub.indexOf('with ' + longInfo.dj) === 0, JSON.stringify(h));
+      }
+    }
+    // A show with a short description gets no button.
+    const [shortKey, shortInfo] = Object.entries(dir).filter(([, v]) => v.desc && v.desc.length > 20 && v.desc.length < 120)[0] || [];
+    if (shortKey) {
+      onAirOverride = { ...onAir, altid: shortKey, upstreamAltId: shortKey.split('.').pop(), name: shortInfo.name, dj: shortInfo.dj || '', photo: shortInfo.photo || onAir.photo };
+      await size(1280, false);
+      await p.send('Page.navigate', { url: base + '/live' });
+      await until(ready, 30000);
+      await until(`return document.getElementById('lvTitle').textContent === ${JSON.stringify(shortInfo.name)};`, 15000);
+      await sleep(600);
+      const s2 = JSON.parse(await p.eval(fold));
+      check(`fold 1280: a short description (${shortInfo.name}) shows whole, with no Show more`, s2.cut <= 1 && !s2.btnShown && s2.text > 0, JSON.stringify(s2));
+    } else check('fold: a show with a short description exists to test', false, 'none in the directory');
+    onAirOverride = null;
   }
   await p.send('Fetch.disable');
   check('no uncaught errors anywhere in the run', !errors.length, errors.slice(0, 3).join('\n     '));

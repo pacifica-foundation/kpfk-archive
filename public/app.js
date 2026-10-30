@@ -2678,7 +2678,7 @@
   var livePageEl = document.getElementById('livePage');
   var livePageArrival = false, livePageTitle = '';
   var lv = {};
-  ['Art','Title','Sub','Desc','Play','Status','Status2','Vol','Mute','Volume','Full','Song','SongText','Show','Episodes','Count',
+  ['Art','Title','Sub','Desc','More','Play','Status','Status2','Vol','Mute','Volume','Full','Song','SongText','Show','Episodes','Count',
    'Donate','UpNextWrap','UpNext','LatestWrap','Latest','AllEpisodes','App','AppText','AppLink','SchedHead','Today',
    'Contact','Contacts','Signals','Tag'].forEach(function(k){ lv[k] = document.getElementById('lv' + k); });
   // The phone strip (lvStripSync, below). Set here, before anything can paint the page: painting
@@ -2798,6 +2798,32 @@
     lvTodayEdge(box);
   }
   function lvTodayEdge(box){ box.toggleAttribute('data-scrolled', box.scrollTop > 2); }
+  // The show's description, folded (Paul, 2026-10-30): beside the artwork (900px and up) it stops
+  // level with the artwork's bottom, Show more included; stacked under it (phones) it stops at
+  // four lines. Show more opens the rest. Measured on every paint, on resize and when the artwork
+  // loads, so it follows the show and the window.
+  var lvDescOpen = false;
+  function lvDescFit(){
+    var p = lv.Desc, btn = lv.More;
+    p.classList.remove('lv-desc--clamp');
+    if(p.hidden || !livePageOn){ btn.hidden = true; return; }
+    var lineH = parseFloat(getComputedStyle(p).lineHeight) || 22;
+    var lines = 4;
+    if(!lvOneCol.matches){
+      btn.hidden = false;   // measured with the button in place, so it too ends level with the artwork
+      var room = lv.Art.getBoundingClientRect().bottom - p.getBoundingClientRect().top - btn.offsetHeight - 6;
+      lines = Math.max(3, Math.floor(room / lineH));
+    }
+    var fits = p.scrollHeight <= lines * lineH + 2;
+    btn.hidden = fits;
+    if(fits) return;
+    if(!lvDescOpen){ p.classList.add('lv-desc--clamp'); p.style.setProperty('--lv-desc-lines', String(lines)); }
+    btn.textContent = lvDescOpen ? 'Show less' : 'Show more';
+    btn.setAttribute('aria-expanded', String(lvDescOpen));
+  }
+  lv.More.addEventListener('click', function(){ lvDescOpen = !lvDescOpen; lvDescFit(); });
+  lv.Art.addEventListener('load', lvDescFit);
+  window.addEventListener('resize', function(){ if(livePageOn) lvDescFit(); }, {passive:true});
   // Everything that follows the show on air: called with the Live popup's paint (every
   // now-playing poll, so the page rolls over by itself at the top of the hour) and on refresh.
   function paintLivePage(){
@@ -2808,11 +2834,21 @@
     lv.Title.textContent = cur.name || STATION.label;
     lvStripTitle.textContent = lv.Title.textContent;
     var times = cur.start && cur.end ? cur.start + ' – ' + cur.end : '';
-    lv.Sub.textContent = [cur.dj ? 'with ' + cur.dj : '', times].filter(Boolean).join(' · ');
+    // The hosts stand out (Paul, 2026-10-30): bold, in the show popup's host colour.
+    lv.Sub.textContent = '';
+    if(cur.dj){
+      var host = document.createElement('b');
+      host.className = 'lv-host';
+      host.textContent = cur.dj;
+      lv.Sub.append('with ', host);
+    }
+    if(times) lv.Sub.append((cur.dj ? ' · ' : '') + times);
     lv.Sub.hidden = !lv.Sub.textContent;
     var info = (cur.altid && showInfo[cur.altid]) || {};
-    lv.Desc.textContent = info.desc || info.shortdesc || '';
-    lv.Desc.hidden = !lv.Desc.textContent;
+    var desc = info.desc || info.shortdesc || '';
+    if(desc !== lv.Desc.textContent){ lv.Desc.textContent = desc; lvDescOpen = false; }   // a new show starts folded
+    lv.Desc.hidden = !desc;
+    lvDescFit();
     var song = (cur.song || '').trim(), artist = (cur.artist || '').trim();
     lv.SongText.textContent = song && artist ? song + ' · ' + artist : (song || artist);
     lv.Song.hidden = !(song || artist);
