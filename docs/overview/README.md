@@ -26,6 +26,11 @@ Regenerate (~10 min):
 Claims are kept to what was read on the live site on 2026-10-27: 106 programs, 1,093 episodes,
 "climate" → 7 programs and 59 episodes, 75 repeats folded.
 
+**Updated 2026-10-30**: pictures retaken (same captures as the overview update below); Listen Live
+as a plain live player (no bottom player, leave note, phone strip); fund drive steps with the confirm
+switch and Update figures, the donate link check, the three styles beside the kpfk.org box; Where it
+stands adds the desktop app. Figures: 1,129 episodes, "climate" → 8 programs and 59 episodes, 77 repeats.
+
 ## Website overview for Pacifica leadership (2026-10-15, updated 2026-10-30)
 
 **2026-10-30 update** (11 pages): renamed "KPFK Podcasts" (the site's name since 2026-10-23); every

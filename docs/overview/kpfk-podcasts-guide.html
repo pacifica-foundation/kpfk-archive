@@ -121,6 +121,11 @@
          background: var(--accent); color: #fff; font-family: Oswald, sans-serif; font-weight: 600; font-size: 9pt; text-align: center; line-height: 21px; }
   .embedshot { border: 1px dashed var(--line); border-radius: 12px; background: #fff; padding: 6px; }
   .embedshot img { display: block; width: 100%; }
+  /* 2026-10-30: the three capsule styles side by side, and the donate link note */
+  .fd-bottom { display: grid; grid-template-columns: 1fr auto; gap: 0.22in; align-items: start; margin-top: 8px; }
+  .fd-bottom .callout { margin-top: 0; }
+  .fd-styles { display: grid; grid-template-columns: 3.0in 1.1in; gap: 0.16in; align-items: start; }
+  .fd-note { font-size: 8.6pt; color: var(--ink-2); margin: 4px 0 8px; }
 </style>
 </head>
 <body>
@@ -138,11 +143,11 @@
 
   <div class="tiles">
     <div class="tile"><b>106</b><span>programs, everything on KPFK's published schedule plus its podcasts</span></div>
-    <div class="tile"><b>1,093</b><span>episodes ready to play today, each with its own link</span></div>
+    <div class="tile"><b>1,129</b><span>episodes ready to play today, each with its own link</span></div>
     <div class="tile"><b>1 tap</b><span>to KPFK live, from kpfk.org or anywhere the link is shared</span></div>
     <div class="tile dark"><b>0</b><span>accounts, ads or trackers. The station counts plays, never who</span></div>
   </div>
-  <div class="tilenote">Figures read from the live site on 27 October 2026.</div>
+  <div class="tilenote">Figures read from the live site on 30 October 2026.</div>
 
   <div class="cover-grid">
     <div>
@@ -218,8 +223,9 @@
           Donate, and on phones a link to the KPFK app.</p></div>
       </div>
       <div class="callout violet"><h4>Live things only</h4>
-        <p>A show, an episode or the full schedule opens on the main podcast site, and the live stream carries on in the player at the bottom.
-          Everything stays in one window, so nobody loses their way on a phone.</p></div>
+        <p>The page's own Play is the player; on a phone, a slim Play / Stop strip stays in the header while listeners scroll.
+          A show, an episode or the full schedule opens on the main podcast site after a short note that says so, and the stream
+          carries on in the player at the bottom there. Everything stays in one window, so nobody loses their way on a phone.</p></div>
     </div>
   </div>
   <div class="foot"><span><b>KPFK Podcasts</b> · a guide for managers and staff</span><span>3</span></div>
@@ -236,7 +242,7 @@
       <p class="intro">Valuable for people who are deaf or hard of hearing, for following a fast conversation, and for finding a quote.</p>
       <h2>Search that shows why it matched</h2>
       <p class="intro">One search covers program names, hosts, and every episode's headline and summary. Best matches come first, and every
-        result shows the words that matched. Searching "climate" finds 7 programs and 59 episodes, grouped by program.</p>
+        result shows the words that matched. Searching "climate" finds 8 programs and 59 episodes, grouped by program.</p>
       <div class="browser"><div class="bar"><i></i><i></i><i></i><em>podcasts.kpfk.org/?q=climate</em></div>
         <div class="crop" style="height: 2.7in"><img class="shot" src="guide-img/tablet-search-light.jpg" style="margin-top: -1.05in"></div></div>
       <div class="cap">Search on a tablet · light</div>
@@ -245,7 +251,7 @@
   <h2 style="margin-top: 12px">Re-runs listed once <span class="new">New</span></h2>
   <div class="split">
     <div><p class="intro">Many programs air twice a day. The site recognises a repeat by what was said, not by its title, so each broadcast is
-      listed once, with a note such as "Also aired 4 PM". Links to the repeat still open the right episode. 75 repeats are folded in this way today.</p></div>
+      listed once, with a note such as "Also aired 4 PM". Links to the repeat still open the right episode. 77 repeats are folded in this way today.</p></div>
     <div class="browser"><div class="bar"><i></i><i></i><i></i><em>podcasts.kpfk.org/show/dn</em></div>
       <div class="crop" style="height: 1.6in"><img class="shot" src="guide-img/desktop-rerun-light.jpg" style="width: 240%; max-width: none; margin-left: -3.6in; margin-top: -2.15in"></div></div>
   </div>
@@ -301,27 +307,35 @@
   <p class="intro">During a drive, staff switch it on in the studio and keep the amount pledged up to date. Listeners see a red fund drive banner
     across Listen Live and a progress capsule under the player, which updates by itself about once a minute. No technical change, no waiting.</p>
   <div class="browser"><div class="bar"><i></i><i></i><i></i><em>podcasts.kpfk.org/studio · Fund drive</em></div>
-    <div class="crop" style="height: 2.75in"><img class="shot" src="guide-img/studio-funddrive-light.jpg" style="margin-top: -0.25in"></div></div>
+    <div class="crop" style="height: 2.5in"><img class="shot" src="guide-img/studio-funddrive-light.jpg" style="margin-top: -0.25in"></div></div>
   <div class="cap">The studio's Fund drive card · light · example figures</div>
 
   <div class="split2" style="margin-top: 12px">
     <div><div class="browser"><div class="bar"><i></i><i></i><i></i><em>podcasts.kpfk.org/live</em></div>
-      <div class="crop" style="height: 2.6in"><img class="shot" src="guide-img/desktop-funddrive-light.jpg"></div></div>
+      <div class="crop" style="height: 2.25in"><img class="shot" src="guide-img/desktop-funddrive-light.jpg"></div></div>
       <div class="cap">Listen Live during a drive · example figures</div></div>
     <div>
       <h3 class="osw" style="font-size: 12pt; margin-bottom: 4px">Running a drive</h3>
       <ol class="steps">
-        <li>Switch the capsule on, give the drive a name and a goal.</li>
-        <li>Check the preview, in light or dark, and Publish.</li>
-        <li>Update "Pledged so far" as the totals come in.</li>
+        <li>Give the drive a name and a goal; pick a style.</li>
+        <li>Check the preview, light or dark, phone or wide, and switch it on. A box asks first.</li>
+        <li>Update "Pledged so far" as the totals come in, then press Update figures.</li>
         <li>Switch it off when the drive ends. Undo puts back the last version.</li>
       </ol>
-      <div class="callout violet"><h4>On kpfk.org too</h4><p>The same capsule can sit on the station's own website: the studio gives a short snippet to paste.
-        Only kpfk.org and the podcast site may show it.</p></div>
+      <p class="fd-note">Optional: a donate link of the drive's own. The studio checks the page at once and warns if it won't open inside the site's Donate window.</p>
+
     </div>
   </div>
-  <div class="embedshot" style="margin-top: 4px; width: 4.2in"><img src="guide-img/embed-funddrive-light.jpg"></div>
-  <div class="cap" style="text-align: left">The capsule as it appears on kpfk.org · example figures</div>
+  <div class="fd-bottom">
+<div class="callout violet"><h4>On kpfk.org too, in three styles</h4><p>The same capsule can sit on the station's own website: the studio gives a short snippet to paste.
+        <b>Classic</b> under a player, a <b>Slim</b> bar for a header or footer, a <b>Ring</b> for a sidebar. Only kpfk.org and the podcast site may show it.</p></div>
+    <div class="fd-styles">
+      <div><div class="embedshot"><img src="guide-img/embed-classic-light.jpg"></div><div class="cap">Classic · light</div>
+        <div class="embedshot" style="margin-top: 6px"><img src="guide-img/embed-slim-light.jpg"></div><div class="cap">Slim · light</div></div>
+      <div><div class="embedshot"><img src="guide-img/embed-ring-dark.jpg"></div><div class="cap">Ring · dark</div></div>
+    </div>
+  </div>
+  <div class="cap" style="text-align: right">The three styles, as they appear on kpfk.org · example figures</div>
   <div class="foot"><span><b>KPFK Podcasts</b> · a guide for managers and staff</span><span>7</span></div>
 </section>
 
@@ -383,8 +397,9 @@
   <table class="gl">
     <tr><th>Item</th><th>Status</th></tr>
     <tr><td>podcasts.kpfk.org</td><td><span class="yes">Live</span> since September 2026</td></tr>
-    <tr><td>Listen Live page</td><td><span class="yes">Live</span> since 27 October 2026, ready for kpfk.org's Listen Live buttons</td></tr>
-    <tr><td>Fund drive controls</td><td><span class="yes">Live</span> since 27 October 2026: banner, capsule and the kpfk.org embed</td></tr>
+    <tr><td>Listen Live page</td><td><span class="yes">Live</span> since 27 October 2026 (a plain live player since 28 October), ready for kpfk.org's Listen Live buttons</td></tr>
+    <tr><td>Fund drive controls</td><td><span class="yes">Live</span> since 27 October 2026: banner, capsule and the kpfk.org embed; donate link check (28 October) and three styles (29 October)</td></tr>
+    <tr><td>Desktop app</td><td>KPFK Podcasts for Windows is built and in testing; a Mac version follows</td></tr>
     <tr><td>Checks</td><td>About 250 automatic tests, plus browser tests that tap through the pages like a listener, on phone and computer, light and dark.
       Every change is checked on the live site after it goes up.</td></tr>
   </table>
@@ -392,7 +407,7 @@
   <h2 style="margin-top: 12px">What's next</h2>
   <div class="cards2">
     <div class="card"><h4>Contacts and a footer</h4><p>Staff edit the station's phone lines, email and wording in the studio; a footer on every page.</p></div>
-    <div class="card"><h4>More for fund drives</h4><p>Start and end dates that switch a drive on and off, and a check that the donate page opens correctly.</p></div>
+    <div class="card"><h4>More for fund drives</h4><p>Start and end dates that switch a drive on and off by themselves.</p></div>
     <div class="card"><h4>Chapters and skip to the show</h4><p>Jump past the opening and between segments of a long program.</p></div>
     <div class="card"><h4>Hold back from the studio</h4><p>Hold back a program or one episode, for rights or a bad recording, without a technical change.</p></div>
   </div>
