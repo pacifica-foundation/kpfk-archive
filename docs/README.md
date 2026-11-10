@@ -18,6 +18,7 @@ Current state and working rules live at the repo root: [HANDOFF.md](../HANDOFF.m
 | [exports-for-pacifica.md](exports-for-pacifica.md) | **Current.** For Pacifica: combining several stations' export files — columns, sums, clocks, versions |
 | [transcripts.md](transcripts.md) | **Current.** How a transcript reaches the listener, every time transcripts broke (cause, fix, test), and what to check when they fail |
 | [kpfk/listen-live-plan.md](kpfk/listen-live-plan.md) | **Current.** Listen Live page (`/live`, live and checked; a plain live player since 2026-10-28), contacts, footer, fund drive (Phase 4a capsule and studio card live), schedule finish — phases and Paul's decisions |
+| [kpfk/podcast-embed-plan.md](kpfk/podcast-embed-plan.md) | **Planning 2026-11-10.** Podcast player embed for other websites + studio card: what to reuse from Radio Suite's embeds (settings contract, look, behaviour, tests), what differs here (CSP, `/api/archive`, frame-ancestors), Paul's decisions, phases |
 | [kpfk/qir-beta-build.md](kpfk/qir-beta-build.md) | KPFK QIR adapter, explicit preview/API modes, transcript search/cues, tests and live-access limits |
 | [kpfk/station-admin-template-plan.md](kpfk/station-admin-template-plan.md) | Future admin setup: station feeds, uploads, text, persistent settings, preview/rollback and new-station launch |
 | [kpfk/discover-plugin.md](kpfk/discover-plugin.md) | Optional prototype interface, station toggle, routes and enabled/disabled verification |
