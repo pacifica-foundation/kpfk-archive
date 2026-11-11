@@ -33,6 +33,11 @@ read the Pacifica JSON feeds through a per-station profile.
 - **Fund drive capsule** — during a drive, staff set the goal and the amount pledged in the studio,
   and a progress capsule shows on Listen Live and as an embed for the station's own website
   (`/embed/fund-drive`). Off between drives. Station figures only — nothing about listeners.
+- **Podcast player for other websites** — a player any website can show in a frame
+  (`/embed/podcasts`): a show picker, the show's episodes and a player bar. It lists exactly what
+  this site lists. The studio's **Embeds** tab makes the code (starting show, order, theme, colours,
+  size) with a live preview. Plays and listening time from it are counted like the site's own, with
+  no identifier; a page view is not counted, because the page sits on someone else's site.
 - **Weekly schedule** — KPFK's published schedule as a today-first, seven-day tabbed
   view with show artwork, opening scrolled to what's on air now. On tablets and
   desktops a **Grid** view shows the whole week at once, each show as tall as its
@@ -76,6 +81,7 @@ read the Pacifica JSON feeds through a per-station profile.
 | `GET /live` | The Listen Live page (the same app, its live-only view) |
 | `GET /api/fund-drive` | The fund drive capsule's figures: `{on, name, goal, pledged, updatedAt}` (`no-store`) |
 | `GET /embed/fund-drive` · `?theme=light\|dark` | The capsule alone, for the station's own website to show in an iframe (frame-ancestors: this app and the station's website) |
+| `GET /embed/podcasts` · `?show=&episode=&theme=&sort=&limit=&order=&title=&dark=&light=` and on/off parts | The podcast player, for any website to show in an iframe (frame-ancestors `*`). Reads `/api/archive`; settings in the link (`public/podcast-embed-options.js`), a bad value falls back to its default |
 | `GET /api/showinfo` · `/api/showinfo/<key>` | Program directory records (description, host, links) |
 | `GET /api/artwork/<id>` | Same-origin proxy for catalog artwork (allow-listed; not an open proxy) |
 | `GET /api/station` · `/station.js` · `/manifest.webmanifest` | Public station profile and app manifest |

@@ -82,7 +82,9 @@
       return (Intl.DateTimeFormat().resolvedOptions().timeZone || '').slice(0, 64);
     } catch (e) { return ''; }
   }
-  send({ t: 'pageview', z: timezone() });
+  // Not inside an embed (/embed/...): that page sits on another website, and each visit there
+  // would count as a visit here. Plays and listening time from an embed are counted as usual.
+  if (location.pathname.indexOf('/embed/') !== 0) send({ t: 'pageview', z: timezone() });
 
   // ---- plays ---------------------------------------------------------------
   //

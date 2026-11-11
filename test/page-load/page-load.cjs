@@ -37,6 +37,16 @@ const PAGES = ['/', '/live', '/schedule', '/show/nader', '/show/cinemascore'];
     await sleep(1200);
     check(`${width}px /embed/fund-drive: loads, no uncaught errors`, ready && !errors.length, errors.slice(0, 3).join('\n     ') || 'the capsule script did not load');
   }
+  // The podcast player embed (2026-11-11): its own page, framed by any website. Loaded = the
+  // site's feed arrived and a show's episodes are listed.
+  for (const width of [320, 1280]) {
+    errors = [];
+    await p.send('Emulation.setDeviceMetricsOverride', { width, height: 600, deviceScaleFactor: 2, mobile: width < 800 });
+    await p.send('Page.navigate', { url: base + '/embed/podcasts?theme=light' });
+    const ready = await until(`return document.readyState === 'complete' && !!window.PodcastEmbed && document.querySelectorAll('.pe-episode').length > 0;`, 20000);
+    await sleep(1200);
+    check(`${width}px /embed/podcasts: loads, no uncaught errors`, ready && !errors.length, errors.slice(0, 3).join('\n     ') || 'the player did not list a show\'s episodes');
+  }
   await p.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 2, mobile: false });
   // Search: every show result shows why it matched — the word, highlighted, on the card
   // (2026-10-27: "nader" listed shows whose cards never mentioned Nader).

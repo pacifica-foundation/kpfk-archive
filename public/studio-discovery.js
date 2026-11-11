@@ -9,22 +9,37 @@
   var tabs = $('studioTabs'), panel = $('discoveryPanel'), stats = $('main');
   if (!tabs || !panel || !stats) return;
   var csrf = null, state = null, busy = false;
+  // One panel per tab. Embeds (2026-11-11) has its own script (studio-embeds.js), told by the
+  // 'studio:tab' event when its tab opens.
+  var panels = { stats: stats, discovery: panel, embeds: $('embedsPanel') };
 
   // ---- tabs
   function show(tab) {
+    if (!panels[tab]) tab = 'stats';
     tabs.querySelectorAll('.studio-tab').forEach(function (b) {
       var on = b.dataset.studioTab === tab;
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     });
-    panel.hidden = tab !== 'discovery';
-    stats.hidden = tab === 'discovery';
-    try { history.replaceState(null, '', tab === 'discovery' ? '#discovery' : location.pathname); } catch (e) {}
+    Object.keys(panels).forEach(function (name) { if (panels[name]) panels[name].hidden = name !== tab; });
+    // replaceState is refused in a few embedded browsers; the tab still opens, only the address stays.
+    try { history.replaceState(null, '', tab === 'stats' ? location.pathname : '#' + tab); } catch (e) { console.warn('[studio] tab address not updated:', e.message); }
     if (tab === 'discovery') load();
+    document.dispatchEvent(new CustomEvent('studio:tab', { detail: tab }));
   }
   tabs.addEventListener('click', function (e) {
     var b = e.target.closest('.studio-tab');
     if (b && !b.hidden) show(b.dataset.studioTab);
+  });
+  // A link inside a card that leads to another tab ("get the code in the Embeds tab").
+  document.addEventListener('click', function (e) {
+    var go = e.target.closest && e.target.closest('[data-go-tab]');
+    if (!go) return;
+    var b = tabs.querySelector('[data-studio-tab="' + go.dataset.goTab + '"]');
+    if (!b || b.hidden) return;
+    show(go.dataset.goTab);
+    window.scrollTo(0, 0);
+    b.focus();
   });
   // Arrow keys move between tabs (the WAI-ARIA tabs pattern); only the open tab is in the Tab order.
   tabs.addEventListener('keydown', function (e) {
@@ -118,6 +133,8 @@
 
   // Show the Discovery tab only where the station may have it; open it from #discovery.
   load().then(function () { if (location.hash === '#discovery' && !tabs.querySelector('[data-studio-tab="discovery"]').hidden) show('discovery'); });
+  // The Embeds tab needs nothing loaded first: open it from #embeds once every script has run.
+  if (location.hash === '#embeds' && panels.embeds) document.addEventListener('DOMContentLoaded', function () { show('embeds'); });
   // Refresh the status while the tab is open (QIR loads in the background after switching on).
   setInterval(function () { if (!panel.hidden && !document.hidden && !busy) load(); }, 15000);
 })();

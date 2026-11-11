@@ -1,8 +1,58 @@
 # Podcast player embed — plan, and what to reuse from Radio Suite
 
-**Status: planning (2026-11-10).** Nothing built here yet. Goal: a podcast player
-other websites put in an iframe (shows, episodes, a player bar) plus a studio card
-that makes the code — the same thing Radio Suite shipped on 2026-11-10.
+**Status: built 2026-11-11** (not yet deployed). The player is `/embed/podcasts`; the studio's
+**Embeds** tab makes its code and also holds the fund drive capsule's code. What was built, and
+Paul's decisions, are in "As built" below; the rest of this file is the plan it was built from.
+
+## As built (2026-11-11)
+
+| Piece | Where |
+| --- | --- |
+| Settings, ordering, formatting, the feed as the player lists it | `public/podcast-embed-options.js` (browser and Node) |
+| The player page | `embed/podcasts.html`, `public/podcast-embed.js`, `public/podcast-embed.css` |
+| Fonts (Oswald, Inter; this app's policy allows its own files only) | `public/assets/fonts/` |
+| Route, who may frame it | `server.js`: `/embed/podcasts` → `sendEmbed(..., '*')` |
+| The studio's Embeds tab | `admin/studio.html` (`#embedsPanel`), `public/studio-embeds.js`, `public/studio.css`; `GET /api/studio/embeds` (the public address for the code) |
+| Tests | `test/pacifica/podcast-embed.test.js` (offline), `test/podcast-embed/run.sh` (browser), `/embed/podcasts` in `test/page-load` |
+
+Paul's decisions (2026-11-11), answering §4:
+
+1. **Any website may frame it** (`frame-ancestors *`). The fund drive capsule stays the station's sites only.
+2. **Every show on the site**, by reading `/api/archive` (withheld shows and the site's other rules apply by themselves).
+3. **Address** `/embed/podcasts`.
+4. **Radio Suite's look**: black and white by default, the 11 presets, Oswald and Inter.
+5. **Plays count**: `/track.js` runs in the embed (plays, listening time; no identifier). It sends **no page view** from `/embed/...`.
+6. **No download buttons**, as Radio Suite ended 2026-11-10.
+7. **The Embeds tab holds both codes**: the player's code maker, and the fund drive capsule's code (moved from the Fund drive card, which now links to the tab).
+
+Second round (Paul, 2026-11-11: "mostly great"):
+
+- **Bigger play/pause icons** (22 px in the row's 38 px button, 26 px in the bar's 44 px one).
+- **Show info** (a pill under the show's three lines; replaces Read more): the whole description,
+  category, counts, **All episodes on KPFK Podcasts** (the site's `/show/<slug>`) and the show's
+  website / Facebook / X. Links open a new tab.
+- **Transcript** (a button on each episode QIR has one for): the lines with times; the line being
+  heard is marked and kept in view; a tap on a line plays that episode from there; scrolling by hand
+  stops the following, **Back to now** resumes it. The site's words when QIR has none or is down.
+- **Both are overlays over the list, never over the player bar**, which stays usable (the list
+  underneath is `inert`). Escape, Close or a tap outside closes; one at a time; no history entries
+  (in a frame they would land in the host page's Back).
+- **QIR notes one show at a time**: `GET /api/plugins/qir/notes?show=<show key>` (the full list is
+  ~340 KB compressed). Gives headlines (as titles where the feed has none, like the site), summaries
+  and which episodes have a transcript. A 404 (no Discovery / QIR on the station) means no transcript
+  buttons, never an error. The transcript text is the site's own route, unchanged
+  (docs/transcripts.md); the parser is the site's (`/discover/qir-transcript.js`, loaded on first use).
+
+Different from Radio Suite, on purpose:
+
+- **No `icon` setting** (no Font Awesome here): the header icon is one drawing; icons are inline SVG.
+- **`show=` and `episode=` take the feed's keys** (`kpfk.kpfk.qrcode`, `kpfk.kpfk.140927`). `episode=` alone also picks its show.
+- **An episode with no topic is titled by its air time** (the site's rule, `archive-search.js`), so its row shows the length only.
+- **Picking another show closes the player** (Paul, 2026-11-11): stopped if playing, the bar removed. Plays on to the next episode within the show.
+- **It never calls `scrollIntoView`**: inside a frame that can scroll the host page. It scrolls its own boxes.
+- **The studio page alone may frame this site's embeds** (`frame-src 'self'`), for the live preview.
+
+---
 
 Source of the reusable pieces: **Radio Suite** (`~/Desktop/radio-suite`, commit
 `7205989`, "Player embeds"). Its write-up is the 2026-11-10 section of

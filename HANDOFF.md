@@ -1,10 +1,41 @@
 # HANDOFF — KPFK Archive
 
-**Updated:** 2026-10-29 (Windows desktop app builds; Listen Live schedule header redesigned; closing popups no longer catch taps; studio Discovery in two columns; three fund drive capsule styles — first section). Previously 2026-10-28 (fund drive studio card simplified, donate link; Listen Live a plain live player — no bottom player, leave explainer, phone strip, live glow; light donate page — all **live and checked**, first section). Previously 2026-10-27 night (Listen Live page at `/live` and the fund drive donation capsule — **live and checked**, first section. Earlier the same day: Ace's review — episode counts, re-runs, name tiles, search, Radio Maiz — **live and checked**; Something's Happening handed to Ace). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
+**Updated:** 2026-11-11 (podcast player embed for other websites and the studio's Embeds tab: built and tested locally, **not committed, not deployed** — first section). Previously 2026-10-29 (Windows desktop app builds; Listen Live schedule header redesigned; closing popups no longer catch taps; studio Discovery in two columns; three fund drive capsule styles — first section). Previously 2026-10-28 (fund drive studio card simplified, donate link; Listen Live a plain live player — no bottom player, leave explainer, phone strip, live glow; light donate page — all **live and checked**, first section). Previously 2026-10-27 night (Listen Live page at `/live` and the fund drive donation capsule — **live and checked**, first section. Earlier the same day: Ace's review — episode counts, re-runs, name tiles, search, Radio Maiz — **live and checked**; Something's Happening handed to Ace). Previously 2026-10-25 (transcripts and headlines: QIR outage handling, 5-minute self-refresh, timed problem record, DNS cache — all **live and checked**; see the first two sections and [docs/transcripts.md](docs/transcripts.md)). Previously 2026-10-15 (site audit and fixes, all **live and checked** — first section; Paul tested on desktop and iPhone: "fixes and features work great"; overview PDF for Pacifica in `docs/overview/`). Previously 2026-10-14 (from the Flutter app session: share-link previews name the episode — uncommitted here, see the first section; app/web differences; integration ideas). Previously 2026-10-01 (The Aware Show withheld, live: remind item 8; Flutter app caught up: see "Open work from the Flutter app"). Previously 2026-09-30 (repo moved to `pacifica-foundation`; Discovery app stopped; Coolify email). Previously 2026-09-29 (archive rules, /discover retired, Import / Export + master spreadsheet).  **This folder is the active KPFK podcast-template project.**
 WBAI (`/Users/paulhenshaw/Desktop/wbai-archive`) is maintenance-only from here on.
 
 Read this, then [CLAUDE.md](CLAUDE.md) (working rules), then
 [docs/README.md](docs/README.md) (which docs are current vs inherited from WBAI).
+
+## 2026-11-11 — Podcast player embed and the studio's Embeds tab (built; not committed, not deployed)
+
+The same thing Radio Suite shipped on 2026-11-10 (archive.pacifica.audio/embeds), in this app's plain
+JS. Plan, decisions and file list: [docs/kpfk/podcast-embed-plan.md](docs/kpfk/podcast-embed-plan.md) ("As built").
+
+- **`/embed/podcasts`**: show picker, the show's episodes, player bar (seek, −15 s / +30 s, speed,
+  volume, plays on to the next episode). Radio Suite's look: black and white by default, 11 colour
+  presets, Oswald and Inter (copies in `public/assets/fonts/`, open licence). Reads `/api/archive`, so
+  it lists exactly what the site lists. **Any website may frame it** (Paul); the fund drive capsule
+  stays the station's sites only. No download buttons. Plays and listening time are counted
+  (`track.js`, no identifier); **no page view** from an embed.
+- **Studio → Embeds** (third tab, `/studio#embeds`): the player's code maker (starting show, order,
+  latest N, theme, parts, title, colours, size; live preview at Desktop / Tablet / Phone; Copy, Open,
+  Reset) and the **fund drive capsule's code**, moved from the Fund drive card (which now links to
+  the tab). The code carries the station's public address (profile `siteUrl`), wherever it is copied.
+- **Server**: `sendEmbed()` takes who may frame the page; `GET /api/studio/embeds`; the studio page
+  alone gets `frame-src 'self'` (the live previews).
+- **Checked 2026-11-11, all green**: `npm test` 280 (16 new, `test/pacifica/podcast-embed.test.js`);
+  `test/podcast-embed/run.sh` 48 (new: real taps, real episodes muted, another website framing it,
+  the Embeds tab); `test/fund-drive/run.sh` 58 (follows the moved code); `test/page-load/run.sh` 18.
+  The page-view check was run against the old `track.js` and fails there.
+- **Second round (same day, Paul: "mostly great")**: bigger play/pause icons; **Show info** and
+  **Transcript** overlays over the list with the player bar still usable (transcript follows the
+  audio, a tap on a line plays from there). New: `GET /api/plugins/qir/notes?show=` (one show's QIR
+  notes; the transcript route itself is unchanged). Checked: `npm test` 282, `test/podcast-embed/run.sh`
+  65 (QIR answered by a stand-in inside Chrome: no QIR key on a laptop). **Real transcripts are seen
+  only on the live site**, after a deploy.
+- **Not done**: not committed or pushed; not checked in Safari/WebKit (Chrome
+  only: `-webkit-line-clamp`, `color-mix` and `:has` are used, all in Safari 16.2+); no live stream in
+  the embed (episodes only, as Radio Suite); the overview and staff guide PDFs do not mention it yet.
 
 ## 2026-10-29 — Windows desktop app, schedule header, capsule styles
 
@@ -449,7 +480,7 @@ other descriptions in the audit.
 1. **Next session first (2026-10-29):** fund drive is **ON** ($20,000 of $75,000; Paul switched it
    on 2026-10-28 16:29 UTC) — ask whether it stays. Tauri Windows build waiting on Paul's go (see the
    2026-10-28 section). Earlier: the fund drive capsule was ON 2026-10-27 night. **Ace email ON HOLD (Paul,
-   2026-10-27 night): he has a few changes first and wants the site to run a while.** The wrap-up email to Ace (done items,
+__   2026-10-27 night): he has a few changes first and wants the site to run a while.** The wrap-up email to Ace (done items,
    Something's Happening, Listen Live and capsule mockups, the embed snippet, kpfk.org/listen →
    `/live`) — notes in `.local-notes/ace-wrapup-2026-10-27-notes.md`. Still from Ace: studio email
    and WhatsApp number. **Last deploy checked live 2026-10-27 night:** `4b59b-mvr7rfyw…` (8bed808).

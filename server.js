@@ -2097,6 +2097,7 @@ function securityHeaders() {
 
 // Sites allowed to show /embed/fund-drive in an iframe: this app and the station's own website
 // (with and without www). Nobody else: the capsule carries the station's name and donate link.
+// The podcast player (/embed/podcasts) is for any website (Paul, 2026-11-11): it passes '*'.
 function embedAncestors() {
   const out = ["'self'"];
   try {
@@ -2106,7 +2107,7 @@ function embedAncestors() {
   return out.join(' ');
 }
 const EMBED_DIR = path.join(__dirname, 'embed');
-function sendEmbed(req, res, file) {
+function sendEmbed(req, res, file, ancestors = embedAncestors()) {
   fs.readFile(path.join(EMBED_DIR, file), 'utf8', (err, html) => {
     if (err) {
       console.error(`[embed] cannot read ${file}:`, err.message);
@@ -2115,9 +2116,9 @@ function sendEmbed(req, res, file) {
     }
     const body = Buffer.from(stampAssets(stationView.render(html, station)), 'utf8');
     const headers = securityHeaders();
-    // Framed by the station's own sites: frame-ancestors says who; X-Frame-Options would forbid it.
+    // Framed by other sites: frame-ancestors says which; X-Frame-Options would forbid them all.
     delete headers['X-Frame-Options'];
-    headers['Content-Security-Policy'] = headers['Content-Security-Policy'].replace("frame-ancestors 'self'", 'frame-ancestors ' + embedAncestors());
+    headers['Content-Security-Policy'] = headers['Content-Security-Policy'].replace("frame-ancestors 'self'", 'frame-ancestors ' + ancestors);
     res.writeHead(200, { 'Content-Type': MIME['.html'], 'Content-Length': body.length, 'Cache-Control': 'no-store',
       'X-App-Version': appVersion(), ...headers });
     res.end(body);
@@ -3742,13 +3743,17 @@ function sendStudioHtml(req, res, file) {
     // guarantee the listener app has. Without it these files sit in the browser
     // cache under a stable name — CLAUDE.md §1, the most expensive bug here.
     const body = Buffer.from(stampAssets(stationView.render(html, station)), 'utf8');
+    const headers = securityHeaders();
+    // The Embeds tab previews this site's own embed pages in a frame (/embed/podcasts,
+    // /embed/fund-drive). Only the studio may: the listener site's frame-src stays as it is.
+    headers['Content-Security-Policy'] = headers['Content-Security-Policy'].replace('frame-src ', "frame-src 'self' ");
     res.writeHead(200, {
       'Content-Type': MIME['.html'],
       'Content-Length': body.length,
       'Cache-Control': 'private, no-store',
       'Vary': 'Cookie',
       'X-App-Version': appVersion(),
-      ...securityHeaders(),
+      ...headers,
     });
     res.end(body);
   });
@@ -4204,6 +4209,9 @@ function studioApi(req, res, pathOnly) {
     return stationEdits ? sendStudioJson(res, stationEditState()) : sendStudioJson(res, { available: false });
   }
   if (pathOnly === '/api/studio/fund-drive') return sendStudioJson(res, fundDriveState());
+  // The Embeds tab: the station's public address, so the code it writes points at the real site
+  // even when copied from a laptop or a staging app. Empty = the studio uses its own address.
+  if (pathOnly === '/api/studio/embeds') return sendStudioJson(res, { ok: true, siteUrl: (station && station.siteUrl) || '' });
   if (pathOnly === '/api/studio/usage') {
     return sendStudioJson(res, usageReport(usageWindowFromUrl(req.url)));
   }
@@ -4372,6 +4380,8 @@ async function handleRequest(req, res) {
   // an extension). When the studio is disabled these ifs are skipped entirely
   // and that fallback is exactly what we want to happen.
   if (pathOnly === '/embed/fund-drive') return sendEmbed(req, res, 'fund-drive.html');
+  // The podcast player: shows, episodes and a player bar, for any website to frame.
+  if (pathOnly === '/embed/podcasts') return sendEmbed(req, res, 'podcasts.html', '*');
   if (STUDIO_ENABLED && pathOnly === '/studio/report') return sendReport(req, res);
   if (STUDIO_ENABLED && (pathOnly === '/studio' || pathOnly === '/studio/')) {
     return sendStudioHtml(req, res, studioAuthed(req) ? 'studio.html' : 'login.html');

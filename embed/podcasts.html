@@ -1,0 +1,23 @@
+<!doctype html>
+<!-- Podcast player for other websites to frame (docs/kpfk/podcast-embed-plan.md). Served by
+     server.js sendEmbed(); any website may show it (Paul, 2026-11-11): it lists only what the
+     public site lists. Settings come from the link; the studio's Embeds tab writes them.
+     The scripts are at the end of the body, not deferred, so the theme and colours from the link
+     are applied before the first paint. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{station.name}} podcast player</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/podcast-embed.css">
+</head>
+<body>
+<div class="pe" id="player" data-theme="dark"></div>
+<script src="/station.js"></script>
+<script src="/text.js"></script>
+<script src="/podcast-embed-options.js"></script>
+<script src="/podcast-embed.js"></script>
+<script src="/track.js" defer></script>
+</body>
+</html>

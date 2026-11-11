@@ -16,7 +16,7 @@
   // The preview shows the banner too (on top of Listen Live while the drive is on); its links go nowhere here.
   var preview = window.FundDrive.build($('fdPreview'), { donateHref: '#', banner: $('fdPreviewBanner') });
   [$('fdPreview').querySelector('.fd-btn'), $('fdPreviewBanner')].forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); }); });
-  var published = null, lastHistory = [], csrf = null, busy = false, embedUrl = location.origin + '/embed/fund-drive', theme = 'light';
+  var published = null, lastHistory = [], csrf = null, busy = false, theme = 'light';
   // The chosen look (classic | slim | ring): part of the draft, saved with Update figures.
   var style = 'classic';
   var STYLE_NAMES = { classic: 'Classic card', slim: 'Slim bar', ring: 'Ring' };
@@ -26,7 +26,6 @@
     if (style === published.style) return STYLE_NAMES[style] + (published.on ? ' is showing on Listen Live.' : ' is saved; it shows when the fund drive is on.');
     return STYLE_NAMES[style] + ' is not saved yet: press Update figures to use it (now: ' + STYLE_NAMES[published.style] + ').';
   }
-  var EMBED_H = { classic: 170, slim: 120, ring: 340 };
   document.querySelectorAll('button[data-fd-style]').forEach(function (b) {
     b.addEventListener('click', function () { style = b.dataset.fdStyle; paintTheme(); paintDraft(); });
   });
@@ -38,15 +37,14 @@
       document.querySelectorAll('button[data-fd-size]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
     });
   });
-  // One colour choice for the preview, the snippet's ?theme= and Open the embed, so all three match.
+  // The preview's colours and the picked style. (The embed code, with its own colours and style,
+  // is in the Embeds tab since 2026-11-11: public/studio-embeds.js.)
   function paintTheme() {
     $('fdPreviewBox').setAttribute('data-theme-scope', theme);
     document.querySelectorAll('[data-fd-theme]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.fdTheme === theme ? 'true' : 'false'); });
     document.querySelectorAll('button[data-fd-style]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.fdStyle === style ? 'true' : 'false'); });
     $('fdStyleNote').textContent = styleNote();
     $('fdStyleNote').className = 'fd-style-note' + (published && style !== published.style ? ' is-draft' : '');
-    $('fdSnippet').textContent = '<iframe src="' + embedUrl + '?theme=' + theme + '&style=' + style + '" title="Fund drive" style="width:100%;height:' + EMBED_H[style] + 'px;border:0" loading="lazy"></iframe>';
-    $('fdOpenEmbed').href = '/embed/fund-drive?theme=' + theme + '&style=' + style;
   }
   document.querySelectorAll('[data-fd-theme]').forEach(function (b) {
     b.addEventListener('click', function () { theme = b.dataset.fdTheme; paintTheme(); });
@@ -135,7 +133,6 @@
     pledgedIn.value = money(published.pledged);
     lastHistory = state.history || [];
     undo.hidden = !lastHistory.length;
-    embedUrl = state.embedUrl || (location.origin + '/embed/fund-drive');
     paintTheme();
     say(status, c.updatedAt ? (c.on ? 'On' : 'Off') + ' · last changed ' + new Date(c.updatedAt).toLocaleString() : 'Not set up yet.');
     if (state.bootError) say(status, 'The saved figures could not be used (' + state.bootError + '). Enter new ones.', 'bad');
@@ -215,16 +212,6 @@
     var back = prev ? (prev.on ? 'On' : 'Off') + ', ' + summary(prev) + '.' : 'the previous version.';
     confirmThen({ title: 'Undo the last change?', confirmLabel: 'Undo', message: 'This puts back: ' + back },
       function () { post('undo', null, 'Undone: the previous version is back.'); });
-  });
-  $('fdCopy').addEventListener('click', function () {
-    var text = $('fdSnippet').textContent;
-    var done = function () { say($('fdCopyStatus'), 'Copied.', 'ok'); };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done, function (e) {
-        console.warn('[studio] copy refused:', e && e.message);
-        say($('fdCopyStatus'), 'Copy was refused by the browser: select the text above and copy it.', 'bad');
-      });
-    } else say($('fdCopyStatus'), 'Select the text above and copy it.');
   });
   load();
 })();

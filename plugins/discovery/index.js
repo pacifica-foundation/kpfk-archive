@@ -188,16 +188,37 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
       if (!e || !e.mp3_url) continue;
       if (e.pending) waiting.set(e.mp3_url, e); else if (!done.has(e.mp3_url)) done.set(e.mp3_url, e);
     }
-    const notes = {};
+    const notes = {}, byShow = new Map();
     for (const row of data.shows) {
       const q = done.get(row.mp3), w = waiting.get(row.mp3);
       if (q) notes[row.id] = { qir: q.public_id, headline: q.headline || '', summary: q.summary || '', host: q.host || '', guest: q.guest || '' };
       else if (w) notes[row.id] = { pending: true, skipped: !!w.skipped };
+      else continue;
+      if (!byShow.has(row.sho)) byShow.set(row.sho, []);
+      byShow.get(row.sho).push(row.id);
     }
-    const body = JSON.stringify({ provider: 'qir', station: station.id, stale: !!catalog.stale, pending: catalog.pending, notes });
-    const value = { body, etag: '"' + crypto.createHash('sha256').update(body).digest('hex').slice(0, 32) + '"' };
-    notesMemo = { catalog, revision: data.revision, value, byId: notes };
+    const value = notesValue({ provider: 'qir', station: station.id, stale: !!catalog.stale, pending: catalog.pending, notes });
+    notesMemo = { catalog, revision: data.revision, value, byId: notes, byShow, shows: new Map() };
     return value;
+  }
+  function notesValue(payload) {
+    const body = JSON.stringify(payload);
+    return { body, etag: '"' + crypto.createHash('sha256').update(body).digest('hex').slice(0, 32) + '"' };
+  }
+  // One show's notes (?show=<archive show key>), for the podcast player embed (2026-11-11): the
+  // whole list is ~340 KB compressed, too much for a player on someone else's page. Same answer
+  // shape, only that show's episodes; a show with none is an empty list, never an error.
+  async function showNotes(sho) {
+    await archiveNotes();
+    const memo = notesMemo;
+    if (!memo.shows.has(sho)) {
+      const notes = {};
+      for (const id of memo.byShow.get(sho) || []) notes[id] = memo.byId[id];
+      const all = JSON.parse(memo.value.body);
+      memo.shows.set(sho, notesValue({ provider: all.provider, station: all.station, stale: all.stale, pending: all.pending, show: sho, notes }));
+      if (memo.shows.size > 300) memo.shows.delete(memo.shows.keys().next().value);
+    }
+    return memo.shows.get(sho);
   }
 
   // One episode's QIR note for the share-preview tags (server.js ogTags, 2026-10-14), read
@@ -262,7 +283,9 @@ function createDiscovery({ station, env = process.env, dataDir = null, fetchImpl
       if (route.startsWith('/api/plugins/qir/') && !qirOn()) { send(res, 404, { error: 'plugin_disabled' }); return true; }
       if (route === '/api/plugins/qir/catalog') { send(res, 200, await servedCatalog()); return true; }
       if (route === '/api/plugins/qir/notes') {
-        const n = await archiveNotes(), cache = { ETag: n.etag, 'Cache-Control': 'public, max-age=300' };
+        const sho = url.searchParams.get('show');
+        if (sho !== null && !/^[A-Za-z0-9._-]{1,100}$/.test(sho)) { send(res, 400, { error: 'show must be an archive show key' }); return true; }
+        const n = sho === null ? await archiveNotes() : await showNotes(sho), cache = { ETag: n.etag, 'Cache-Control': 'public, max-age=300' };
         if (req.headers['if-none-match'] === n.etag) { send(res, 304, '', 'application/json; charset=utf-8', cache); return true; }
         send(res, 200, Buffer.from(n.body), 'application/json; charset=utf-8', cache); return true;
       }

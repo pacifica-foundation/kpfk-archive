@@ -83,6 +83,13 @@
           <span class="studio-tab-desc">Discovery switches, station name &amp; logo, links, data sources</span></span>
         <svg class="studio-tab-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
+      <!-- Embeds (2026-11-11): code for other websites - the podcast player and the fund drive capsule. -->
+      <button class="studio-tab" type="button" role="tab" id="tabEmbeds" data-studio-tab="embeds" aria-controls="embedsPanel" aria-selected="false" tabindex="-1">
+        <svg class="studio-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="studio-tab-text"><span class="studio-tab-title">Embeds</span>
+          <span class="studio-tab-desc">Podcast player and fund drive code for other websites</span></span>
+        <svg class="studio-tab-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
     </div>
   </div>
 </nav>
@@ -133,7 +140,7 @@
     </div>
     <!-- Two columns (Paul, 2026-10-27: the stacked full-width version was awkward): a compact form
          on the left; on the right the preview, always shown (example figures until real ones are
-         typed), and the embed snippet, not folded away. Stacked on phones, preview first. -->
+         typed). Stacked on phones, preview first. -->
     <!-- Style templates (Paul, 2026-10-29: a small segmented control was lost in the form): three
          cards with a drawing of each look, at the top of the card. The capsule's look on Listen Live
          and the embed's default; saved with Update figures. The embed snippet pins it with &style=. -->
@@ -190,8 +197,8 @@
         <div class="fd-preview-head">
           <p class="studio-field-label">Preview</p>
           <span class="fd-tag" id="fdPreviewTag">Example</span>
-          <!-- Light or dark: the preview's colours AND the embed snippet's ?theme= (one choice). -->
-          <div class="fd-theme" role="group" aria-label="Colours for the preview and the embed">
+          <!-- Light or dark: the preview's colours (the embed's own colours are chosen in the Embeds tab). -->
+          <div class="fd-theme" role="group" aria-label="Colours for the preview">
             <button type="button" data-fd-theme="light" aria-pressed="true">Light</button>
             <button type="button" data-fd-theme="dark" aria-pressed="false">Dark</button>
           </div>
@@ -207,21 +214,9 @@
           <div id="fdPreview"></div>
         </div>
         <p class="fd-preview-note" id="fdPreviewNote"></p>
-        <div class="fd-embed">
-          <p class="studio-field-label">Embed on the station&rsquo;s website</p>
-          <p class="fd-embed-note">Paste into a page on the station&rsquo;s own site; it uses the colours chosen above. Only this app and the station&rsquo;s website
-            may show it; its Donate opens the donate page in a new tab.</p>
-          <pre class="fd-snippet" id="fdSnippet"></pre>
-          <div class="fd-embed-actions">
-            <button class="studio-btn fd-icon-btn" id="fdCopy" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
-              <span>Copy snippet</span></button>
-            <a class="studio-btn fd-icon-btn" id="fdOpenEmbed" href="/embed/fund-drive?theme=light" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
-              <span>Open the embed</span></a>
-            <span class="export-status" id="fdCopyStatus" role="status" aria-live="polite"></span>
-          </div>
-        </div>
+        <!-- The embed code moved to the Embeds tab (2026-11-11): one place for everything pasted on other sites. -->
+        <p class="fd-embed-note fd-embed-moved">To put the capsule on the station&rsquo;s website:
+          <button class="em-link" type="button" data-go-tab="embeds">get the code in the Embeds tab</button>.</p>
       </div>
     </div>
   </section>
@@ -280,6 +275,173 @@
       <span class="st-bar-text" id="stBarText"></span>
       <button class="studio-btn studio-btn--quiet" id="stDiscard" type="button">Discard</button>
       <button class="studio-btn export-go" id="stReview" type="button">Review &amp; publish</button>
+    </div>
+  </section>
+</div>
+
+<!-- Embeds (2026-11-11, docs/kpfk/podcast-embed-plan.md): code for other websites.
+     1. Podcast player: the settings on the left write the link (public/podcast-embed-options.js, the
+        same file the player reads); the preview is the real player in a frame; the code is ready to copy.
+     2. Fund drive capsule: its code, moved here from the Fund drive card. One style and colour choice
+        sets the preview, the code and Open together (Paul, 2026-10-27: they once disagreed).
+     public/studio-embeds.js fills it. Nothing here changes the site: it only writes code to paste. -->
+<div class="studio-main studio-embeds" id="embedsPanel" role="tabpanel" aria-labelledby="tabEmbeds" hidden>
+  <section class="studio-section studio-section--wide" id="embedPlayerSection" aria-labelledby="emTitle">
+    <div class="st-head">
+      <div>
+        <h2 class="studio-h2" id="emTitle">Podcast player</h2>
+        <p class="studio-note">A player for the station&rsquo;s shows that any website can show. It lists the same shows and
+          episodes as this site. Choose the settings, check the preview, copy the code.</p>
+      </div>
+      <button class="studio-btn studio-btn--quiet" id="emReset" type="button">Reset all</button>
+    </div>
+    <div class="fd-layout em-layout">
+      <div class="fd-form em-form">
+        <div class="em-group">
+          <h3 class="em-group-title">What it shows</h3>
+          <label class="studio-field"><span class="studio-field-label">Starting show</span>
+            <select class="studio-input" id="emShow"><option value="">First in the list</option></select></label>
+          <div class="em-two">
+            <label class="studio-field"><span class="studio-field-label">Episode order</span>
+              <select class="studio-input" id="emSort">
+                <option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="alphabetical">A to Z</option>
+              </select></label>
+            <label class="studio-field"><span class="studio-field-label">Episodes shown</span>
+              <select class="studio-input" id="emLimit"><option value="">All</option></select></label>
+          </div>
+          <label class="studio-field"><span class="studio-field-label">Show picker order</span>
+            <select class="studio-input" id="emOrder">
+              <option value="alphabetical">A to Z</option><option value="latest">Newest episode first</option><option value="most-episodes">Most episodes first</option>
+            </select></label>
+        </div>
+        <div class="em-group">
+          <h3 class="em-group-title">Look</h3>
+          <div class="em-line">
+            <span class="studio-field-label" id="emThemeLabel">Theme</span>
+            <div class="fd-theme" role="group" aria-labelledby="emThemeLabel">
+              <button type="button" data-em-theme="dark" aria-pressed="true">Dark</button>
+              <button type="button" data-em-theme="light" aria-pressed="false">Light</button>
+              <button type="button" data-em-theme="auto" aria-pressed="false" title="Follows the visitor&rsquo;s system setting">Visitor&rsquo;s</button>
+            </div>
+          </div>
+          <div class="em-switches">
+            <div class="em-switch-row"><span id="emSwHeader">Header</span>
+              <button class="disc-switch em-switch" type="button" role="switch" data-em-switch="header" aria-checked="true" aria-labelledby="emSwHeader"><span aria-hidden="true"></span></button></div>
+            <div class="em-switch-row"><span id="emSwIcon">Header icon</span>
+              <button class="disc-switch em-switch" type="button" role="switch" data-em-switch="headerIcon" aria-checked="true" aria-labelledby="emSwIcon"><span aria-hidden="true"></span></button></div>
+            <div class="em-switch-row"><span id="emSwToggle">Light/dark button</span>
+              <button class="disc-switch em-switch" type="button" role="switch" data-em-switch="themeToggle" aria-checked="true" aria-labelledby="emSwToggle"><span aria-hidden="true"></span></button></div>
+            <div class="em-switch-row"><span id="emSwPicker">Show picker</span>
+              <button class="disc-switch em-switch" type="button" role="switch" data-em-switch="selector" aria-checked="true" aria-labelledby="emSwPicker"><span aria-hidden="true"></span></button></div>
+            <div class="em-switch-row"><span id="emSwCover">Cover art</span>
+              <button class="disc-switch em-switch" type="button" role="switch" data-em-switch="cover" aria-checked="true" aria-labelledby="emSwCover"><span aria-hidden="true"></span></button></div>
+          </div>
+        </div>
+        <div class="em-group">
+          <h3 class="em-group-title">Branding</h3>
+          <label class="studio-field"><span class="studio-field-label">Header title</span>
+            <input class="studio-input" id="emHeading" autocomplete="off" placeholder="{{station.name}}">
+            <span class="em-hint">Empty = the station&rsquo;s name</span></label>
+          <div>
+            <span class="studio-field-label" id="emPresetLabel">Colour</span>
+            <div class="em-presets" id="emPresets" role="group" aria-labelledby="emPresetLabel"></div>
+            <span class="em-hint">Or pick any colour below.</span>
+          </div>
+          <div class="em-two">
+            <div class="studio-field"><label class="studio-field-label" for="emDarkHex">Accent, dark theme</label>
+              <div class="em-color"><input type="color" id="emDarkPick" aria-label="Accent, dark theme (picker)">
+                <input class="studio-input" id="emDarkHex" maxlength="7" autocomplete="off" spellcheck="false"></div></div>
+            <div class="studio-field"><label class="studio-field-label" for="emLightHex">Accent, light theme</label>
+              <div class="em-color"><input type="color" id="emLightPick" aria-label="Accent, light theme (picker)">
+                <input class="studio-input" id="emLightHex" maxlength="7" autocomplete="off" spellcheck="false"></div></div>
+          </div>
+        </div>
+        <div class="em-group">
+          <h3 class="em-group-title">Size on the page</h3>
+          <div class="em-two">
+            <div class="studio-field"><label class="studio-field-label" for="emWidth">Width</label>
+              <div class="em-color"><input class="studio-input" id="emWidth" inputmode="numeric" autocomplete="off" value="100">
+                <select class="studio-input em-unit" id="emUnit" aria-label="Width unit"><option value="%">%</option><option value="px">px</option></select></div></div>
+            <label class="studio-field"><span class="studio-field-label">Height (px)</span>
+              <input class="studio-input" id="emHeight" inputmode="numeric" autocomplete="off" value="600"></label>
+          </div>
+        </div>
+      </div>
+      <div class="fd-side em-side">
+        <div class="fd-preview-head">
+          <p class="studio-field-label">Live preview</p>
+          <span class="em-hint" id="emDeviceNote"></span>
+          <div class="fd-theme" role="group" aria-label="Preview width">
+            <button type="button" data-em-device="desktop" aria-pressed="true">Desktop</button>
+            <button type="button" data-em-device="tablet" aria-pressed="false">Tablet</button>
+            <button type="button" data-em-device="phone" aria-pressed="false">Phone</button>
+          </div>
+        </div>
+        <div class="em-stage"><div class="em-stage-inner" id="emStage">
+          <iframe class="em-frame" id="emFrame" title="Podcast player preview" loading="lazy"></iframe>
+        </div></div>
+        <div class="fd-embed em-code">
+          <p class="studio-field-label">Embed code</p>
+          <p class="fd-embed-note">Paste it into the website&rsquo;s HTML where the player should appear. Any website may show it.</p>
+          <pre class="fd-snippet" id="emSnippet"></pre>
+          <div class="fd-embed-actions">
+            <button class="studio-btn fd-icon-btn" id="emCopy" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+              <span>Copy embed code</span></button>
+            <a class="studio-btn fd-icon-btn" id="emOpen" href="/embed/podcasts" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+              <span>Open the player</span></a>
+            <span class="export-status" id="emCopyStatus" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="studio-section studio-section--wide" id="embedFundSection" aria-labelledby="fdeTitle">
+    <h2 class="studio-h2" id="fdeTitle">Fund drive capsule</h2>
+    <p class="studio-note">The donation capsule, for a page on the station&rsquo;s own website. Only this app and the station&rsquo;s
+      website may show it; its Donate opens the donate page in a new tab. The figures and the on/off switch are on the
+      <button class="em-link" type="button" data-go-tab="discovery">Fund drive card</button>.</p>
+    <div class="fd-layout em-layout">
+      <div class="fd-form em-form">
+        <div class="em-line">
+          <span class="studio-field-label" id="fdeStyleLabel">Style</span>
+          <div class="fd-theme" role="group" aria-labelledby="fdeStyleLabel">
+            <button type="button" data-fde-style="classic" aria-pressed="true">Classic card</button>
+            <button type="button" data-fde-style="slim" aria-pressed="false">Slim bar</button>
+            <button type="button" data-fde-style="ring" aria-pressed="false">Ring</button>
+          </div>
+        </div>
+        <div class="em-line">
+          <span class="studio-field-label" id="fdeThemeLabel">Colours</span>
+          <div class="fd-theme" role="group" aria-labelledby="fdeThemeLabel">
+            <button type="button" data-fde-theme="light" aria-pressed="true">Light</button>
+            <button type="button" data-fde-theme="dark" aria-pressed="false">Dark</button>
+          </div>
+        </div>
+        <p class="em-hint">Each spot on the website keeps the style and colours in its own code.</p>
+        <p class="export-status" id="fdeState" role="status" aria-live="polite"></p>
+      </div>
+      <div class="fd-side em-side">
+        <p class="studio-field-label">Live preview</p>
+        <div class="em-stage"><div class="em-stage-inner">
+          <iframe class="em-frame" id="fdeFrame" title="Fund drive capsule preview" loading="lazy"></iframe>
+        </div></div>
+        <div class="fd-embed em-code">
+          <p class="studio-field-label">Embed code</p>
+          <pre class="fd-snippet" id="fdSnippet"></pre>
+          <div class="fd-embed-actions">
+            <button class="studio-btn fd-icon-btn" id="fdCopy" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+              <span>Copy snippet</span></button>
+            <a class="studio-btn fd-icon-btn" id="fdOpenEmbed" href="/embed/fund-drive?theme=light&amp;style=classic" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+              <span>Open the embed</span></a>
+            <span class="export-status" id="fdCopyStatus" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </div>
@@ -783,5 +945,7 @@
 <script src="/studio-station.js" defer></script>
 <script src="/fund-drive.js" defer></script>
 <script src="/studio-fund-drive.js" defer></script>
+<script src="/podcast-embed-options.js" defer></script>
+<script src="/studio-embeds.js" defer></script>
 </body>
 </html>

@@ -163,6 +163,12 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
   **Three styles** (Paul, 2026-10-29): `classic` (the card), `slim` (one line, for a site header or
   footer), `ring` (progress ring card, for a sidebar) — saved with the figures (`style`), used on
   `/live`; the embed snippet pins one per spot with `&style=`.
+- **Podcast player embed** (2026-11-11, [docs/kpfk/podcast-embed-plan.md](docs/kpfk/podcast-embed-plan.md)): `/embed/podcasts`,
+  for **any website** to frame (the fund drive capsule stays the station's sites only). Radio Suite's
+  player look; it reads `/api/archive`, so it lists what the site lists — never give it a second rule.
+  Settings live in the link and in one file, `public/podcast-embed-options.js`, read by the player and
+  by the studio's **Embeds** tab (the code maker; it also holds the fund drive capsule's code). The page
+  never calls `scrollIntoView` (it can scroll the host page) and sends no page view (`track.js`).
 - **Fading layers take no taps** (2026-10-29): a popup's hidden state must say `pointer-events:none`
   (visibility:hidden lands only after the fade). `test/pacifica/layers-no-taps.test.js`.
 - **Listen along naming:** "Transcript" (QIR) and **"Playlist"** (cue-file song list, was
@@ -208,6 +214,10 @@ live only after a Coolify redeploy and `version` in `/healthz` changes.
 - **Fund drive (Phase 4a): `test/fund-drive/run.sh`** (own server on 8093 with a test studio password,
   muted Chrome on 9234, real taps: the studio card → Publish → the capsule on /live and in the embed →
   off). Run it before any push touching the capsule, its studio card or /embed/fund-drive.
+- **Podcast player embed: `test/podcast-embed/run.sh`** (own server on 8094 with a test studio password,
+  muted Chrome on 9235, real taps: play, the bar, speed, skip, plays on, the picker, link settings, 320
+  and 375 px, another website framing it, the studio's Embeds tab). Plays real episodes, so it needs the
+  internet. Run it before any push touching the player, `podcast-embed-options.js` or the Embeds tab.
 - **Before every push that touches `public/` or page-serving code: `test/page-load/run.sh`**
   (own scratch server and muted Chrome; every main page at phone and desktop width, no
   uncaught error). `npm test` never loads the page: on 2026-10-27 a start-up crash went live

@@ -1452,3 +1452,53 @@ th[aria-sort="ascending"] .th-sort::after { content: "\25B2"; }    /* ▲ */
 .fd-link-check { margin: -.6rem 0 0; font-size: .85rem; color: var(--ink-dim); min-height: 1.2em; overflow-wrap: anywhere; }
 .fd-link-check.is-ok { color: var(--good); }
 .fd-link-check.is-bad { color: var(--danger); font-weight: 600; }
+
+/* ================= Embeds tab (2026-11-11) =================
+   The podcast player's code maker and the fund drive capsule's code. Built on the Fund drive
+   card's pieces (.fd-layout two columns, .fd-form card, .fd-theme segmented control, .fd-snippet). */
+/* Three tabs: on phones each card stacks its icon over a short title so all three stay tappable. */
+@media (max-width: 560px) {
+  .studio-tab { flex-direction: column; justify-content: center; text-align: center; gap: .3rem; padding: .55rem .35rem; }
+  .studio-tab-title { font-size: .8rem; }
+}
+.em-link { font: inherit; padding: 0; border: 0; background: none; color: var(--accent-2); text-decoration: underline; cursor: pointer; }
+.em-link:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 3px; }
+.fd-embed-moved { margin-top: .5rem; }
+.em-form { gap: 1.25rem; }
+.em-group { display: grid; gap: .8rem; }
+.em-group + .em-group { padding-top: 1.1rem; border-top: 1px solid var(--outline-strong); }
+.em-group-title { margin: 0; font-size: .95rem; font-weight: 700; color: var(--ink); }
+.em-two { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; align-items: start; }
+.em-line { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.em-line .fd-theme { margin-left: 0; }
+.em-hint { font-size: .8rem; color: var(--ink-dim); margin: 0; }
+.em-form select.studio-input { padding-right: 2rem; }
+/* Switches: one compact row each, two columns of them where the card is wide enough. */
+.em-switches { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .1rem 1.25rem; }
+.em-switch-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 2.4rem; font-size: .92rem; color: var(--ink); }
+.em-switch { width: 44px; height: 26px; margin-top: 0; }
+.em-switch span { width: 18px; height: 18px; }
+.em-switch[aria-checked="true"] span { transform: translateX(18px); }
+/* Colour presets: a chip per pair, its swatch half dark-theme shade, half light-theme shade. */
+.em-presets { display: flex; flex-wrap: wrap; gap: .4rem; margin: .4rem 0; }
+.em-chip { display: inline-flex; align-items: center; gap: .45rem; min-height: 2rem; padding: .2rem .7rem .2rem .25rem; border-radius: 999px;
+  border: 1px solid var(--outline-strong); background: var(--surface-1); color: var(--ink-dim); font: inherit; font-size: .8rem; cursor: pointer; }
+.em-chip:hover { border-color: var(--ink-dim); color: var(--ink); }
+.em-chip[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); background: var(--surface-3); font-weight: 600; }
+.em-chip:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+.em-swatch { display: flex; flex: none; width: 20px; height: 20px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px var(--outline-strong); }
+.em-swatch span { flex: 1; }
+.em-color { display: flex; align-items: center; gap: .5rem; }
+.em-color input[type="color"] { flex: none; width: 46px; height: 42px; padding: 2px; border-radius: 8px; border: 1px solid var(--outline-strong); background: var(--surface-0); cursor: pointer; }
+.em-color .studio-input { min-width: 0; font-family: var(--font-mono); font-size: .95rem; }
+.em-color .em-unit { flex: none; width: 4.6rem; font-family: inherit; }
+/* The preview: the real embed in a frame, on a checked ground so its own edges show. The box
+   scrolls sideways when the chosen width (Tablet, 768px) is wider than the column. */
+.em-side .fd-preview-head .fd-theme { margin-left: auto; }
+.em-stage { padding: 1rem; border-radius: 16px; border: 1px dashed var(--outline-strong); overflow-x: auto;
+  background: repeating-conic-gradient(var(--surface-2) 0 25%, var(--surface-1) 0 50%) 0 0 / 20px 20px; }
+.em-stage-inner { margin: 0 auto; max-width: 100%; transition: width .25s ease; }
+.em-stage-inner.is-fixed { max-width: none; }
+.em-frame { display: block; width: 100%; height: 600px; border: 0; border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); background: transparent; }
+.em-code { margin-top: .4rem; }
+@media (prefers-reduced-motion: reduce) { .em-stage-inner { transition: none; } }

@@ -59,7 +59,8 @@ const DRIVE_LINK = 'https://docs.pacifica.org/kpfk/donate/?drive=fall';
   // Paul, 2026-10-27: the preview must show something before anything is typed.
   check('… the preview already shows a capsule, marked Example', await until(`var c = document.getElementById('fdPreview'); return !c.hidden && c.offsetHeight > 40 && /\\$/.test(c.textContent) && document.getElementById('fdPreviewTag').textContent === 'Example';`, 4000),
     await ev(`return document.getElementById('fdPreviewTag').textContent + ' | ' + document.getElementById('fdPreview').textContent.slice(0, 80);`));
-  check('… the embed snippet is shown, not folded away', await ev(`var e = document.getElementById('fdSnippet'); return e.offsetHeight > 20 && !e.closest('details');`));
+  // The embed code moved to the Embeds tab (2026-11-11); the card says where, with a link that opens it.
+  check('… the card points to the Embeds tab for the code', await ev(`var l = document.querySelector('#fundSection [data-go-tab="embeds"]'); return !!l && l.offsetHeight > 0 && !document.querySelector('#fundSection #fdSnippet');`));
   const lay = JSON.parse(await p.eval(`var f = document.querySelector('.fd-form').getBoundingClientRect(), v = document.querySelector('.fd-side').getBoundingClientRect();
     return JSON.stringify({ formW: Math.round(f.width), sideBySide: f.right <= v.left + 1 && Math.abs(f.top - v.top) < 60 });`));
   check('… desktop: a compact form beside the preview', lay.sideBySide && lay.formW <= 420, JSON.stringify(lay));
@@ -122,31 +123,50 @@ const DRIVE_LINK = 'https://docs.pacifica.org/kpfk/donate/?drive=fall';
   check('… Show it now: listeners\' figures change at once', await until(`return /^On\./.test(document.getElementById('fdStatus').textContent);`, 6000)
     && JSON.stringify((({ on, name, goal, pledged }) => ({ on, name, goal, pledged }))(await publicFigures())) === JSON.stringify({ on: true, name: 'Fall Fund Drive', goal: 75000, pledged: 42350 }),
     JSON.stringify(await publicFigures()) + ' ' + await ev(`return document.getElementById('fdStatus').textContent;`));
-  check('… the embed snippet is ready to copy', /<iframe src="[^"]*\/embed\/fund-drive\?theme=light&style=classic"/.test(await ev(`return document.getElementById('fdSnippet').textContent;`)));
   check('… the preview is marked Live', (await ev(`return document.getElementById('fdPreviewTag').textContent;`)) === 'Live');
-  // Paul, 2026-10-27: the snippet said theme=light but the embed opened dark. One choice now sets
-  // the preview's colours, the snippet's ?theme= and Open the embed's address.
-  const capBg = `return getComputedStyle(document.querySelector('#fdPreview')).backgroundColor;`;
-  const th = async () => JSON.parse(await p.eval(`return JSON.stringify({ bg: getComputedStyle(document.getElementById('fdPreview')).backgroundColor,
-    snippet: /theme=(\\w+)/.exec(document.getElementById('fdSnippet').textContent)[1], open: document.getElementById('fdOpenEmbed').getAttribute('href') });`));
-  const light = await th();
-  check('… light by default: a white capsule, snippet and Open both theme=light', light.bg === 'rgb(255, 255, 255)' && light.snippet === 'light' && light.open === '/embed/fund-drive?theme=light&style=classic', JSON.stringify(light));
+  const capBg = () => ev(`return getComputedStyle(document.getElementById('fdPreview')).backgroundColor;`);
+  check('… light by default: a white capsule', (await capBg()) === 'rgb(255, 255, 255)', await capBg());
   await p.click('[data-fd-theme="dark"]');
-  const dark = await th();
-  check('… Dark: a dark capsule, snippet and Open both theme=dark', dark.bg === 'rgb(28, 22, 21)' && dark.snippet === 'dark' && dark.open === '/embed/fund-drive?theme=dark&style=classic', JSON.stringify(dark));
-  // Style (2026-10-29): the picker redraws the preview and pins the snippet's style and height; it is a
-  // draft until Update figures, so picking Classic again leaves nothing to save.
+  check('… Dark: a dark capsule', (await capBg()) === 'rgb(28, 22, 21)', await capBg());
+  // Style (2026-10-29): the picker redraws the preview; it is a draft until Update figures, so
+  // picking Classic again leaves nothing to save.
   await p.click('[data-fd-style="ring"]');
   const ring = JSON.parse(await ev(`return JSON.stringify({ style: document.getElementById('fdPreview').getAttribute('data-style'), ringShown: getComputedStyle(document.querySelector('#fdPreview .fd-ring')).display !== 'none',
-    barShown: getComputedStyle(document.querySelector('#fdPreview .fd-bar')).display !== 'none', snippet: document.getElementById('fdSnippet').textContent, save: !document.getElementById('fdPublish').disabled,
+    barShown: getComputedStyle(document.querySelector('#fdPreview .fd-bar')).display !== 'none', save: !document.getElementById('fdPublish').disabled,
     card: document.querySelector('.fd-style-card[data-fd-style="ring"]').getAttribute('aria-pressed'), badge: getComputedStyle(document.querySelector('.fd-style-card[data-fd-style="ring"] .fd-style-tick')).display, note: document.getElementById('fdStyleNote').textContent });`));
-  check('… Style Ring: the preview draws the ring (no bar), the snippet pins style=ring at 340px, Update figures is offered',
-    ring.card === 'true' && ring.badge !== 'none' && /not saved yet/.test(ring.note) && ring.style === 'ring' && ring.ringShown && !ring.barShown && /style=ring"/.test(ring.snippet) && /height:340px/.test(ring.snippet) && ring.save, JSON.stringify(ring));
+  check('… Style Ring: the preview draws the ring (no bar), Update figures is offered',
+    ring.card === 'true' && ring.badge !== 'none' && /not saved yet/.test(ring.note) && ring.style === 'ring' && ring.ringShown && !ring.barShown && ring.save, JSON.stringify(ring));
   await p.click('[data-fd-style="classic"]');
   check('… back to Classic: nothing to save', await ev(`return document.getElementById('fdPublish').disabled && document.getElementById('fdPreview').getAttribute('data-style') === 'classic';`));
   await p.click('[data-fd-theme="light"]');
+
+  // ---- 1b: the capsule's code, in the Embeds tab (moved from this card, 2026-11-11).
+  // Paul, 2026-10-27: the snippet said theme=light but the embed opened dark. One choice sets the
+  // preview (the real embed, in a frame), the snippet's ?theme= and Open the embed's address.
+  await p.click('#fundSection [data-go-tab="embeds"]');
+  check('the card\'s link opens the Embeds tab', await until(`var e = document.getElementById('embedsPanel'); return !e.hidden && e.offsetHeight > 100 && document.getElementById('tabEmbeds').getAttribute('aria-selected') === 'true' && document.getElementById('discoveryPanel').hidden;`, 5000));
+  const code = async () => JSON.parse(await p.eval(`return JSON.stringify({ snippet: document.getElementById('fdSnippet').textContent, open: document.getElementById('fdOpenEmbed').getAttribute('href'),
+    frame: document.getElementById('fdeFrame').getAttribute('src'), frameH: document.getElementById('fdeFrame').offsetHeight });`));
+  await until(`return /style=classic/.test(document.getElementById('fdeFrame').getAttribute('src') || '');`, 5000);
+  const light = await code();
+  check('… the snippet is ready to copy: light, classic, 170px; preview and Open match it',
+    /<iframe src="[^"]*\/embed\/fund-drive\?theme=light&style=classic"/.test(light.snippet) && /height:170px/.test(light.snippet)
+    && light.open === '/embed/fund-drive?theme=light&style=classic' && light.frame === light.open && light.frameH === 170, JSON.stringify(light));
+  check('… the preview is the real embed, showing the capsule', await until(`var d = document.getElementById('fdeFrame').contentDocument, c = d && d.querySelector('.fd-cap'); return !!c && c.offsetHeight > 40 && /42,350/.test(c.textContent);`, 8000));
+  check('… it says the drive is on', /is on/.test(await ev(`return document.getElementById('fdeState').textContent;`)));
+  await p.click('[data-fde-theme="dark"]');
+  const dark = await code();
+  check('… Dark: snippet, preview and Open all theme=dark', /theme=dark&style=classic"/.test(dark.snippet) && dark.open === '/embed/fund-drive?theme=dark&style=classic' && dark.frame === dark.open, JSON.stringify(dark));
+  await p.click('[data-fde-style="ring"]');
+  const ringCode = await code();
+  check('… Ring: the snippet pins style=ring at 340px; preview and Open match', /style=ring"/.test(ringCode.snippet) && /height:340px/.test(ringCode.snippet)
+    && ringCode.open === '/embed/fund-drive?theme=dark&style=ring' && ringCode.frame === ringCode.open && ringCode.frameH === 340, JSON.stringify(ringCode));
+  check('… picking a style here saves nothing: listeners keep Classic', (await publicFigures()).style === 'classic');
+  await p.click('[data-fde-style="classic"]'); await p.click('[data-fde-theme="light"]');
   check('… Copy and Open are buttons, their labels centred', await ev(`return ['fdCopy', 'fdOpenEmbed'].every(function(id){ var b = document.getElementById(id), r = b.getBoundingClientRect(), t = b.querySelector('span').getBoundingClientRect();
     return /flex/.test(getComputedStyle(b).display) && Math.abs((t.top + t.height / 2) - (r.top + r.height / 2)) <= 2 && !!b.querySelector('svg'); });`));
+  await p.click('#embedFundSection [data-go-tab="discovery"]');
+  check('… its link leads back to the Fund drive card', await until(`return !document.getElementById('discoveryPanel').hidden && document.getElementById('embedsPanel').hidden && document.getElementById('fundSection').offsetHeight > 100;`, 5000));
   // Phone width: stacked, preview first, nothing sideways.
   await size(390, true);
   await sleep(500);

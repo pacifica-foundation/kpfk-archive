@@ -1,0 +1,598 @@
+/* The podcast player embed (/embed/podcasts). Radio Suite's player look (its
+   components/embed/embed-player.css, 2026-11-10): Oswald headings, Inter text, compact spacing,
+   dark by default, black and white unless the link sets an accent.
+   This page loads no other stylesheet. Everything is under .pe. The accent comes from the link
+   (--pe-accent-dark / --pe-accent-light, set through CSSOM by public/podcast-embed.js: the
+   content security policy voids inline style="").
+   Icons are inline SVG drawn by the script (this app has no Font Awesome). */
+
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(/assets/fonts/oswald-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(/assets/fonts/inter-latin.woff2) format('woff2');
+}
+
+html, body { height: 100%; }
+body { margin: 0; background: #0a0a0a; }
+body:has(.pe[data-theme="light"]) { background: #fdfcff; }
+
+.pe {
+  --pe-bg: #0a0a0a;
+  --pe-surface: #151515;
+  --pe-raised: #1e1e1e;
+  --pe-border: rgba(255, 255, 255, 0.08);
+  --pe-text: #ffffff;
+  --pe-text-2: rgba(255, 255, 255, 0.7);
+  --pe-text-3: rgba(255, 255, 255, 0.5);
+  --pe-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --pe-accent-dark: #e5e7eb;
+  --pe-accent-light: #18181b;
+  --pe-on-accent-dark: #000000;
+  --pe-on-accent-light: #ffffff;
+  --pe-accent: var(--pe-accent-dark);
+  --pe-on-accent: var(--pe-on-accent-dark);
+  --pe-tint: color-mix(in srgb, var(--pe-accent) 16%, transparent);
+  --pe-ease: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  color-scheme: dark; /* scrollbars and form controls follow the theme */
+  scrollbar-color: color-mix(in srgb, var(--pe-text) 25%, transparent) transparent;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--pe-bg);
+  color: var(--pe-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.pe[data-theme="light"] {
+  --pe-bg: #fdfcff;
+  --pe-surface: #f5f5f7;
+  --pe-raised: #ffffff;
+  --pe-border: rgba(0, 0, 0, 0.1);
+  --pe-text: #1c1b1f;
+  --pe-text-2: #49454f;
+  --pe-text-3: #6b6870;
+  --pe-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  --pe-accent: var(--pe-accent-light);
+  --pe-on-accent: var(--pe-on-accent-light);
+  color-scheme: light;
+}
+
+.pe *, .pe *::before, .pe *::after { box-sizing: border-box; }
+/* Resets at zero specificity (:where), so every button class below can set its own colour.
+   `.pe button { color: inherit }` once outranked them all (Radio Suite, 2026-11-10); a test
+   rejects that form and !important. */
+:where(.pe) button { font: inherit; color: inherit; }
+/* Above the one-class display rules below (a hidden player bar is still display:grid otherwise). */
+.pe [hidden] { display: none; }
+.pe :focus-visible { outline: 2px solid var(--pe-accent); outline-offset: 2px; }
+
+/* Icons: stroked drawings in the text colour; .pe-ic--fill for solid shapes. */
+.pe-ic { flex: none; width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pe-ic--fill { fill: currentColor; stroke: none; }
+.pe-ic text { fill: currentColor; stroke: none; font: 700 7.5px 'Inter', system-ui, sans-serif; }
+
+/* ---------- Header ---------- */
+.pe-header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--pe-border);
+  background: var(--pe-surface);
+}
+.pe-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  min-width: 0;
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.pe-title .pe-ic { color: var(--pe-accent); }
+.pe-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.pe-icon-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--pe-border);
+  background: transparent;
+  color: var(--pe-text-2);
+  cursor: pointer;
+  transition: color var(--pe-ease), border-color var(--pe-ease), background var(--pe-ease);
+}
+.pe-icon-btn:hover { color: var(--pe-accent); border-color: var(--pe-accent); }
+.pe-icon-btn--small { width: 30px; height: 30px; font-size: 12px; }
+.pe-icon-btn[aria-expanded="true"] .pe-ic { transform: rotate(180deg); }
+
+/* ---------- Show picker ---------- */
+.pe-picker {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--pe-border);
+  background: var(--pe-bg);
+  position: relative;
+  z-index: 20;
+}
+.pe-picker-label {
+  flex: none;
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pe-text-3);
+}
+.pe-dropdown { position: relative; flex: 1; min-width: 0; }
+.pe-dropdown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  /* Default: the accent-tinted border (Paul, 2026-11-10) */
+  border: 1px solid color-mix(in srgb, var(--pe-accent) 60%, transparent);
+  background: var(--pe-raised);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--pe-ease), box-shadow var(--pe-ease);
+}
+.pe-dropdown-btn:hover { border-color: color-mix(in srgb, var(--pe-accent) 85%, transparent); }
+/* Selected: open, or reached with the keyboard: full accent border and a soft ring */
+.pe-dropdown-btn.is-open,
+.pe-dropdown-btn:focus-visible {
+  outline: none;
+  border-color: var(--pe-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pe-accent) 30%, transparent);
+}
+.pe-dropdown-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.pe-dropdown-btn .pe-ic { font-size: 12px; color: var(--pe-text-3); transition: transform var(--pe-ease); }
+.pe-dropdown-btn.is-open .pe-ic { transform: rotate(180deg); color: var(--pe-accent); }
+.pe-dropdown-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: min(320px, 60vh);
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border-radius: 8px;
+  border: 1px solid var(--pe-border);
+  background: var(--pe-raised);
+  box-shadow: var(--pe-shadow);
+}
+.pe-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.pe-option.is-active { background: var(--pe-tint); }
+.pe-option.is-selected .pe-option-title { color: var(--pe-accent); font-weight: 600; }
+.pe-option-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pe-option-count { flex: none; font-size: 12px; color: var(--pe-text-3); }
+
+/* ---------- Main (scrolls) ---------- */
+/* position: the script scrolls a linked episode into view by its offset inside this box */
+.pe-main { position: relative; flex: 1; min-height: 0; overflow-y: auto; padding: 16px; }
+
+.pe-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 16px;
+  color: var(--pe-text-3);
+  text-align: center;
+}
+.pe-empty .pe-ic { font-size: 28px; }
+.pe-empty p { margin: 0; }
+
+.pe-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--pe-border);
+  border-top-color: var(--pe-accent);
+  animation: pe-spin 0.8s linear infinite;
+}
+.pe-spinner--small { width: 16px; height: 16px; border-width: 2px; border-color: color-mix(in srgb, var(--pe-on-accent) 30%, transparent); border-top-color: var(--pe-on-accent); }
+@keyframes pe-spin { to { transform: rotate(360deg); } }
+
+/* ---------- Show info ---------- */
+.pe-show { display: grid; grid-template-columns: 140px 1fr; gap: 16px; margin-bottom: 20px; }
+.pe-show--no-cover { grid-template-columns: 1fr; }
+.pe-show-cover { width: 140px; height: 140px; object-fit: cover; display: block; background: var(--pe-surface); }
+.pe-cover-placeholder { display: flex; align-items: center; justify-content: center; color: var(--pe-text-3); background: var(--pe-surface); }
+.pe-show-cover.pe-cover-placeholder { font-size: 40px; }
+.pe-show-meta { min-width: 0; }
+.pe-show-title {
+  margin: 0 0 4px;
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+}
+.pe-show-host { margin: 0 0 6px; color: var(--pe-accent); font-weight: 500; }
+.pe-show-desc { margin: 0; color: var(--pe-text-2); white-space: pre-line; }
+.pe-show-desc.is-collapsed { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pe-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pe-accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pe-link-btn .pe-ic { font-size: 10px; }
+.pe-link-btn[aria-expanded="true"] .pe-ic { transform: rotate(180deg); }
+.pe-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pe-badge {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--pe-text-2);
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-border);
+}
+
+/* ---------- Episodes ---------- */
+.pe-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pe-text-3);
+}
+.pe-section-title .pe-ic { color: var(--pe-accent); }
+.pe-episode-list { list-style: none; margin: 0; padding: 0; }
+.pe-episode {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: background var(--pe-ease);
+}
+.pe-episode + .pe-episode { margin-top: 4px; }
+.pe-episode:hover { background: var(--pe-surface); }
+.pe-episode.is-current { background: var(--pe-tint); border-color: color-mix(in srgb, var(--pe-accent) 35%, transparent); }
+.pe-episode-cover { flex: none; width: 56px; height: 56px; object-fit: cover; display: block; }
+.pe-episode-cover.pe-cover-placeholder { font-size: 18px; }
+.pe-episode-body { flex: 1; min-width: 0; }
+.pe-episode-title { font-weight: 600; line-height: 1.3; }
+.pe-episode.is-current .pe-episode-title { color: var(--pe-accent); }
+.pe-episode-meta { margin-top: 2px; font-size: 12px; color: var(--pe-text-3); }
+.pe-episode-desc { margin: 8px 0 0; font-size: 13px; color: var(--pe-text-2); white-space: pre-line; }
+.pe-episode-actions { flex: none; display: flex; align-items: center; gap: 6px; }
+.pe-play-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  background: var(--pe-accent);
+  color: var(--pe-on-accent);
+  cursor: pointer;
+  transition: transform var(--pe-ease), filter var(--pe-ease);
+}
+.pe-play-btn:hover { transform: scale(1.06); filter: brightness(1.1); }
+/* Play and pause fill their round buttons (Paul, 2026-11-11: they were too small). */
+.pe-play-btn .pe-ic { width: 22px; height: 22px; }
+
+/* ---------- Player bar: a flex child at the bottom, not position:fixed, so it sits right in
+   an iframe of any height ---------- */
+.pe-player {
+  flex: none;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "info controls" "progress progress";
+  gap: 6px 16px;
+  padding: 12px 44px 12px 16px;
+  border-top: 1px solid var(--pe-border);
+  background: var(--pe-raised);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
+}
+.pe-player-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--pe-text-3);
+  cursor: pointer;
+}
+.pe-player-close:hover { color: var(--pe-text); background: var(--pe-surface); }
+.pe-player-info { grid-area: info; min-width: 0; align-self: center; }
+.pe-player-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pe-player-show { font-size: 12px; color: var(--pe-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.pe-progress { grid-area: progress; }
+.pe-progress-track { position: relative; height: 6px; border-radius: 3px; background: var(--pe-border); }
+.pe-progress-buffered, .pe-progress-filled { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 3px; pointer-events: none; }
+.pe-progress-buffered { background: color-mix(in srgb, var(--pe-text) 18%, transparent); }
+.pe-progress-filled { background: var(--pe-accent); }
+.pe-progress-input {
+  position: absolute;
+  inset: -7px 0;
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.pe-progress-input:disabled { cursor: default; }
+.pe-progress-track:has(.pe-progress-input:focus-visible) { outline: 2px solid var(--pe-accent); outline-offset: 4px; }
+.pe-times { display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: var(--pe-text-3); font-variant-numeric: tabular-nums; }
+
+.pe-controls { grid-area: controls; display: flex; align-items: center; gap: 6px; }
+.pe-ctrl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--pe-border);
+  background: var(--pe-surface);
+  color: var(--pe-text-2);
+  cursor: pointer;
+  font-size: 13px;
+  transition: color var(--pe-ease), border-color var(--pe-ease);
+}
+.pe-ctrl:hover { color: var(--pe-accent); border-color: var(--pe-accent); }
+.pe-ctrl--skip { font-size: 19px; }
+.pe-ctrl--play { width: 44px; height: 44px; border: 0; background: var(--pe-accent); color: var(--pe-on-accent); font-size: 16px; }
+.pe-ctrl--play:hover { color: var(--pe-on-accent); filter: brightness(1.1); }
+.pe-ctrl--play .pe-ic { width: 26px; height: 26px; }
+.pe-ctrl--text { width: auto; min-width: 34px; padding: 0 8px; border-radius: 17px; font-size: 12px; font-weight: 600; }
+
+.pe-speed { position: relative; }
+.pe-speed-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--pe-border);
+  background: var(--pe-raised);
+  box-shadow: var(--pe-shadow);
+  z-index: 30;
+}
+.pe-speed-menu button { padding: 6px 14px; border: 0; border-radius: 6px; background: none; cursor: pointer; font-size: 13px; }
+.pe-speed-menu button:hover { background: var(--pe-tint); }
+.pe-speed-menu button.is-active { color: var(--pe-accent); font-weight: 700; }
+
+.pe-volume { display: flex; align-items: center; gap: 6px; }
+.pe-volume-input { width: 72px; accent-color: var(--pe-accent); }
+
+.pe-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 32px);
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #b3261e;
+  color: #fff;
+  font-size: 13px;
+  box-shadow: var(--pe-shadow);
+  z-index: 40;
+}
+
+/* ---------- Narrow (phones, small iframes) ---------- */
+@media (max-width: 560px) {
+  .pe-show { grid-template-columns: 96px 1fr; gap: 12px; }
+  .pe-show-cover { width: 96px; height: 96px; }
+  .pe-show--no-cover { grid-template-columns: 1fr; }
+  .pe-show-title { font-size: 18px; }
+  .pe-episode-cover { width: 44px; height: 44px; }
+  .pe-player { grid-template-columns: 1fr; grid-template-areas: "info" "progress" "controls"; padding-right: 40px; }
+  .pe-controls { justify-content: center; }
+  .pe-volume-input { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pe *, .pe *::before, .pe *::after { transition: none; }
+  .pe-spinner { animation-duration: 2.4s; }
+}
+
+/* ---------- The stage: everything above the player bar. Overlays cover it, never the bar ---------- */
+.pe-stage { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* Show info: a small pill under the show's three lines */
+.pe-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 12px 5px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--pe-accent) 60%, transparent);
+  background: transparent;
+  color: var(--pe-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--pe-ease), background var(--pe-ease);
+}
+.pe-pill-btn .pe-ic { color: var(--pe-accent); }
+.pe-pill-btn:hover { border-color: var(--pe-accent); background: var(--pe-tint); }
+.pe-transcript-btn .pe-ic { width: 16px; height: 16px; }
+
+/* ---------- Overlay (Show info, Transcript) ---------- */
+.pe-layer { position: absolute; inset: 0; z-index: 50; display: flex; align-items: stretch; justify-content: center; padding: 12px; }
+.pe-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); }
+.pe[data-theme="light"] .pe-scrim { background: rgba(20, 20, 24, 0.4); }
+.pe-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 680px;
+  min-height: 0;
+  border-radius: 12px;
+  border: 1px solid var(--pe-border);
+  background: var(--pe-raised);
+  box-shadow: var(--pe-shadow);
+  overflow: hidden;
+  animation: pe-rise 160ms ease-out;
+}
+@keyframes pe-rise { from { opacity: 0; transform: translateY(8px); } }
+.pe-sheet-head { flex: none; display: flex; align-items: flex-start; gap: 12px; padding: 14px 14px 12px 18px; border-bottom: 1px solid var(--pe-border); }
+.pe-sheet-heading { flex: 1; min-width: 0; }
+.pe-sheet-kind {
+  margin: 0 0 2px;
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pe-accent);
+}
+.pe-sheet-title { margin: 0; font-family: 'Oswald', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 20px; line-height: 1.25; }
+.pe-sheet-sub { margin: 3px 0 0; font-size: 13px; color: var(--pe-text-3); }
+.pe-sheet-body { position: relative; flex: 1; min-height: 0; overflow-y: auto; padding: 16px 18px 20px; }
+
+/* Show info */
+.pe-info { display: grid; grid-template-columns: 160px 1fr; gap: 18px; align-items: start; }
+.pe-info-cover { width: 160px; height: 160px; object-fit: cover; display: block; background: var(--pe-surface); }
+.pe-info-cover.pe-cover-placeholder { font-size: 44px; }
+.pe-info-text { min-width: 0; }
+.pe-info-cat { margin: 0 0 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pe-text-3); }
+.pe-info-desc { margin: 0; color: var(--pe-text-2); white-space: pre-line; }
+.pe-info-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.pe-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--pe-border);
+  background: var(--pe-surface);
+  color: var(--pe-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.pe-link .pe-ic { width: 14px; height: 14px; color: var(--pe-text-3); }
+.pe-link:hover { border-color: var(--pe-accent); }
+.pe-link--primary { border-color: transparent; background: var(--pe-accent); color: var(--pe-on-accent); }
+.pe-link--primary .pe-ic { color: var(--pe-on-accent); }
+.pe-link--primary:hover { filter: brightness(1.1); }
+
+/* Transcript */
+.pe-transcript-hint { margin: 0 0 10px; font-size: 12px; color: var(--pe-text-3); }
+.pe-transcript { list-style: none; margin: 0; padding: 0; }
+.pe-line {
+  display: grid;
+  grid-template-columns: 4.2em 1fr;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.pe-line:hover { background: var(--pe-surface); }
+.pe-line-time { padding-top: 1px; font-size: 12px; color: var(--pe-text-3); font-variant-numeric: tabular-nums; }
+.pe-line-text { color: var(--pe-text-2); }
+.pe-line.is-now { background: var(--pe-tint); }
+.pe-line.is-now .pe-line-text { color: var(--pe-text); font-weight: 500; }
+.pe-line.is-now .pe-line-time { color: var(--pe-accent); font-weight: 600; }
+.pe-transcript-plain p { margin: 0 0 12px; color: var(--pe-text-2); }
+.pe-now-btn {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pe-accent);
+  color: var(--pe-on-accent);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--pe-shadow);
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .pe-layer { padding: 0; }
+  .pe-sheet { max-width: none; border-radius: 0; border: 0; }
+  .pe-info { grid-template-columns: 1fr; }
+  .pe-info-cover { width: 120px; height: 120px; }
+  .pe-sheet-body { padding: 14px 14px 18px; }
+}
+@media (prefers-reduced-motion: reduce) { .pe-sheet { animation: none; } }

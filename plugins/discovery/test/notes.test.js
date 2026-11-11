@@ -43,6 +43,25 @@ test('notes: keyed by archive id, joined by exact mp3, nothing the archive does 
   assert.equal(body.station,'kpfk');assert.equal(body.stale,false);
 });
 
+test('notes for one show (?show=, the podcast player embed): exactly that show\'s entries from the full list',async t=>{
+  // Two episodes of one show, one of another: the filter is by the archive's show, joined as above.
+  const a1=row('dn',10),a2={...row('dn2',34),sho:'kpfk.kpfk.dn'},b=row('later',2);
+  const qir=[qirEp(ID(11),'democracynow',a1.mp3),qirEp(ID(12),'democracynow',a2.mp3)];
+  const o=await serve(t,{rows:[a1,a2,b],qir});
+  const all=(await (await fetch(o+'/api/plugins/qir/notes')).json()).notes;
+  const r=await fetch(o+'/api/plugins/qir/notes?show=kpfk.kpfk.dn');assert.equal(r.status,200);
+  const one=await r.json();
+  assert.deepEqual(one.notes,{'kpfk.kpfk.dn':all['kpfk.kpfk.dn'],'kpfk.kpfk.dn2':all['kpfk.kpfk.dn2']});
+  assert.equal(one.show,'kpfk.kpfk.dn');assert.equal(one.station,'kpfk');
+  assert.deepEqual((await (await fetch(o+'/api/plugins/qir/notes?show=kpfk.kpfk.later')).json()).notes,{'kpfk.kpfk.later':{pending:true,skipped:false}});
+  assert.deepEqual((await (await fetch(o+'/api/plugins/qir/notes?show=kpfk.kpfk.nosuch')).json()).notes,{},'a show with no notes is an empty list');
+  // Its own ETag, and a 304 when unchanged
+  const etag=r.headers.get('etag');assert.match(etag,/^"[a-f0-9]{32}"$/);
+  assert.equal((await fetch(o+'/api/plugins/qir/notes?show=kpfk.kpfk.dn',{headers:{'If-None-Match':etag}})).status,304);
+  for(const bad of ['__proto__x/../','a b','<x>',''])assert.equal((await fetch(o+'/api/plugins/qir/notes?show='+encodeURIComponent(bad))).status,400,bad);
+  assert.deepEqual((await (await fetch(o+'/api/plugins/qir/notes?show=__proto__')).json()).notes,{},'a key every object has is still just an unknown show');
+});
+
 test('notes: an unchanged answer is a 304; a changed archive is a new ETag',async t=>{
   const rows=[row('dn',10)];
   const o=await serve(t,{rows,qir:[qirEp(ID(11),'dn',mp3('dn'))]});
