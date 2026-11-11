@@ -272,11 +272,15 @@
 
   // ---- the shown show ----
   function showInfo(show) {
+    // Three parts so phones can give the description the card's full width: the cover, the
+    // title and host beside it, and the rest (description, Show info, counts) under both.
     var section = el('section', 'pe-show' + (opts.cover ? '' : ' pe-show--no-cover'));
     if (opts.cover) section.appendChild(cover(show.image, 'pe-show-cover'));
+    var head = el('div', 'pe-show-head');
+    head.appendChild(el('h2', 'pe-show-title', show.title));
+    if (show.host) head.appendChild(el('p', 'pe-show-host', show.host));
+    section.appendChild(head);
     var meta = el('div', 'pe-show-meta');
-    meta.appendChild(el('h2', 'pe-show-title', show.title));
-    if (show.host) meta.appendChild(el('p', 'pe-show-host', show.host));
     // Three lines here; the whole description, the links and the site's show page in Show info.
     if (show.description) meta.appendChild(el('p', 'pe-show-desc is-collapsed', show.description));
     var more = el('button', 'pe-pill-btn');
@@ -311,9 +315,9 @@
       actions.appendChild(tr);
     }
     if (ep.description) {
+      // A child of the row, not of the title column, so it can use the card's full width.
       var desc = el('p', 'pe-episode-desc', ep.description);
       desc.hidden = true;
-      body.appendChild(desc);
       var toggle = iconButton('pe-icon-btn pe-icon-btn--small', 'chevron');
       toggle.setAttribute('aria-expanded', 'false');
       toggle.setAttribute('aria-label', 'Show description');
@@ -329,6 +333,7 @@
     play.addEventListener('click', function () { playEpisode(ep, show, queue); });
     actions.appendChild(play);
     li.appendChild(actions);
+    if (desc) li.appendChild(desc);
     rows.set(ep.id, { li: li, play: play, episode: ep });
     return li;
   }

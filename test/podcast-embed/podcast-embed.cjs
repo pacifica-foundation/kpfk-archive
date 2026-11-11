@@ -1,7 +1,7 @@
 // The podcast player embed and the studio's Embeds tab (2026-11-11), real taps in Chrome on a
 // scratch server (run.sh):
-//  1. The player at /embed/podcasts: loads the site's feed, Radio Suite's look (fonts, black and
-//     white), play from a row, the bar (pause, speed, skip), plays on to the next episode, close,
+//  1. The player at /embed/podcasts: loads the site's feed, the site's look (its fonts and colours,
+//     the cream light theme, raised cards), play from a row, the bar (pause, speed, skip), plays on to the next episode, close,
 //     the show picker by mouse and keyboard, the light/dark button.
 //  2. Settings in the link: theme, show, latest N oldest first, parts hidden, accent colours, an
 //     episode opened without autoplay, a show that is not there.
@@ -61,15 +61,16 @@ const password = process.env.STUDIO_PW || 'pw';
   check('… header says the station, the picker starts on the first show A to Z, every episode listed',
     page.header === 'KPFK' && page.show === first.title && page.picker === first.title && page.rows === first.episodes && page.options === first.count && page.theme === 'dark', JSON.stringify({ page, first }));
   await until(`var i = document.querySelector('img.pe-show-cover'); return !!i && i.complete && i.naturalWidth > 0;`, 10000);   // the picture loads lazily
-  const look = await evJson(`return document.fonts.ready.then(function () { var b = document.querySelector('.pe-play-btn'), img = document.querySelector('.pe-show-cover');
-    return JSON.stringify({ oswald: document.fonts.check('600 22px Oswald'), inter: document.fonts.check('400 14px Inter'),
-      loaded: Array.from(document.fonts).map(function (f) { return f.family.replace(/"/g, '') + ':' + f.status; }).join(','),
-      titleFont: getComputedStyle(document.querySelector('.pe-show-title')).fontFamily.split(',')[0].replace(/"/g, ''),
+  // The site's look (Paul, 2026-11-11): its dark page, raised cards, red play buttons with white
+  // icons, its condensed heading face and teal hosts; no web fonts of its own.
+  const look = await evJson(`var b = document.querySelector('.pe-play-btn'), img = document.querySelector('.pe-show-cover'), card = document.querySelector('.pe-episode'), host = document.querySelector('.pe-show-host');
+    return JSON.stringify({ fonts: document.fonts.size, titleFont: getComputedStyle(document.querySelector('.pe-show-title')).fontFamily.split(',')[0].replace(/"/g, ''),
       playBg: getComputedStyle(b).backgroundColor, playInk: getComputedStyle(b).color, bg: getComputedStyle(document.body).backgroundColor,
-      cover: img && img.tagName === 'IMG' ? (img.complete && img.naturalWidth > 0 ? 'drawn' : 'not drawn') : 'placeholder', icon: !!b.querySelector('svg.pe-ic') }); });`);
-  check('… Radio Suite\'s look: Oswald and Inter loaded from this site, black and white (light grey button, black icon), artwork drawn',
-    /Oswald:loaded/.test(look.loaded) && /Inter:loaded/.test(look.loaded) && look.titleFont === 'Oswald' && look.playBg === 'rgb(229, 231, 235)' && look.playInk === 'rgb(0, 0, 0)'
-    && look.bg === 'rgb(10, 10, 10)' && look.cover === 'drawn' && look.icon, JSON.stringify(look));
+      card: getComputedStyle(card).backgroundColor, cardShadow: getComputedStyle(card).boxShadow !== 'none', cardRadius: getComputedStyle(card).borderTopLeftRadius,
+      host: host ? getComputedStyle(host).color : 'no host', cover: img && img.tagName === 'IMG' ? (img.complete && img.naturalWidth > 0 ? 'drawn' : 'not drawn') : 'placeholder', icon: !!b.querySelector('svg.pe-ic') });`);
+  check('… the site\'s look: warm dark page, raised cards, red play button with a white icon, condensed headings, artwork drawn',
+    look.titleFont === 'Arial Narrow' && look.fonts === 0 && look.playBg === 'rgb(225, 74, 46)' && look.playInk === 'rgb(255, 255, 255)' && look.bg === 'rgb(20, 16, 15)'
+    && look.card === 'rgb(28, 22, 21)' && look.cardShadow && look.cardRadius === '14px' && ['rgb(79, 182, 172)', 'no host'].includes(look.host) && look.cover === 'drawn' && look.icon, JSON.stringify(look));
   check('… nothing plays and no player bar before a tap', await ev(`return ${bar}.hidden && ${bar}.offsetHeight === 0 && ${AUDIO}.paused && !${AUDIO}.getAttribute('src');`));
 
   await p.click('.pe-episode:nth-child(1) .pe-play-btn');
@@ -139,7 +140,7 @@ const password = process.env.STUDIO_PW || 'pw';
   await p.click('.pe-header .pe-icon-btn');
   const lit = await evJson(`var b = document.querySelector('.pe-play-btn'); return JSON.stringify({ theme: document.getElementById('player').getAttribute('data-theme'), bg: getComputedStyle(document.body).backgroundColor,
     playBg: getComputedStyle(b).backgroundColor, playInk: getComputedStyle(b).color, label: document.querySelector('.pe-header .pe-icon-btn').getAttribute('aria-label') });`);
-  check('the light/dark button: light page, near-black button with a white icon', lit.theme === 'light' && lit.bg === 'rgb(253, 252, 255)' && lit.playBg === 'rgb(24, 24, 27)' && lit.playInk === 'rgb(255, 255, 255)' && lit.label === 'Switch to dark theme', JSON.stringify(lit));
+  check('the light/dark button: the site\'s cream page, its light red button with a white icon', lit.theme === 'light' && lit.bg === 'rgb(246, 241, 234)' && lit.playBg === 'rgb(200, 55, 30)' && lit.playInk === 'rgb(255, 255, 255)' && lit.label === 'Switch to dark theme', JSON.stringify(lit));
   check('the player page: no uncaught errors so far', !errors.length, errors.slice(0, 3).join('\n     '));
 
   // ---- 1b: icons, Show info, Transcript (QIR answered by a stand-in inside Chrome)
@@ -235,6 +236,8 @@ const password = process.env.STUDIO_PW || 'pw';
   await until(`return ${listed} && !!document.querySelector('.pe-transcript-btn');`, 15000);
   await p.click('.pe-episode.is-current .pe-transcript-btn');
   await until(`return document.querySelectorAll('.pe-sheet .pe-line').length === 50;`, 8000);
+  // Measure after the sheet's arrival animation (it scales in, as the site's sheets do)
+  await until(`return document.querySelector('.pe-sheet').getAnimations().every(function (a) { return a.playState === 'finished'; });`, 3000);
   const ph = await evJson(`var sh = document.querySelector('.pe-sheet').getBoundingClientRect(), bar = ${bar}.getBoundingClientRect(), f = ${noSideways}, b = document.querySelector('.pe-ctrl--play').getBoundingClientRect(),
     hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
     return JSON.stringify({ fills: sh.left === 0 && Math.round(sh.width) === innerWidth, above: sh.bottom <= bar.top + 0.5, barShown: bar.height > 60 && Math.abs(bar.bottom - innerHeight) <= 1, reach: !!hit && !!hit.closest('.pe-ctrl--play'), page: f.page, cut: f.cut });`);
@@ -288,6 +291,16 @@ const password = process.env.STUDIO_PW || 'pw';
     const fit = await evJson(`var b = ${bar}.getBoundingClientRect(), c = document.querySelector('.pe-controls').getBoundingClientRect(), f = ${noSideways};
       return JSON.stringify({ page: f.page, cut: f.cut, barIn: b.left >= 0 && b.right <= innerWidth + 0.5 && Math.abs(b.bottom - innerHeight) <= 1, controlsIn: c.left >= 0 && c.right <= innerWidth + 0.5,
         stacked: c.top > document.querySelector('.pe-progress').getBoundingClientRect().top, volume: getComputedStyle(document.querySelector('.pe-volume-input')).display, list: document.querySelector('.pe-main').clientHeight });`);
+    // Paul, 2026-11-11: on phones the descriptions use the card's full width, not a column beside the buttons.
+    const row = await ev(`var li = [].filter.call(document.querySelectorAll('.pe-episode'), function (r) { return !!r.querySelector('.pe-episode-desc'); })[0]; if (!li) return 'none';
+      li.querySelector('.pe-episode-actions .pe-icon-btn:not(.pe-transcript-btn)').click(); return 'ok';`);
+    const span = await evJson(`var li = [].filter.call(document.querySelectorAll('.pe-episode'), function (r) { var d = r.querySelector('.pe-episode-desc'); return d && !d.hidden; })[0];
+      var show = document.querySelector('.pe-show'), meta = document.querySelector('.pe-show-meta');
+      function inner(n) { var r = n.getBoundingClientRect(), s = getComputedStyle(n); return r.width - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight) - parseFloat(s.borderLeftWidth) - parseFloat(s.borderRightWidth); }
+      return JSON.stringify({ desc: li ? Math.round(li.querySelector('.pe-episode-desc').getBoundingClientRect().width) : -1, row: li ? Math.round(inner(li)) : -1,
+        meta: Math.round(meta.getBoundingClientRect().width), card: Math.round(inner(show)) });`);
+    check(`${width}px ${theme}: an opened description and the show's description use the card's full width`,
+      row === 'none' || (Math.abs(span.desc - span.row) <= 1 && Math.abs(span.meta - span.card) <= 1), row + ' ' + JSON.stringify(span));
     check(`${width}px ${theme}: nothing sideways or cut off; the bar stacks under the list, which still has room`,
       fit.page && fit.cut && !fit.cut.length && fit.barIn && fit.controlsIn && fit.stacked && fit.volume === 'none' && fit.list > 150 && !errors.length, JSON.stringify(fit) + ' ' + errors.slice(0, 2).join(' '));
   }
@@ -342,12 +355,12 @@ const password = process.env.STUDIO_PW || 'pw';
   check('Light: the code says theme=light and the preview turns light', /\/embed\/podcasts\?theme=light"/.test(await snippet())
     && await until(`var f = document.getElementById('emFrame'), d = f.contentDocument; return f.getAttribute('src') === '/embed/podcasts?theme=light' && !!d && !!d.getElementById('player') && d.getElementById('player').getAttribute('data-theme') === 'light' && d.querySelectorAll('.pe-episode').length > 0;`, 15000), await snippet());
   await ev(`var s = document.getElementById('emShow'); s.value = ${JSON.stringify(first.secondKey)}; s.dispatchEvent(new Event('change', { bubbles: true })); return 1;`);
-  await p.click('#emPresets .em-chip:nth-child(10)');
+  await p.click('#emPresets .em-chip:nth-child(2)');   // Tuning teal (On-air red is the default)
   const chosen = await snippet();
-  check('a starting show and the KPFK red preset go into the code', chosen.indexOf('show=' + first.secondKey) > 0 && /dark=e14a2e&amp;light=c8371e/.test(chosen)
-    && await ev(`return document.querySelector('#emPresets .em-chip:nth-child(10)').getAttribute('aria-pressed') === 'true' && document.getElementById('emDarkHex').value === '#e14a2e' && document.getElementById('emOpen').getAttribute('href').indexOf('dark=e14a2e&light=c8371e') > 0;`), chosen);
-  check('… and the preview follows: that show, the red accent', await until(`var d = document.getElementById('emFrame').contentDocument, t = d && d.querySelector('.pe-show-title'), b = d && d.querySelector('.pe-play-btn');
-    return !!t && t.textContent === ${JSON.stringify(first.second)} && getComputedStyle(b).backgroundColor === 'rgb(200, 55, 30)';`, 15000), await inFrame(`var t = d.querySelector('.pe-show-title'); return t && t.textContent;`));
+  check('a starting show and the Tuning teal preset go into the code', chosen.indexOf('show=' + first.secondKey) > 0 && /dark=4fb6ac&amp;light=0d796f/.test(chosen)
+    && await ev(`return document.querySelector('#emPresets .em-chip:nth-child(2)').getAttribute('aria-pressed') === 'true' && document.getElementById('emDarkHex').value === '#4fb6ac' && document.getElementById('emOpen').getAttribute('href').indexOf('dark=4fb6ac&light=0d796f') > 0;`), chosen);
+  check('… and the preview follows: that show, the teal accent', await until(`var d = document.getElementById('emFrame').contentDocument, t = d && d.querySelector('.pe-show-title'), b = d && d.querySelector('.pe-play-btn');
+    return !!t && t.textContent === ${JSON.stringify(first.second)} && getComputedStyle(b).backgroundColor === 'rgb(13, 121, 111)';`, 15000), await inFrame(`var t = d.querySelector('.pe-show-title'); return t && t.textContent;`));
   await p.click('[data-em-switch="header"]');
   check('Header off: the code says so, and the two header switches and the title box are set aside', /header=false/.test(await snippet())
     && await ev(`return document.querySelector('[data-em-switch="headerIcon"]').disabled && document.querySelector('[data-em-switch="themeToggle"]').disabled && document.getElementById('emHeading').disabled && !document.querySelector('[data-em-switch="cover"]').disabled;`));

@@ -12,8 +12,8 @@ The same thing Radio Suite shipped on 2026-11-10 (archive.pacifica.audio/embeds)
 JS. Plan, decisions and file list: [docs/kpfk/podcast-embed-plan.md](docs/kpfk/podcast-embed-plan.md) ("As built").
 
 - **`/embed/podcasts`**: show picker, the show's episodes, player bar (seek, −15 s / +30 s, speed,
-  volume, plays on to the next episode). Radio Suite's look: black and white by default, 11 colour
-  presets, Oswald and Inter (copies in `public/assets/fonts/`, open licence). Reads `/api/archive`, so
+  volume, plays on to the next episode). The site's look (cream / warm dark, raised cards, on-air red;
+  round 3), 11 colour presets. Reads `/api/archive`, so
   it lists exactly what the site lists. **Any website may frame it** (Paul); the fund drive capsule
   stays the station's sites only. No download buttons. Plays and listening time are counted
   (`track.js`, no identifier); **no page view** from an embed.
@@ -33,7 +33,12 @@ JS. Plan, decisions and file list: [docs/kpfk/podcast-embed-plan.md](docs/kpfk/p
   notes; the transcript route itself is unchanged). Checked: `npm test` 282, `test/podcast-embed/run.sh`
   65 (QIR answered by a stand-in inside Chrome: no QIR key on a laptop). **Real transcripts are seen
   only on the live site**, after a deploy.
-- **Not done**: not committed or pushed; not checked in Safari/WebKit (Chrome
+- **Live 2026-11-11** (`1d06062`, checked: version changed, `instanceId` `73039ae5…`, `freshVolume:false`,
+  the player framable by any site, `notes?show=kpfk.kpfk.dn` 45 notes / 40 KB, a transcript 200).
+- **Third round (same day)**: the site's look instead of Radio Suite's black and white; on phones the
+  descriptions use the card's full width. The Oswald and Inter font files are deleted (Paul's yes):
+  the player uses the site's fonts.
+- **Not done**: not checked in Safari/WebKit (Chrome
   only: `-webkit-line-clamp`, `color-mix` and `:has` are used, all in Safari 16.2+); no live stream in
   the embed (episodes only, as Radio Suite); the overview and staff guide PDFs do not mention it yet.
 

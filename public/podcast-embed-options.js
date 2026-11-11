@@ -29,24 +29,27 @@
 
   // Ready-made accent pairs for the Embeds tab (one click sets both themes). Each passes the same
   // checks (test/pacifica/podcast-embed.test.js): the colour reads as text on its theme's
-  // background (4.5:1) and the play icon on it reads (textOn, 3:1). Graphite, black and white, is
-  // the default (Paul, 2026-11-10).
+  // background (4.5:1) and the play icon on it reads (textOn, 3:1). The default is the site's own
+  // on-air red (Paul, 2026-11-11: the embed looks like the site); Tuning teal is the site's second
+  // colour; Graphite is the black and white Radio Suite uses.
   var ACCENT_PRESETS = [
+    { name: 'On-air red', dark: '#e14a2e', light: '#c8371e' },
+    // Adjusted a hair to read on the site's warm backgrounds: this teal (the site's #0d7d72 is
+    // 4.46:1 on cream), Violet's dark shade and Amber's light one.
+    { name: 'Tuning teal', dark: '#4fb6ac', light: '#0d796f' },
     { name: 'Graphite', dark: '#e5e7eb', light: '#18181b' },
     { name: 'Blue', dark: '#3b82f6', light: '#2563eb' },
     { name: 'Sky', dark: '#0284c7', light: '#0369a1' },
-    { name: 'Teal', dark: '#0d9488', light: '#0f766e' },
     { name: 'Emerald', dark: '#059669', light: '#047857' },
     { name: 'Indigo', dark: '#7c7ff5', light: '#4338ca' },
-    { name: 'Violet', dark: '#8b5cf6', light: '#6d28d9' },
+    { name: 'Violet', dark: '#8e61f6', light: '#6d28d9' },
     { name: 'Pink', dark: '#ec4899', light: '#be185d' },
     { name: 'Rose', dark: '#f43f5e', light: '#be123c' },
-    { name: 'KPFK red', dark: '#e14a2e', light: '#c8371e' },
-    { name: 'Amber', dark: '#d97706', light: '#b45309' }
+    { name: 'Amber', dark: '#d97706', light: '#b05109' }
   ];
 
-  // The player's backgrounds (public/podcast-embed.css), for the contrast checks.
-  var THEME_BACKGROUND = { dark: '#0a0a0a', light: '#fdfcff' };
+  // The player's backgrounds (public/podcast-embed.css: the site's --surface-0), for the contrast checks.
+  var THEME_BACKGROUND = { dark: '#14100f', light: '#f6f1ea' };
 
   var DEFAULT_OPTIONS = Object.freeze({
     show: null,          // show key to start on; null = first in the picker

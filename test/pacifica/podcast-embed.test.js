@@ -109,7 +109,7 @@ test('play icons are white on the accent unless white would be unreadable', () =
   }
 });
 
-test('every colour preset reads as text on its theme and under the play icon; Graphite is the default', () => {
+test('every colour preset reads as text on its theme and under the play icon; the site\'s red is the default', () => {
   const ratio = (a, b) => {
     const [x, y] = [PE.luminance(a), PE.luminance(b)].sort((m, n) => n - m);
     return (x + 0.05) / (y + 0.05);
@@ -127,10 +127,10 @@ test('every colour preset reads as text on its theme and under the play icon; Gr
     assert.deepEqual(roundTrip(o), o, `${p.name} survives the link`);
   }
   assert.equal(names.size, ACCENT_PRESETS.length, 'preset names are unique');
-  assert.equal(DEFAULT_OPTIONS.darkColor, '#e5e7eb');
-  assert.equal(DEFAULT_OPTIONS.lightColor, '#18181b');
-  assert.equal(textOn(DEFAULT_OPTIONS.darkColor), '#000000', 'dark theme: black icon on light grey');
-  assert.equal(textOn(DEFAULT_OPTIONS.lightColor), '#ffffff', 'light theme: white icon on near-black');
+  assert.equal(DEFAULT_OPTIONS.darkColor, '#e14a2e', 'the site\'s --accent, dark theme');
+  assert.equal(DEFAULT_OPTIONS.lightColor, '#c8371e', 'the site\'s --accent, light theme');
+  assert.equal(textOn(DEFAULT_OPTIONS.darkColor), '#ffffff', 'white icons on the red, as on the site');
+  assert.equal(textOn(DEFAULT_OPTIONS.lightColor), '#ffffff');
   // The stylesheet's own defaults (used before the script runs) are the same pair and backgrounds
   const css = fs.readFileSync(path.join(root, 'public/podcast-embed.css'), 'utf8');
   for (const [name, value] of [['--pe-accent-dark', DEFAULT_OPTIONS.darkColor], ['--pe-accent-light', DEFAULT_OPTIONS.lightColor],
@@ -138,6 +138,39 @@ test('every colour preset reads as text on its theme and under the play icon; Gr
     assert.ok(css.includes(`${name}: ${value};`), `${name} in the stylesheet is ${value}`);
   }
   assert.ok(css.includes(`--pe-bg: ${THEME_BACKGROUND.dark};`) && css.includes(`--pe-bg: ${THEME_BACKGROUND.light};`), 'the contrast checks use the stylesheet\'s backgrounds');
+});
+
+test('the player\'s colours are the site\'s: every copied token matches public/styles.css in both themes', () => {
+  // The embed page loads only its own stylesheet, so it carries copies of the site's tokens. Any
+  // drift (the site changes a colour) fails here instead of the player quietly looking different.
+  const site = fs.readFileSync(path.join(root, 'public/styles.css'), 'utf8');
+  const css = fs.readFileSync(path.join(root, 'public/podcast-embed.css'), 'utf8');
+  const block = (src, start) => { const i = src.indexOf(start); assert.ok(i >= 0, start); return src.slice(i, src.indexOf('}', i)); };
+  const token = (text, name) => { const m = new RegExp(name.replace(/[-]/g, '\\-') + '\\s*:\\s*([^;]+);').exec(text); return m && m[1].trim(); };
+  const themes = {
+    dark: { site: block(site, ':root[data-theme="dark"]'), embed: block(css, '.pe {') },
+    light: { site: block(site, '@media (prefers-color-scheme: light)'), embed: block(css, '.pe[data-theme="light"] {') },
+  };
+  const pairs = [['--surface-0', '--pe-bg'], ['--surface-1', '--pe-raised'], ['--surface-2', '--pe-surface'], ['--surface-3', '--pe-surface-3'],
+    ['--surface-hover', '--pe-hover'], ['--outline', '--pe-border'], ['--outline-strong', '--pe-border-strong'],
+    ['--ink', '--pe-text'], ['--ink-dim', '--pe-text-2'], ['--ink-faint', '--pe-text-3'], ['--accent-2', '--pe-teal'],
+    ['--shadow', '--pe-shadow'], ['--elev-1', '--pe-elev-1'], ['--elev-2', '--pe-elev-2']];
+  const norm = v => String(v).replace(/\s+/g, '').replace(/,0\./g, ',.').toLowerCase();
+  for (const [theme, b] of Object.entries(themes)) {
+    for (const [siteName, peName] of pairs) {
+      const want = token(b.site, siteName), got = token(b.embed, peName);
+      assert.ok(want, `${theme}: ${siteName} found in styles.css`);
+      assert.equal(norm(got), norm(want), `${theme}: ${peName} should be the site's ${siteName}`);
+    }
+    assert.equal(THEME_BACKGROUND[theme], token(b.site, '--surface-0'), `${theme}: the contrast checks use the site's page colour`);
+    assert.equal(theme === 'dark' ? DEFAULT_OPTIONS.darkColor : DEFAULT_OPTIONS.lightColor, token(b.site, '--accent'), `${theme}: the default accent is the site's`);
+  }
+  // Fonts: the site's display and text faces
+  for (const [siteName, peName] of [['--font-display', '--pe-font-display'], ['--font-body', '--pe-font-body']]) {
+    assert.equal(token(css, peName), token(site, siteName), `${peName} is the site's ${siteName}`);
+  }
+  // The check can see drift: a changed site colour is reported.
+  assert.notEqual(norm(token(themes.light.embed, '--pe-bg')), norm('#ffffff'));
 });
 
 test('"latest N" keeps the newest N, whatever the order shown', () => {
@@ -321,8 +354,7 @@ test('real HTTP: any website may frame the player; it reads the site\'s own feed
     assert.ok(!/\{\{/.test(page), 'no unrendered placeholder');
   }
   // Every file the page asks for is served, with a type the browser will run
-  for (const [f, type] of [['podcast-embed.css', /^text\/css/], ['podcast-embed.js', /javascript/], ['podcast-embed-options.js', /javascript/],
-    ['assets/fonts/oswald-latin.woff2', /^font\/woff2/], ['assets/fonts/inter-latin.woff2', /^font\/woff2/]]) {
+  for (const [f, type] of [['podcast-embed.css', /^text\/css/], ['podcast-embed.js', /javascript/], ['podcast-embed-options.js', /javascript/]]) {
     const res = await fetch(`${url}/${f}`);
     assert.equal(res.status, 200, f); assert.match(res.headers.get('content-type'), type, f);
     await res.arrayBuffer();

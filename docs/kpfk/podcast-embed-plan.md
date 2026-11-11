@@ -10,7 +10,7 @@ Paul's decisions, are in "As built" below; the rest of this file is the plan it 
 | --- | --- |
 | Settings, ordering, formatting, the feed as the player lists it | `public/podcast-embed-options.js` (browser and Node) |
 | The player page | `embed/podcasts.html`, `public/podcast-embed.js`, `public/podcast-embed.css` |
-| Fonts (Oswald, Inter; this app's policy allows its own files only) | `public/assets/fonts/` |
+| Fonts: the site's own (system faces). Round 1 shipped Oswald and Inter files; deleted in round 3 | — |
 | Route, who may frame it | `server.js`: `/embed/podcasts` → `sendEmbed(..., '*')` |
 | The studio's Embeds tab | `admin/studio.html` (`#embedsPanel`), `public/studio-embeds.js`, `public/studio.css`; `GET /api/studio/embeds` (the public address for the code) |
 | Tests | `test/pacifica/podcast-embed.test.js` (offline), `test/podcast-embed/run.sh` (browser), `/embed/podcasts` in `test/page-load` |
@@ -20,7 +20,10 @@ Paul's decisions (2026-11-11), answering §4:
 1. **Any website may frame it** (`frame-ancestors *`). The fund drive capsule stays the station's sites only.
 2. **Every show on the site**, by reading `/api/archive` (withheld shows and the site's other rules apply by themselves).
 3. **Address** `/embed/podcasts`.
-4. **Radio Suite's look**: black and white by default, the 11 presets, Oswald and Inter.
+4. **The site's look** (changed in round 3, Paul: "match the style of the website"): its cream light
+   and warm dark themes, raised cards, pill buttons, condensed headings, teal hosts; the site's
+   on-air red is the default accent; 11 presets (Graphite, Radio Suite's black and white, among them).
+   The colours are copies of `public/styles.css` tokens, and a test fails if they drift.
 5. **Plays count**: `/track.js` runs in the embed (plays, listening time; no identifier). It sends **no page view** from `/embed/...`.
 6. **No download buttons**, as Radio Suite ended 2026-11-10.
 7. **The Embeds tab holds both codes**: the player's code maker, and the fund drive capsule's code (moved from the Fund drive card, which now links to the tab).
@@ -42,6 +45,14 @@ Second round (Paul, 2026-11-11: "mostly great"):
   and which episodes have a transcript. A 404 (no Discovery / QIR on the station) means no transcript
   buttons, never an error. The transcript text is the site's own route, unchanged
   (docs/transcripts.md); the parser is the site's (`/discover/qir-transcript.js`, loaded on first use).
+
+Third round (Paul, 2026-11-11: "features work great"):
+
+- **Phones:** an opened episode description and the show's description use the card's full width
+  (they sat in a narrow column beside the buttons).
+- **The site's look** instead of Radio Suite's black and white (decision 4 above). Presets adjusted
+  a hair where they missed 4.5:1 on the warmer backgrounds: Tuning teal light `#0d796f` (the site's
+  own `#0d7d72` is 4.46:1 on cream), Violet dark `#8e61f6`, Amber light `#b05109`.
 
 Different from Radio Suite, on purpose:
 
